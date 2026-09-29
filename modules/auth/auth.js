@@ -8,7 +8,17 @@ if (!SUPABASE_PUBLISHABLE_KEY.startsWith("REPLACE_")) {
   supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 }
 
+async function openOverview(user) {
+  root.hidden = true;
+  const overviewRoot = document.querySelector("#overview-app");
+  if (overviewRoot) overviewRoot.hidden = false;
+
+  const { mount } = await import("../overview/overview.js");
+  await mount(user);
+}
+
 function renderEntry() {
+  root.hidden = false;
   root.innerHTML = `
     <div class="auth-shell">
       <section class="auth-card">
@@ -17,7 +27,6 @@ function renderEntry() {
           <h1>Democrat</h1>
           <p>The Game</p>
         </div>
-
         <div class="auth-actions">
           <button class="auth-button auth-button-primary" data-action="login">Anmelden</button>
           <button class="auth-button" data-action="register">Registrieren</button>
@@ -31,6 +40,7 @@ function renderEntry() {
 }
 
 function renderLogin(message = "") {
+  root.hidden = false;
   root.innerHTML = `
     <div class="auth-shell">
       <section class="auth-card">
@@ -56,6 +66,7 @@ function renderLogin(message = "") {
 }
 
 function renderRegister(message = "") {
+  root.hidden = false;
   root.innerHTML = `
     <div class="auth-shell">
       <section class="auth-card">
@@ -91,16 +102,13 @@ async function handleLogin(event) {
   if (!supabase) return renderLogin("Die Authentifizierung ist noch nicht konfiguriert.");
 
   const form = new FormData(event.currentTarget);
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: form.get("email"),
     password: form.get("password")
   });
 
   if (error) return renderLogin(error.message);
-
-  // Intentionally no game logic here.
-  // A future game/session module will receive the authenticated state through a defined interface.
-  renderLogin("Anmeldung erfolgreich.");
+  await openOverview(data.user);
 }
 
 async function handleRegister(event) {
@@ -117,19 +125,35 @@ async function handleRegister(event) {
     return renderRegister("Die Passwörter stimmen nicht überein.");
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      data: {
-        profile_name: profileName
-      }
-    }
+    options: { data: { profile_name: profileName } }
   });
 
   if (error) return renderRegister(error.message);
 
+  if (data.session && data.user) {
+    await openOverview(data.user);
+    return;
+  }
+
   renderLogin("Konto erstellt. Falls eine E-Mail-Bestätigung aktiviert ist, bestätige zuerst deine E-Mail-Adresse.");
+}
+
+async function restoreExistingSession() {
+  if (!supabase) {
+    renderEntry();
+    return;
+  }
+
+  const { data } = await supabase.auth.getSession();
+  if (data.session?.user) {
+    await openOverview(data.session.user);
+    return;
+  }
+
+  renderEntry();
 }
 
 function escapeHtml(value) {
@@ -141,4 +165,4 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-renderEntry();
+restoreExistingSession();
