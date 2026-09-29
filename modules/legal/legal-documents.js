@@ -14,7 +14,15 @@ export const LEGAL_DOCUMENTS = {
       <p>Für ein Spielkonto werden insbesondere die E-Mail-Adresse und der gewählte Profilname verarbeitet. Zusätzlich können technische Authentifizierungs-, Sitzungs-, Geräte-, Protokoll- und Sicherheitsdaten verarbeitet werden, soweit dies für Anmeldung, Betrieb, Sicherheit und Missbrauchsschutz erforderlich ist.</p>
       <p>Passwörter werden nicht im Klartext durch die Spielanwendung gespeichert. Die Authentifizierung wird über den eingesetzten Authentifizierungsdienst von Supabase durchgeführt.</p>
 
-      <h2>4. Zwecke der Verarbeitung</h2>
+      <h2>4. Zahlungen und kostenpflichtige Funktionen</h2>
+      <p>Sofern künftig kostenpflichtige Inhalte, In-Game-Käufe, Abonnements, Spenden oder sonstige Zahlungen angeboten werden, werden die hierfür erforderlichen Zahlungs-, Transaktions- und Abrechnungsdaten verarbeitet. Je nach gewählter Zahlungsart können Zahlungsdaten unmittelbar durch einen hierfür eingesetzten Zahlungsdienstleister verarbeitet werden.</p>
+      <p>Der konkrete Zahlungsdienstleister, die jeweils verarbeiteten Daten, Zwecke, Rechtsgrundlagen, Speicherdauern und gegebenenfalls Empfänger werden vor oder bei Einführung der jeweiligen Zahlungsfunktion in dieser Datenschutzerklärung ergänzt bzw. konkretisiert. Zahlungsdaten werden nicht über das Spiel verarbeitet, soweit dies durch den eingesetzten Zahlungsdienstleister übernommen wird.</p>
+
+      <h2>5. Werbung und Marketing</h2>
+      <p>Sofern im Spiel oder auf zugehörigen Webseiten Werbung eingebunden wird, können hierfür je nach konkreter technischen Umsetzung insbesondere Geräte-, Nutzungs-, Abruf- oder pseudonyme Kennungen verarbeitet werden. Werden personalisierte Werbung, Tracking- oder Analyseverfahren eingesetzt, werden die hierfür erforderlichen Informationen und Rechtsgrundlagen gesondert erläutert und – soweit erforderlich – eine Einwilligung eingeholt.</p>
+      <p>Werden externe Werbe- oder Marketingdienstleister eingesetzt, werden die konkret eingesetzten Anbieter und die relevanten Datenschutzinformationen vor ihrer produktiven Einbindung ergänzt.</p>
+
+      <h2>6. Zwecke der Verarbeitung</h2>
       <p>Die Verarbeitung erfolgt insbesondere zu folgenden Zwecken:</p>
       <ul>
         <li>Erstellung und Verwaltung des Spielkontos;</li>
@@ -62,7 +70,9 @@ export const LEGAL_DOCUMENTS = {
   terms: {
     title: "Nutzungsbedingungen",
     html: `
-      <h2>1. Anbieter und Geltungsbereich</h2>
+      <h2>1. Anbieter, Geltungsbereich und Mindestalter</h2>
+      <p><strong>Democrat – The Game</strong> ist für Nutzer ab <strong>16 Jahren</strong> bestimmt. Die Nutzung des Spiels ist daher grundsätzlich erst ab Vollendung des 16. Lebensjahres gestattet.</p>
+      <p>Diese Angabe beschreibt das vom Betreiber vorgesehene Mindestalter und stellt keine behördliche oder durch die USK erteilte Altersfreigabe dar, sofern eine solche Kennzeichnung nicht ausdrücklich vorliegt.</p>
       <p>Anbieter und Betreiber von <strong>Democrat – The Game</strong> ist:</p>
       <p><strong>Paul Rühlemann</strong><br>Carl-Zeiss-Straße 27<br>99097 Erfurt<br>Deutschland<br>E-Mail: mafiatherealworld@gmail.com</p>
       <p>Paul Rühlemann ist zugleich Inhaber und alleiniger Entwickler des Spiels.</p>
@@ -86,32 +96,36 @@ export const LEGAL_DOCUMENTS = {
         <li>Handlungen, die den Betrieb des Spiels oder die Nutzung durch andere Spieler erheblich beeinträchtigen.</li>
       </ul>
 
-      <h2>5. Spielregeln und Fair Play</h2>
+      <h2>5. Zahlungen, Käufe und Werbung</h2>
+      <p>Sofern kostenpflichtige Inhalte, In-Game-Käufe, Abonnements, Spenden oder andere entgeltliche Leistungen angeboten werden, gelten die hierfür beim jeweiligen Kauf angezeigten Preise, Leistungsbeschreibungen und zusätzlichen Bedingungen.</p>
+      <p>Sofern Werbung im Spiel oder auf zugehörigen Webseiten eingebunden wird, kann diese durch den Betreiber oder durch externe Werbedienstleister bereitgestellt werden. Die konkrete technische und datenschutzrechtliche Ausgestaltung richtet sich nach der jeweils eingesetzten Lösung.</p>
+
+      <h2>6. Spielregeln und Fair Play</h2>
       <p>Spieler sind verpflichtet, die im Spiel geltenden Regeln einzuhalten und keine technischen oder sonstigen Mittel einzusetzen, die anderen Spielern einen unzulässigen Vorteil verschaffen oder den Spielbetrieb beeinträchtigen.</p>
 
-      <h2>6. Verfügbarkeit und Weiterentwicklung</h2>
+      <h2>7. Verfügbarkeit und Weiterentwicklung</h2>
       <p>Das Spiel wird fortlaufend entwickelt. Funktionen, Inhalte, technische Abläufe und Schnittstellen können aus sachlichen Gründen weiterentwickelt, geändert, vorübergehend deaktiviert oder eingestellt werden, soweit dies gesetzlich zulässig ist.</p>
       <p>Ein Anspruch auf eine bestimmte Funktion, einen bestimmten Spielstand, eine bestimmte Version oder eine jederzeit fehlerfreie und unterbrechungsfreie Verfügbarkeit besteht nicht, soweit gesetzlich zulässig.</p>
 
-      <h2>7. Kontosperrung und Maßnahmen</h2>
+      <h2>8. Kontosperrung und Maßnahmen</h2>
       <p>Bei Verstößen gegen diese Nutzungsbedingungen oder gegen gesetzliche Vorschriften können unter Beachtung der gesetzlichen Vorgaben geeignete Maßnahmen ergriffen werden. Dazu können insbesondere Verwarnungen, Einschränkungen einzelner Funktionen oder eine vorübergehende bzw. dauerhafte Sperrung des Kontos gehören.</p>
       <p>Bei Maßnahmen werden die Umstände des Einzelfalls berücksichtigt. Gesetzliche Rechte der Nutzer bleiben unberührt.</p>
 
-      <h2>8. Geistiges Eigentum</h2>
+      <h2>9. Geistiges Eigentum</h2>
       <p>Software, Quellcode, Gestaltung, Texte, Grafiken, Datenbanken, Marken- und Kennzeichenbestandteile sowie sonstige Inhalte von Democrat – The Game sind, soweit nicht anders gekennzeichnet, urheberrechtlich oder durch andere Schutzrechte geschützt.</p>
       <p>Eine Vervielfältigung, öffentliche Zugänglichmachung, Bearbeitung oder sonstige Nutzung außerhalb des gesetzlich zulässigen Umfangs bedarf der erforderlichen Zustimmung des jeweiligen Rechteinhabers.</p>
 
-      <h2>9. Haftung</h2>
+      <h2>10. Haftung</h2>
       <p>Die Haftung richtet sich nach den gesetzlichen Vorschriften. Gesetzlich zwingende Haftung, insbesondere für Schäden aus der Verletzung von Leben, Körper oder Gesundheit sowie für vorsätzlich oder grob fahrlässig verursachte Schäden, wird nicht ausgeschlossen oder beschränkt.</p>
       <p>Für leicht fahrlässig verursachte Schäden haftet der Anbieter – soweit gesetzlich zulässig – nur bei Verletzung wesentlicher Vertragspflichten und begrenzt auf den bei Vertragsschluss vorhersehbaren, vertragstypischen Schaden.</p>
 
-      <h2>10. Änderungen der Nutzungsbedingungen</h2>
+      <h2>11. Änderungen der Nutzungsbedingungen</h2>
       <p>Änderungen dieser Nutzungsbedingungen werden in geeigneter Weise angekündigt. Soweit eine Änderung nur mit Zustimmung des Nutzers wirksam werden kann, wird die erforderliche Zustimmung ausdrücklich eingeholt.</p>
 
-      <h2>11. Beendigung des Nutzungsverhältnisses</h2>
+      <h2>12. Beendigung des Nutzungsverhältnisses</h2>
       <p>Nutzer können ihr Konto nach den im Spiel vorgesehenen Möglichkeiten bzw. durch Kontaktaufnahme mit dem Betreiber beenden. Gesetzliche Ansprüche und etwaige Aufbewahrungspflichten bleiben unberührt.</p>
 
-      <h2>12. Anwendbares Recht</h2>
+      <h2>13. Anwendbares Recht</h2>
       <p>Es gilt deutsches Recht unter Beachtung zwingender gesetzlicher Verbraucherschutzvorschriften.</p>
 
       <p><strong>Fassung:</strong> 1.1<br><strong>Stand:</strong> 29.09.2026</p>
