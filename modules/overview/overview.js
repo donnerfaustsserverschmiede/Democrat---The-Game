@@ -27,17 +27,14 @@ function renderShell(profileName = "Spieler") {
         </div>
         <div class="overview-player">${escapeHtml(profileName)}</div>
       </header>
+
       <main class="overview-main">
         <h1 class="overview-title">Übersicht</h1>
         <p class="overview-subtitle">Wähle eine Sitzung, an der du teilnehmen möchtest.</p>
 
         <div class="overview-tabs" role="tablist">
-          <button class="overview-tab ${activeTab === "mine" ? "active" : ""}" data-tab="mine">
-            MEINE SITZUNGEN
-          </button>
-          <button class="overview-tab ${activeTab === "public" ? "active" : ""}" data-tab="public">
-            ÖFFENTLICHE SITZUNGEN
-          </button>
+          <button class="overview-tab ${activeTab === "mine" ? "active" : ""}" data-tab="mine" type="button">MEINE SITZUNGEN</button>
+          <button class="overview-tab ${activeTab === "public" ? "active" : ""}" data-tab="public" type="button">ÖFFENTLICHE SITZUNGEN</button>
           <button class="overview-refresh" data-action="refresh" type="button">↻ Aktualisieren</button>
         </div>
 
@@ -59,60 +56,43 @@ function renderShell(profileName = "Spieler") {
 
 async function loadSessions() {
   const list = root.querySelector("#session-list");
-  if (!list) return;
+  if (!list || !currentUser) return;
 
   list.innerHTML = `<div class="overview-empty">Sitzungen werden geladen …</div>`;
 
-  const { data: memberships, error: membershipError } = await supabase
-    .from("session_members")
-    .select("session_id")
-    .eq("user_id", currentUser.id);
-
-  if (membershipError) {
-    list.innerHTML = `<div class="overview-error">Sitzungen konnten nicht geladen werden.</div>`;
-    return;
-  }
-
-  const ownIds = new Set((memberships || []).map(row => row.session_id));
-
-  const { data: sessions, error } = await supabase
-    .from("sessions")
-    .select("id, display_name, player_count, max_players, created_at")
-    .order("display_name", { ascending: true });
+  const rpcName = activeTab === "mine" ? "get_my_sessions" : "get_public_sessions";
+  const { data: sessions, error } = await supabase.rpc(rpcName);
 
   if (error) {
     list.innerHTML = `<div class="overview-error">Sitzungen konnten nicht geladen werden.</div>`;
     return;
   }
 
-  const visible = activeTab === "mine"
-    ? (sessions || []).filter(session => ownIds.has(session.id))
-    : (sessions || []).filter(session => session.player_count < session.max_players);
+  const visible = sessions || [];
 
   if (!visible.length) {
-    list.innerHTML = `<div class="overview-empty">${
-      activeTab === "mine"
-        ? "Du nimmst aktuell an keiner Sitzung teil."
-        : "Aktuell sind keine öffentlichen Sitzungen verfügbar."
+    list.innerHTML = `<div class="overview-empty">${activeTab === "mine"
+      ? "Du nimmst aktuell an keiner Sitzung teil."
+      : "Aktuell sind keine öffentlichen Sitzungen verfügbar."
     }</div>`;
     return;
   }
 
   list.innerHTML = visible.map(session => {
     const full = session.player_count >= session.max_players;
-    const isMine = ownIds.has(session.id);
+
     return `
       <article class="session-card">
         <div>
           <h2 class="session-name">${escapeHtml(session.display_name)}</h2>
           <div class="session-meta">${session.player_count} / ${session.max_players} Plätze belegt</div>
-          <span class="session-status">${full ? "Voll" : "Offen"}${isMine ? " · Teilnahme aktiv" : ""}</span>
+          <span class="session-status">${full ? "Voll" : "Offen"}${activeTab === "mine" ? " · Teilnahme aktiv" : ""}</span>
         </div>
-        <button
-          class="session-action"
-          data-session-id="${session.id}"
-          ${isMine || full ? "disabled" : ""}
-        >${isMine ? "Teilnehmend" : full ? "Voll" : "Beitreten"}</button>
+
+        <button class="session-action" data-session-id="${session.id}"
+          ${activeTab === "mine" || full ? "disabled" : ""} type="button">
+          ${activeTab === "mine" ? "Teilnehmend" : full ? "Voll" : "Beitreten"}
+        </button>
       </article>
     `;
   }).join("");
@@ -129,7 +109,6 @@ async function joinSession(sessionId) {
   const { error } = await supabase.rpc("join_session", { p_session_id: sessionId });
 
   if (error) {
-    buttons.forEach(button => button.disabled = false);
     await loadSessions();
     return;
   }
@@ -152,14 +131,7 @@ export async function mount(user) {
   supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
   currentUser = user;
 
-  const profileResult = await supabase
-    .from("profiles")
-    .select("profile_name")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  const profileName = profileResult.data?.profile_name || user.email || "Spieler";
-
+  const profileName = user.user_metadata?.profile_name || user.email || "Spieler";
   renderShell(profileName);
   await loadSessions();
 }
