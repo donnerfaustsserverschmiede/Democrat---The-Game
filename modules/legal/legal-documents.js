@@ -3,106 +3,88 @@ export const LEGAL_DOCUMENTS = {
     title: "Datenschutzerklärung",
     html: `
       <h2>1. Verantwortlicher</h2>
-      <p>Verantwortlicher für die Verarbeitung personenbezogener Daten im Zusammenhang mit <strong>Democrat – The Game</strong> ist der im Impressum genannte Betreiber.</p>
+      <p>Verantwortlicher für die Verarbeitung personenbezogener Daten im Zusammenhang mit <strong>Democrat – The Game</strong> ist:</p>
+      <p><strong>Paul Rühlemann</strong><br>Carl-Zeiss-Straße 27<br>99097 Erfurt<br>Deutschland<br>E-Mail: mafiatherealworld@gmail.com</p>
 
       <h2>2. Welche Daten werden verarbeitet?</h2>
-      <p>Bei Registrierung und Nutzung des Spiels können insbesondere folgende Daten verarbeitet werden:</p>
-      <ul>
-        <li>E-Mail-Adresse des Spielerkontos,</li>
-        <li>Profilname bzw. Anzeigename,</li>
-        <li>technische Authentifizierungs- und Sitzungsdaten,</li>
-        <li>Zeitpunkte von Registrierung und Anmeldungen, soweit diese vom Authentifizierungsdienst bereitgestellt und für den Betrieb benötigt werden,</li>
-        <li>später hinzukommende Spieldaten, soweit deren Verarbeitung für den jeweiligen Spielfunktionsbereich erforderlich ist.</li>
-      </ul>
-      <p>Passwörter werden nicht vom Spielbetreiber im Klartext gespeichert. Die Authentifizierung erfolgt über den eingesetzten Authentifizierungsdienst.</p>
+      <p>Bei Registrierung und Nutzung des Spiels werden insbesondere die für das Spielkonto erforderliche E-Mail-Adresse und der gewählte Profilname verarbeitet. Zusätzlich können technische Authentifizierungs-, Sitzungs- und Sicherheitsdaten verarbeitet werden, soweit dies für den Betrieb und die Absicherung des Dienstes erforderlich ist.</p>
+      <p>Passwörter werden nicht als Klartext durch das Spiel gespeichert. Die Authentifizierung erfolgt über den eingesetzten Authentifizierungsdienst.</p>
 
       <h2>3. Zwecke der Verarbeitung</h2>
-      <p>Die Verarbeitung erfolgt insbesondere zur Erstellung und Verwaltung von Spielerkonten, zur Authentifizierung, zur Bereitstellung des Spiels, zur Sicherung des Betriebs und zur Verhinderung bzw. Aufklärung von Missbrauch.</p>
+      <p>Die Daten werden zur Einrichtung und Verwaltung von Spielerkonten, zur Anmeldung und Authentifizierung, zur Bereitstellung des Spiels, zur Sicherung des Betriebs sowie zur Verhinderung und Aufklärung von Missbrauch verarbeitet.</p>
 
       <h2>4. Rechtsgrundlagen</h2>
-      <p>Soweit personenbezogene Daten zur Durchführung des Nutzungsverhältnisses erforderlich sind, erfolgt die Verarbeitung auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO. Soweit eine gesetzliche Verpflichtung besteht, erfolgt die Verarbeitung auf Grundlage von Art. 6 Abs. 1 lit. c DSGVO. Soweit die Verarbeitung zur Wahrung berechtigter Interessen erforderlich ist, erfolgt sie auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO. Eine Verarbeitung auf Grundlage einer Einwilligung erfolgt nur, soweit eine gesonderte Einwilligung eingeholt wird.</p>
+      <p>Soweit die Verarbeitung zur Durchführung des Nutzungsverhältnisses und zur Bereitstellung der vom Nutzer angeforderten Funktionen erforderlich ist, erfolgt sie auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO. Soweit gesetzliche Verpflichtungen bestehen, ist Art. 6 Abs. 1 lit. c DSGVO die Rechtsgrundlage. Soweit die Verarbeitung zur Wahrung berechtigter Interessen erforderlich ist und keine überwiegenden Interessen der betroffenen Person entgegenstehen, kommt Art. 6 Abs. 1 lit. f DSGVO in Betracht.</p>
+      <p>Die bloße Kenntnisnahme dieser Datenschutzerklärung stellt keine Einwilligung in sämtliche Datenverarbeitungen dar. Soweit eine Einwilligung erforderlich ist, wird diese gesondert und zweckbezogen eingeholt.</p>
 
-      <h2>5. Eingesetzter Dienst: Supabase</h2>
-      <p>Für Authentifizierung und Datenbankfunktionen wird Supabase eingesetzt. Dabei können personenbezogene Daten in der von Supabase bereitgestellten Infrastruktur verarbeitet werden. Die konkrete Serverregion, eingesetzten Unterauftragnehmer und gegebenenfalls erforderlichen Garantien für Drittlandübermittlungen werden in der zum Zeitpunkt der Verarbeitung geltenden Anbieter- und Vertragsdokumentation berücksichtigt.</p>
+      <h2>5. Supabase</h2>
+      <p>Für die Benutzer-Authentifizierung und die Datenbank des Spiels wird Supabase eingesetzt. Dabei werden die für Konto und Spielbetrieb erforderlichen Daten in der von Supabase bereitgestellten Infrastruktur verarbeitet. Supabase kann hierfür weitere Auftragsverarbeiter einsetzen. Maßgeblich sind die zum Zeitpunkt der Verarbeitung geltenden Vertrags-, Datenschutz- und Subunternehmerinformationen von Supabase.</p>
 
-      <h2>6. Hosting und Auslieferung</h2>
-      <p>Die Anwendung wird über den jeweils im Impressum bzw. in dieser Datenschutzerklärung angegebenen Hosting-/Auslieferungsdienst bereitgestellt. Dabei können technisch erforderliche Verbindungs- und Serverdaten verarbeitet werden.</p>
+      <h2>6. Hosting und technische Bereitstellung</h2>
+      <p>Die Webanwendung kann über GitHub Pages bzw. den jeweils eingesetzten Hosting- und Auslieferungsdienst bereitgestellt werden. Bei der technischen Bereitstellung können insbesondere IP-Adresse, Zeitpunkt des Abrufs, angeforderte Ressourcen und technische Verbindungsdaten verarbeitet werden, soweit dies für die Auslieferung, Sicherheit und Stabilität erforderlich ist.</p>
 
       <h2>7. Speicherdauer</h2>
-      <p>Personenbezogene Daten werden nur so lange gespeichert, wie dies für die jeweiligen Zwecke erforderlich ist, gesetzliche Aufbewahrungspflichten bestehen oder berechtigte Interessen dies rechtfertigen. Kontodaten werden grundsätzlich bis zur Löschung des Kontos gespeichert, soweit keine gesetzlichen oder sonstigen zulässigen Gründe einer Löschung entgegenstehen.</p>
+      <p>Personenbezogene Daten werden gelöscht, sobald der jeweilige Zweck entfällt und keine gesetzlichen Aufbewahrungspflichten oder andere rechtlich zulässige Gründe einer Löschung entgegenstehen. Kontobezogene Daten werden grundsätzlich bis zur Löschung des Nutzerkontos gespeichert, soweit keine längere Speicherung erforderlich oder zulässig ist.</p>
 
-      <h2>8. Deine Rechte</h2>
-      <p>Betroffene Personen haben nach Maßgabe der DSGVO insbesondere Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit sowie – soweit die Voraussetzungen vorliegen – Widerspruch gegen die Verarbeitung. Eine erteilte Einwilligung kann jederzeit mit Wirkung für die Zukunft widerrufen werden.</p>
+      <h2>8. Rechte der betroffenen Personen</h2>
+      <p>Betroffene Personen haben nach Maßgabe der gesetzlichen Voraussetzungen insbesondere das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung und Datenübertragbarkeit. Soweit die Verarbeitung auf Art. 6 Abs. 1 lit. e oder f DSGVO beruht, besteht ein Widerspruchsrecht nach Art. 21 DSGVO. Eine erteilte Einwilligung kann jederzeit mit Wirkung für die Zukunft widerrufen werden.</p>
+      <p>Zur Ausübung dieser Rechte genügt grundsätzlich eine Nachricht an: <strong>mafiatherealworld@gmail.com</strong>.</p>
 
       <h2>9. Beschwerderecht</h2>
-      <p>Es besteht das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren. Zuständig ist insbesondere die Aufsichtsbehörde am gewöhnlichen Aufenthaltsort, Arbeitsplatz oder Ort des mutmaßlichen Verstoßes.</p>
+      <p>Betroffene Personen haben das Recht, sich bei einer Datenschutzaufsichtsbehörde über die Verarbeitung ihrer personenbezogenen Daten zu beschweren.</p>
 
-      <h2>10. Änderungen dieser Datenschutzerklärung</h2>
-      <p>Diese Datenschutzerklärung kann angepasst werden, wenn sich der Dienst, die Datenverarbeitung oder die rechtlichen Anforderungen ändern. Die jeweils aktuelle Fassung wird im Spiel zugänglich gemacht.</p>
+      <h2>10. Änderungen</h2>
+      <p>Diese Datenschutzerklärung wird angepasst, wenn sich die Datenverarbeitung, eingesetzte Dienste oder die gesetzlichen Anforderungen ändern. Die jeweils aktuelle Fassung wird im Spiel zugänglich gemacht.</p>
     `
   },
-
   terms: {
     title: "Nutzungsbedingungen",
     html: `
       <h2>1. Geltungsbereich</h2>
-      <p>Diese Nutzungsbedingungen regeln die Nutzung von <strong>Democrat – The Game</strong> einschließlich der zugehörigen Online-Funktionen.</p>
+      <p>Diese Nutzungsbedingungen gelten für die Nutzung von <strong>Democrat – The Game</strong> einschließlich der dazugehörigen Online-Funktionen.</p>
 
       <h2>2. Spielkonto</h2>
-      <p>Für bestimmte Funktionen ist ein persönliches Spielkonto erforderlich. Die Zugangsdaten sind vertraulich zu behandeln. Eine Weitergabe des Kontos an andere Personen ist nicht gestattet, soweit der Betreiber nicht ausdrücklich etwas anderes erlaubt.</p>
+      <p>Für bestimmte Funktionen ist ein persönliches Spielkonto erforderlich. Die bei der Registrierung gemachten Angaben müssen zutreffend sein. Zugangsdaten sind vertraulich zu behandeln und dürfen nicht unbefugt an Dritte weitergegeben werden.</p>
 
       <h2>3. Zulässige Nutzung</h2>
-      <p>Das Spiel darf nur im Rahmen der geltenden Gesetze und dieser Nutzungsbedingungen verwendet werden. Unzulässig sind insbesondere Manipulationen des Spiels, das Umgehen technischer Schutzmaßnahmen, unbefugter Zugriff auf andere Konten oder Systeme, automatisierte Eingriffe außerhalb ausdrücklich vorgesehener Schnittstellen sowie die Ausnutzung von Sicherheitslücken.</p>
+      <p>Das Spiel darf nur im Rahmen der geltenden Gesetze und dieser Nutzungsbedingungen verwendet werden. Unzulässig sind insbesondere Manipulationen der Anwendung, das Umgehen technischer Schutzmaßnahmen, unbefugter Zugriff auf fremde Konten oder Systeme, das Ausnutzen von Sicherheitslücken und automatisierte Eingriffe außerhalb ausdrücklich vorgesehener Funktionen.</p>
 
-      <h2>4. Fair Play</h2>
-      <p>Spieler dürfen keine technischen oder organisatorischen Maßnahmen einsetzen, die anderen Spielern einen unzulässigen Vorteil verschaffen oder den ordnungsgemäßen Betrieb beeinträchtigen.</p>
+      <h2>4. Fair Play und Community</h2>
+      <p>Spieler dürfen keine Maßnahmen einsetzen, die den ordnungsgemäßen Betrieb des Spiels beeinträchtigen oder anderen Spielern durch technische Manipulation einen unzulässigen Vorteil verschaffen. Für spätere Community-, Chat- oder Parteienfunktionen können ergänzende Regeln gelten.</p>
 
-      <h2>5. Verfügbarkeit und Änderungen</h2>
-      <p>Ein dauerhaft störungsfreier Betrieb kann technisch nicht garantiert werden. Funktionen können weiterentwickelt, geändert, vorübergehend deaktiviert oder eingestellt werden, soweit dies unter Berücksichtigung der anwendbaren gesetzlichen Vorgaben zulässig ist.</p>
+      <h2>5. Änderungen und Verfügbarkeit</h2>
+      <p>Das Spiel wird weiterentwickelt. Funktionen können aus technischen, sicherheitsbezogenen oder organisatorischen Gründen geändert, vorübergehend deaktiviert oder eingestellt werden, soweit dies gesetzlich zulässig ist. Eine jederzeit fehlerfreie und unterbrechungsfreie Verfügbarkeit wird nicht garantiert.</p>
 
-      <h2>6. Sperrung von Konten</h2>
-      <p>Bei erheblichen oder wiederholten Verstößen gegen diese Nutzungsbedingungen kann ein Konto nach Maßgabe der gesetzlichen Vorgaben eingeschränkt oder gesperrt werden. Zwingende gesetzliche Rechte bleiben unberührt.</p>
+      <h2>6. Maßnahmen bei Verstößen</h2>
+      <p>Bei erheblichen oder wiederholten Verstößen können nach Maßgabe der gesetzlichen Vorgaben geeignete Maßnahmen ergriffen werden, einschließlich einer Einschränkung oder Sperrung des Spielkontos. Gesetzliche Rechte bleiben unberührt.</p>
 
-      <h2>7. Inhalte von Spielern</h2>
-      <p>Soweit das Spiel künftig nutzergenerierte Inhalte ermöglicht, dürfen keine rechtswidrigen, beleidigenden, bedrohen­den, diskriminierenden oder Rechte Dritter verletzenden Inhalte eingestellt werden. Für einzelne Community-Funktionen können ergänzende Regeln gelten.</p>
+      <h2>7. Rechte an der Anwendung</h2>
+      <p>Software, Quellcode, Gestaltung, Texte, Grafiken, Datenbanken und sonstige Inhalte von Democrat – The Game sind, soweit nicht anders gekennzeichnet, urheberrechtlich oder durch sonstige Schutzrechte geschützt. Eine Nutzung außerhalb des vorgesehenen Spielbetriebs ist nur im gesetzlich zulässigen Umfang oder mit entsprechender Erlaubnis gestattet.</p>
 
-      <h2>8. Rechte an Spiel und Software</h2>
-      <p>Software, Gestaltung, Texte, Grafiken, Marken und sonstige Inhalte des Spiels sind, soweit nicht anders angegeben, urheber- oder kennzeichenrechtlich geschützt. Eine Nutzung außerhalb der vorgesehenen Spielnutzung bedarf der jeweiligen Berechtigung.</p>
+      <h2>8. Haftung</h2>
+      <p>Die Haftung richtet sich nach den gesetzlichen Vorschriften. Eine Haftungsbeschränkung gilt insbesondere nicht für Schäden aus der Verletzung von Leben, Körper oder Gesundheit sowie in Fällen von Vorsatz oder grober Fahrlässigkeit, soweit gesetzlich zwingend.</p>
 
-      <h2>9. Haftung</h2>
-      <p>Die Haftung richtet sich nach den gesetzlichen Vorschriften. Haftungsbeschränkungen gelten nicht, soweit zwingendes Recht eine Haftung ausschließt oder eine weitergehende Haftung vorsieht, insbesondere bei Vorsatz, grober Fahrlässigkeit sowie Schäden an Leben, Körper oder Gesundheit.</p>
+      <h2>9. Änderungen der Nutzungsbedingungen</h2>
+      <p>Wenn diese Nutzungsbedingungen geändert werden, werden Nutzer in geeigneter Weise darüber informiert. Soweit für eine Änderung eine Zustimmung erforderlich ist, wird diese gesondert eingeholt.</p>
 
-      <h2>10. Änderungen der Bedingungen</h2>
-      <p>Änderungen dieser Nutzungsbedingungen werden in geeigneter Form bekanntgegeben. Soweit eine Zustimmung erforderlich ist, wird diese gesondert eingeholt.</p>
-
-      <h2>11. Schlussbestimmungen</h2>
-      <p>Es gilt das anwendbare Recht unter Beachtung zwingender Verbraucherschutzvorschriften. Sollten einzelne Bestimmungen unwirksam sein, bleiben die übrigen Bestimmungen im gesetzlich zulässigen Umfang unberührt.</p>
+      <h2>10. Anwendbares Recht</h2>
+      <p>Es gilt das anwendbare deutsche Recht unter Beachtung zwingender Verbraucherschutzvorschriften.</p>
     `
   },
-
   imprint: {
     title: "Impressum",
     html: `
       <h2>Anbieter</h2>
-      <p><strong>[VOLLSTÄNDIGER NAME / FIRMA EINTRAGEN]</strong><br>
-      [STRASSE UND HAUSNUMMER]<br>
-      [PLZ] [ORT]<br>
-      Deutschland</p>
+      <p><strong>Paul Rühlemann</strong><br>Carl-Zeiss-Straße 27<br>99097 Erfurt<br>Deutschland</p>
 
       <h2>Kontakt</h2>
-      <p>E-Mail: [KONTAKT-E-MAIL EINTRAGEN]<br>
-      Telefon: [TELEFON EINTRAGEN ODER ENTFERNEN]</p>
+      <p>E-Mail: <strong>mafiatherealworld@gmail.com</strong></p>
 
       <h2>Weitere Angaben</h2>
-      <p>Vertretungsberechtigte Person: [FALLS ERFORDERLICH EINTRAGEN]</p>
-      <p>Register: [FALLS VORHANDEN EINTRAGEN]<br>
-      Registernummer: [FALLS VORHANDEN EINTRAGEN]</p>
-      <p>Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: [FALLS VORHANDEN EINTRAGEN]</p>
+      <p>Soweit für den konkreten Dienst weitere gesetzliche Angaben erforderlich sind, werden diese an dieser Stelle ergänzt.</p>
 
       <h2>Verantwortlich für den Inhalt</h2>
-      <p>[VERANTWORTLICHE PERSON UND ANSCHRIFT EINTRAGEN, SOWEIT ERFORDERLICH]</p>
-
-      <p><strong>Hinweis:</strong> Die Platzhalter dieses Dokuments müssen vor einer öffentlichen Veröffentlichung vollständig ersetzt oder entfernt werden.</p>
+      <p>Paul Rühlemann<br>Carl-Zeiss-Straße 27<br>99097 Erfurt<br>Deutschland</p>
     `
   }
 };
