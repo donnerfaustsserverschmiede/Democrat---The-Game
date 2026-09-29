@@ -29,6 +29,9 @@ create table if not exists game.session_members (
 create index if not exists sessions_type_open_idx
   on game.sessions(session_type_id, player_count, created_at);
 
+create index if not exists session_members_user_idx
+  on game.session_members(user_id, joined_at desc);
+
 alter table game.session_types enable row level security;
 alter table game.sessions enable row level security;
 alter table game.session_members enable row level security;
@@ -179,7 +182,7 @@ grant execute on function game.leave_session(uuid) to authenticated;
 
 create or replace function public.get_my_sessions()
 returns table (id uuid, display_name text, player_count integer, max_players integer, created_at timestamptz)
-language sql security definer set search_path = pg_catalog
+language sql security invoker set search_path = pg_catalog
 as $$
   select s.id, s.display_name, s.player_count, s.max_players, s.created_at
   from game.sessions s join game.session_members sm on sm.session_id = s.id
@@ -188,14 +191,14 @@ $$;
 
 create or replace function public.get_public_sessions()
 returns table (id uuid, display_name text, player_count integer, max_players integer, created_at timestamptz)
-language sql security definer set search_path = pg_catalog
+language sql security invoker set search_path = pg_catalog
 as $$
   select s.id, s.display_name, s.player_count, s.max_players, s.created_at
   from game.sessions s where s.player_count < s.max_players order by s.display_name;
 $$;
 
 create or replace function public.join_session(p_session_id uuid)
-returns game.sessions language plpgsql security definer set search_path = game, pg_catalog
+returns game.sessions language plpgsql security invoker set search_path = game, pg_catalog
 as $$
 begin
   if (select auth.uid()) is null then raise exception 'not_authenticated'; end if;
@@ -204,7 +207,7 @@ end;
 $$;
 
 create or replace function public.leave_session(p_session_id uuid)
-returns void language plpgsql security definer set search_path = game, pg_catalog
+returns void language plpgsql security invoker set search_path = game, pg_catalog
 as $$
 begin
   if (select auth.uid()) is null then raise exception 'not_authenticated'; end if;
