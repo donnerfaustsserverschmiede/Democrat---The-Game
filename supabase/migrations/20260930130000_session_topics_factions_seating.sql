@@ -170,15 +170,24 @@ end $$;
 create or replace function game.ensure_country_open_sessions(p_country_code text)
 returns void language plpgsql security definer set search_path=game,pg_catalog
 as $$
-declare v_type record;v_open integer;v_needed integer;
+declare v_type record;v_open integer;v_number integer;v_session game.sessions%rowtype;
 begin
-  for v_type in select id,locale from game.session_types where country_code=upper(p_country_code) order by code loop
-    select count(*) into v_open from game.sessions where session_type_id=v_type.id and player_count<max_players;
-    v_needed:=greatest(0,3-v_open);
-    while v_needed>0 loop perform game.ensure_open_session(v_type.id);v_needed:=v_needed-1;end loop;
+  for v_type in
+    select id,locale,max_players,display_name
+    from game.session_types where country_code=upper(p_country_code) order by code
+  loop
+    select count(*) into v_open from game.sessions
+    where session_type_id=v_type.id and player_count<max_players;
+    while v_open<3 loop
+      v_number:=game.next_session_number(v_type.id);
+      insert into game.sessions(session_type_id,session_number,display_name,max_players)
+      values(v_type.id,v_number,v_type.display_name||' '||lpad(v_number::text,2,'0'),v_type.max_players)
+      returning * into v_session;
+      perform game.initialize_session(v_session.id,v_type.locale);
+      v_open:=v_open+1;
+    end loop;
   end loop;
 end $$;
-
 do $$
 declare r record;
 begin
