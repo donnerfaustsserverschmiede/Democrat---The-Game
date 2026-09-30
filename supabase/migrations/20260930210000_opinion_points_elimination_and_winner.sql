@@ -9,8 +9,4 @@ alter table game.sessions
 alter table game.session_members add column if not exists eliminated_at timestamptz;
 alter table game.session_faction_stats add column if not exists eliminated_at timestamptz;
 
--- Live definitions are kept in the deployed database; this migration documents the schema and API contract.
--- The voting API applies citizen_impact as opinion-point delta:
--- good decision = +abs(citizen_impact), bad decision = -abs(citizen_impact), interject = 0.
--- Player/faction points are clamped to 0..100. Reaching 0 eliminates that participant/faction;
--- reaching 100 immediately ends the session and records the winner.
+
