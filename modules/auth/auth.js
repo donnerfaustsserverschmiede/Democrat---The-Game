@@ -20,6 +20,7 @@ function renderEntry() {
         <div class="auth-actions">
           <button class="auth-button auth-button-primary" data-action="login">Anmelden</button>
           <button class="auth-button" data-action="register">Registrieren</button>
+          <button class="auth-button" data-action="guest">Als Gast spielen</button>
         </div>
       </section>
     </div>
@@ -27,6 +28,7 @@ function renderEntry() {
 
   root.querySelector('[data-action="login"]').addEventListener("click", () => renderLogin());
   root.querySelector('[data-action="register"]').addEventListener("click", () => renderRegister());
+  root.querySelector('[data-action="guest"]').addEventListener("click", () => renderGuest());
 }
 
 function renderLogin(message = "") {
@@ -83,6 +85,56 @@ function renderRegister(message = "") {
 
   root.querySelector('[data-action="back"]').addEventListener("click", renderEntry);
   root.querySelector("#register-form").addEventListener("submit", handleRegister);
+}
+
+function renderGuest(message = "") {
+  root.innerHTML = `
+    <div class="auth-shell">
+      <section class="auth-card">
+        <button class="auth-back" data-action="back">← Zurück</button>
+        <h2>Als Gast spielen</h2>
+        <p class="auth-description">Kein Konto nötig. Gib nur einen Benutzernamen ein.</p>
+        ${message ? `<div class="auth-message" role="alert">${escapeHtml(message)}</div>` : ""}
+        <form id="guest-form" class="auth-form">
+          <label>Benutzername
+            <input name="profileName" type="text" maxlength="32" minlength="2" autocomplete="nickname" required>
+          </label>
+          <button class="auth-button auth-button-primary" type="submit">Als Gast starten</button>
+        </form>
+      </section>
+    </div>
+  `;
+
+  root.querySelector('[data-action="back"]').addEventListener("click", renderEntry);
+  root.querySelector("#guest-form").addEventListener("submit", handleGuest);
+}
+
+async function handleGuest(event) {
+  event.preventDefault();
+  if (!supabase) return renderGuest("Die Authentifizierung ist noch nicht konfiguriert.");
+
+  const form = new FormData(event.currentTarget);
+  const profileName = String(form.get("profileName") || "").trim();
+  if (profileName.length < 2 || profileName.length > 32) {
+    return renderGuest("Der Benutzername muss zwischen 2 und 32 Zeichen lang sein.");
+  }
+
+  const { data, error } = await supabase.auth.signInAnonymously({
+    options: { data: { profile_name: profileName } }
+  });
+  if (error) {
+    console.error("[Democrat] Guest login error:", error);
+    return renderGuest("Der Gastmodus konnte nicht gestartet werden. Bitte versuche es erneut.");
+  }
+
+  const { error: profileError } = await supabase.rpc("set_guest_profile", { p_profile_name: profileName });
+  if (profileError) {
+    console.error("[Democrat] Guest profile error:", profileError);
+    await supabase.auth.signOut();
+    return renderGuest("Der Benutzername konnte nicht gespeichert werden.");
+  }
+
+  await mountCountrySelection(data.user);
 }
 
 async function mountCountrySelection(user) {
