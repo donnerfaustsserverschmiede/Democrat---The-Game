@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./auth-config.js";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./auth-config-v2.js";
 
 const root = document.querySelector("#auth-app");
 
