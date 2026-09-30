@@ -46,83 +46,111 @@ async function load(){
 
 function renderChamber(){
   const playerId=currentUser?.id;
-  const ordered=[...seats].sort((a,b)=>(a.seat_number||0)-(b.seat_number||0));
   const colorByName={
     red:"#d9534f",blue:"#3b82f6",green:"#22a06b",
     yellow:"#d8ad2d",purple:"#8b5cf6",orange:"#e47b28"
   };
 
-  const runs=[];
-  let run=null;
-  for(const seat of ordered){
-    const key=seat.faction_id||"__free__";
-    if(!run||run.key!==key){
-      run={key,faction_id:seat.faction_id||null,seats:[],color:seat.faction_color?colorByName[seat.faction_color]||"#64748b":"#243249",name:seat.faction_name||"Freie Sitze"};
-      runs.push(run);
-    }
-    run.seats.push(seat);
-  }
-
-  const total=60;
-  let cursor=0;
-  const sectorMarkup=[];
-  const seatMarkup=[];
-  const rows=6;
+  const totalPerSector=20;
+  const rows=4;
+  const columns=5;
   const innerRadius=21;
-  const rowGap=4.1;
+  const rowGap=5.0;
   const outerRadius=innerRadius+(rows-1)*rowGap;
+  const sectorGap=4;
+  const sectorSpan=(180-sectorGap*2)/3;
+  const sectorDefs=[
+    {key:"left",start:180,end:180-sectorSpan},
+    {key:"center",start:90+sectorSpan/2,end:90-sectorSpan/2},
+    {key:"right",start:sectorSpan,end:0}
+  ];
 
   const point=(angleDeg,radius)=>{
     const a=angleDeg*Math.PI/180;
-    return {x:50+Math.cos(a)*radius,y:88-Math.sin(a)*radius*0.72};
+    return {
+      x:50+Math.cos(a)*radius,
+      y:88-Math.sin(a)*radius*0.72
+    };
   };
+
   const sectorPath=(startDeg,endDeg)=>{
     const outerStart=point(startDeg,outerRadius+3);
     const outerEnd=point(endDeg,outerRadius+3);
     const innerEnd=point(endDeg,innerRadius-2);
     const innerStart=point(startDeg,innerRadius-2);
-    const span=Math.abs(startDeg-endDeg);
-    const large=span>180?1:0;
     return `M ${outerStart.x.toFixed(3)} ${outerStart.y.toFixed(3)}
-      A ${(outerRadius+3).toFixed(3)} ${((outerRadius+3)*0.72).toFixed(3)} 0 ${large} 0 ${outerEnd.x.toFixed(3)} ${outerEnd.y.toFixed(3)}
+      A ${(outerRadius+3).toFixed(3)} ${((outerRadius+3)*0.72).toFixed(3)} 0 0 0 ${outerEnd.x.toFixed(3)} ${outerEnd.y.toFixed(3)}
       L ${innerEnd.x.toFixed(3)} ${innerEnd.y.toFixed(3)}
-      A ${(innerRadius-2).toFixed(3)} ${((innerRadius-2)*0.72).toFixed(3)} 0 ${large} 1 ${innerStart.x.toFixed(3)} ${innerStart.y.toFixed(3)} Z`;
+      A ${(innerRadius-2).toFixed(3)} ${((innerRadius-2)*0.72).toFixed(3)} 0 0 1 ${innerStart.x.toFixed(3)} ${innerStart.y.toFixed(3)} Z`;
   };
 
-  for(const r of runs){
-    const count=r.seats.length;
-    const startDeg=180-(cursor/total)*180;
-    const endDeg=180-((cursor+count)/total)*180;
-    const fill=r.key==="__free__" ? "#243249" : r.color;
-    sectorMarkup.push(`<path class="seat-sector ${r.key==="__free__"?"free-sector":""}" d="${sectorPath(startDeg,endDeg)}" fill="${fill}" data-seat-count="${count}" opacity="${r.key==="__free__"?".22":".25"}><title>${esc(r.name)} · ${count} Sitze</title></path>`);
+  const bySide={left:[],center:[],right:[]};
+  for(const seat of seats){
+    const side=seat.side==="left"||seat.side==="center"||seat.side==="right"
+      ? seat.side
+      : (seat.seat_number<=20?"left":seat.seat_number<=40?"center":"right");
+    bySide[side].push(seat);
+  }
+  Object.values(bySide).forEach(list=>list.sort((a,b)=>(a.seat_number||0)-(b.seat_number||0)));
 
-    const span=endDeg-startDeg;
-    const cols=Math.max(1,Math.ceil(count/rows));
-    r.seats.forEach((seat,i)=>{
-      const row=i%rows;
-      const col=Math.floor(i/rows);
-      const angle=startDeg+((col+0.5)/cols)*span;
+  const sectorMarkup=[];
+  const seatMarkup=[];
+
+  for(const sector of sectorDefs){
+    const list=bySide[sector.key].slice(0,totalPerSector);
+    const fill=sector.key==="left"?"#334155":sector.key==="center"?"#3b4658":"#334155";
+    sectorMarkup.push(
+      `<path class="seat-sector" d="${sectorPath(sector.start,sector.end)}" fill="${fill}" opacity=".22">
+        <title>${sideLabel(sector.key)} · 20 Sitze</title>
+      </path>`
+    );
+
+    const span=sector.end-sector.start;
+    for(let i=0;i<totalPerSector;i++){
+      const seat=list[i]||{
+        seat_number:sector.key==="left"?i+1:sector.key==="center"?i+21:i+41,
+        side:sector.key,
+        faction_id:null,
+        faction_name:null,
+        faction_color:null,
+        user_id:null,
+        profile_name:null
+      };
+
+      const row=Math.floor(i/columns);
+      const col=i%columns;
+      const angle=sector.start+((col+0.5)/columns)*span;
       const radius=innerRadius+row*rowGap;
       const p=point(angle,radius);
       const occupied=Boolean(seat.user_id);
       const controlled=Boolean(seat.faction_id)&&!occupied;
       const own=seat.user_id===playerId;
       const colorClass=seat.faction_color ? " faction-"+esc(seat.faction_color) : "";
-      const cls=own ? "seat own-seat" : occupied ? "seat occupied-seat"+colorClass : controlled ? "seat controlled-empty-seat"+colorClass : "seat";
-      const label=own ? "Du" : occupied ? esc(seat.profile_name) : "";
+      const cls=own
+        ? "seat own-seat"
+        : occupied
+          ? "seat occupied-seat"+colorClass
+          : controlled
+            ? "seat controlled-empty-seat"+colorClass
+            : "seat";
+
       const title=occupied
         ? esc(seat.profile_name)+" · "+esc(seat.faction_name||"")
         : controlled
           ? "Fraktionsplatz · "+esc(seat.faction_name||"")
-          : "Freier Sitz";
-      seatMarkup.push(`<div class="${cls}" style="--x:${p.x.toFixed(3)}%;--y:${p.y.toFixed(3)}%" title="${title}"><span class="seat-dot"></span>${label ? `<span class="seat-label">${label}</span>` : ""}</div>`);
-    });
-    cursor+=count;
+          : "Freier Sitz · "+esc(sideLabel(sector.key));
+
+      seatMarkup.push(
+        `<div class="${cls}" style="--x:${p.x.toFixed(3)}%;--y:${p.y.toFixed(3)}%" title="${title}">
+          <span class="seat-dot"></span>
+        </div>`
+      );
+    }
   }
 
   return `<div class="chamber-wrap">
-    <div class="chamber-title">Sitzungsverteilung · 60 Sitze</div>
-    <div class="chamber-map hemicycle-map">
+    <div class="chamber-title">Sitzverteilung · 60 Sitze</div>
+    <div class="hemicycle-map">
       <div class="presidium"><span>PRÄSIDIUM</span><small>Präsident / Präsidium</small></div>
       <svg class="seat-sector-map" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <path class="seat-arc" d="M 8 88 A 45 32.4 0 0 1 92 88"></path>
@@ -132,7 +160,9 @@ function renderChamber(){
       <div class="hemicycle-floor"></div>
       <div class="chamber-seats">${seatMarkup.join("")}</div>
     </div>
-    <div class="chamber-legend">${factions.map(f=>`<span><i class="legend-dot faction-${esc(f.color_code||"blue")}"></i>${esc(f.name)} · ${f.member_count}/10</span>`).join("")}</div>
+    <div class="chamber-legend">
+      ${factions.map(f=>`<span><i class="legend-dot faction-${esc(f.color_code||"blue")}"></i>${esc(f.name)} · ${f.member_count}/10</span>`).join("")}
+    </div>
   </div>`;
 }
 function renderSideOptions(x){
