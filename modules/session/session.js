@@ -44,7 +44,7 @@ async function load(){
 function renderChamber(){
   const playerId=currentUser?.id;
   const seatMarkup=seats.map((s,i)=>{
-    const angle=180-(i/59)*180;
+    const angle=180-(i/29)*180;
     const xPos=50+43*Math.cos(angle*Math.PI/180);
     const yPos=94-76*Math.sin(angle*Math.PI/180);
     const own=s.user_id===playerId;
@@ -70,6 +70,21 @@ function renderFactionChooser(x){
   return html;
 }
 
+function renderFactionChooser(x){
+  const counts={left:0,center:0,right:0};
+  seats.forEach(s=>{if(s.user_id)counts[s.side]=(counts[s.side]||0)+1;});
+  const sideFull=side=>counts[side]>=10;
+  let html="<div class=\"faction-switch\"><h3>"+x.choose+"</h3><div class=\"faction-grid\">";
+  if(factions.length){
+    factions.forEach(f=>{html+="<button class=\"faction-card ${selectedFactionId===f.id?"selected":""} \" data-faction=\""+f.id+"\" type=\"button\"><strong><i class=\"faction-swatch faction-"+esc(f.color_code||"blue")+"\"></i>"+esc(f.name)+"</strong><span>"+sideLabel(f.side)+"</span><small>"+f.member_count+"/10 "+x.members+"</small></button>";});
+  }else html+="<div class=\"session-empty\">"+x.existing+": —</div>";
+  html+="</div>";
+  if(selectedFactionId)html+="<button class=\"session-primary faction-confirm\" type=\"button\" data-existing>"+x.chooseExisting+"</button>";
+  html+="<div class=\"new-faction\"><h3>"+x.new+"</h3><label>"+x.name+"<input id=\"faction-name\" maxlength=\"40\" placeholder=\""+x.namePlaceholder+"\"></label><fieldset><legend>"+x.position+"</legend><div class=\"side-options\">";
+  ["left","center","right"].forEach(side=>{const label=sideLabel(side);const full=sideFull(side);html+="<label class=\""+(full?"side-disabled":"")+"\"><input type=\"radio\" name=\"side\" value=\""+side+"\" "+(side==="center"&&!full?"checked ":"")+(full?"disabled":"")+"> "+label+(full?" · "+x.full:"")+"</label>";});
+  html+="</div></fieldset><button class=\"session-primary\" type=\"button\" data-create>"+x.create+"</button><div id=\"session-action-error\" class=\"session-action-error\" hidden></div></div></div>";
+  return html;
+}
 function render(){
   const x=t();
   const assigned=entry.faction_id&&entry.seat_number;
@@ -94,6 +109,8 @@ function render(){
           <p>${sideLabel(entry.faction_side)} · ${x.seat} <strong>${entry.seat_number}</strong></p>
           <div class="session-seat-note">${x.assignedText}</div>
           ${renderChamber()}
+          ${switchingFaction ? renderFactionChooser(x) : `<button class="session-primary" type="button" data-switch>${x.changeFaction}</button>`}
+          ${switchingFaction ? `<button class="session-secondary" type="button" data-cancel-switch>${x.cancel}</button>` : ""}
         </section>`
       : `
         <section class="session-panel">
@@ -135,7 +152,7 @@ async function chooseExisting(){
   if(!selectedFactionId)return;
   const err=root.querySelector("#session-action-error");
   const {error}=await supabase.rpc("choose_session_faction",{p_session_id:currentSessionId,p_faction_id:selectedFactionId,p_faction_name:null,p_side:null});
-  if(error){err.textContent=error.message?.includes("faction_full")?t().factionFull:t().required;err.hidden=false;return;}
+  if(error){err.textContent=error.message?.includes("faction_full")?t().factionFull:error.message?.includes("sector_full")?t().sectorFull:t().required;err.hidden=false;return;}
   selectedFactionId=null;switchingFaction=false;await load();
 }
 
@@ -145,7 +162,7 @@ async function chooseNew(){
   if(!name||!side){err.textContent=x.required;err.hidden=false;return;}
   const {data,error}=await supabase.rpc("choose_session_faction",{p_session_id:currentSessionId,p_faction_id:selectedFactionId,p_faction_name:selectedFactionId?null:name,p_side:selectedFactionId?null:side});
   if(error){err.textContent=error.message?.includes("faction_full")?x.factionFull:error.message?.includes("sector_full")?x.sectorFull:x.required;err.hidden=false;return;}
-  selectedFactionId=null;await load();
+  selectedFactionId=null;switchingFaction=false;await load();
 }
 
 function back(){
