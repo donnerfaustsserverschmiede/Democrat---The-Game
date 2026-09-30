@@ -89,7 +89,7 @@ async function loadSessions() {
 async function openSession(sessionId) {
   root.hidden=true;
   try {
-    const session=await import("../session/session.js?v=20260930-16");
+    const session=await import("../session/session.js?v=20260930-17");
     await session.mount(currentUser,sessionId,currentPrefs);
   } catch(error) {
     console.error("[Democrat] Failed to open session:", error);
