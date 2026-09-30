@@ -284,17 +284,8 @@ function renderFactionChooser(x){
   }else html+="<div class=\"session-empty\">"+x.existing+": —</div>";
   html+="</div>";
   if(selectedFactionId){
-  const current=factions.find(f=>f.id===selectedFactionId);
-  const available=["red","blue","green","yellow","purple","orange"];
-  const used=new Set(factions.filter(f=>f.id!==selectedFactionId).map(f=>f.color_code));
-  html+="<div class=\"faction-color-picker\"><h3>"+x.color+" <span>"+x.chooseColor+"</span></h3><div class=\"color-options\">";
-  available.filter(color=>!used.has(color)).forEach(color=>{
-    const sel=(selectedFactionColor||current?.color_code)===color;
-    html+="<button type=\"button\" class=\"color-choice faction-"+color+(sel?" selected":"")+"\" data-faction-color=\""+color+"\" aria-label=\""+color+"\"></button>";
-  });
-  html+="</div></div>";
-  html+="<button class=\"session-primary faction-confirm\" type=\"button\" data-existing>"+x.chooseExisting+"</button>";
-}
+    html+="<button class=\"session-primary faction-confirm\" type=\"button\" data-existing>"+x.chooseExisting+"</button>";
+  }
   html+="<div class=\"new-faction\"><h3>"+x.new+"</h3><label>"+x.name+"<input id=\"faction-name\" maxlength=\"40\" placeholder=\""+x.namePlaceholder+"\"></label><fieldset><legend>"+x.position+"</legend><div class=\"side-options\">";
   html+=renderSideOptions(x);
   html+="</div></fieldset><div class=\"faction-color-picker\"><h3>"+x.color+" <span>"+x.chooseColor+"</span></h3><div class=\"color-options\">";["red","blue","green","yellow","purple","orange"].forEach(color=>{const used=factions.some(f=>f.color_code===color);html+="<button type=\"button\" class=\"color-choice faction-"+color+(used?" unavailable":"")+(selectedFactionColor===color?" selected":"")+"\" data-new-faction-color=\""+color+"\" "+(used?"disabled":"")+" aria-label=\""+color+"\"></button>";});html+="</div></div><button class=\"session-primary\" type=\"button\" data-create>"+x.create+"</button><div id=\"session-action-error\" class=\"session-action-error\" hidden></div></div></div>";
@@ -607,7 +598,7 @@ function mapFactionError(error){
 async function chooseExisting(){
   if(!selectedFactionId)return;
   const err=root.querySelector("#session-action-error");
-  const {error}=await supabase.rpc("choose_session_faction",{p_session_id:currentSessionId,p_faction_id:selectedFactionId,p_faction_name:null,p_side:null});
+  const {error}=await supabase.rpc("choose_session_faction",{p_session_id:currentSessionId,p_faction_id:selectedFactionId,p_faction_name:null,p_side:null,p_color_code:null});
   if(error){err.textContent=mapFactionError(error);err.hidden=false;return;}
   if(selectedFactionColor){
     const colorResult=await supabase.rpc("set_session_faction_color",{p_session_id:currentSessionId,p_color_code:selectedFactionColor});
