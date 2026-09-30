@@ -13,9 +13,7 @@ function renderEntry() {
     <div class="auth-shell">
       <section class="auth-card">
         <div class="auth-brand">
-          <div class="auth-mark">D</div>
-          <h1>Democrat</h1>
-          <p>The Game</p>
+          <img class="game-logo auth-logo" src="./assets/democrat-logo.svg" alt="Democrat – The Game">
         </div>
 
         <div class="auth-actions">
