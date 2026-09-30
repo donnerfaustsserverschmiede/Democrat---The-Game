@@ -6,16 +6,18 @@
 /* Parliamentary semicircle */
 .chamber-wrap{margin-top:28px}
 .chamber-title{text-align:center;color:#e5c76b;text-transform:uppercase;letter-spacing:.12em;font-size:13px;font-weight:800;margin-bottom:14px}
-.hemicycle-map{position:relative;width:100%;height:370px;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:22px 22px 8px 8px;background:radial-gradient(ellipse at 50% 100%,rgba(255,255,255,.065),transparent 62%),rgba(4,9,17,.76)}
+.hemicycle-map{position:relative;width:100%;height:390px;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:22px 22px 8px 8px;background:radial-gradient(ellipse at 50% 100%,rgba(255,255,255,.065),transparent 62%),rgba(4,9,17,.76)}
 .hemicycle-map::before{content:"";position:absolute;left:8%;right:8%;top:18%;height:77%;border:1px solid rgba(229,199,107,.12);border-bottom:0;border-radius:50% 50% 0 0}
 .hemicycle-map::after{content:"";position:absolute;left:15%;right:15%;top:30%;height:62%;border:1px solid rgba(255,255,255,.055);border-bottom:0;border-radius:50% 50% 0 0}
 .hemicycle-floor{position:absolute;left:30%;right:30%;top:42%;bottom:7%;border-radius:50% 50% 10px 10px;background:radial-gradient(ellipse at 50% 20%,rgba(255,255,255,.035),transparent 68%);border:1px solid rgba(255,255,255,.045)}
 .presidium{position:absolute;left:50%;top:28px;transform:translateX(-50%);width:32%;min-width:130px;height:44px;border-radius:10px 10px 24px 24px;background:rgba(229,199,107,.14);border:1px solid rgba(229,199,107,.42);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#e5c76b;text-transform:uppercase;letter-spacing:.1em;z-index:4;box-shadow:0 5px 20px rgba(0,0,0,.25)}
 .presidium span{font-size:10px;font-weight:800}.presidium small{margin-top:2px;font-size:7px;letter-spacing:.04em;color:rgba(255,255,255,.55);text-transform:none}
 .chamber-seats{position:absolute;inset:0;z-index:5}
-.seat{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:#243249;border:2px solid rgba(255,255,255,.2);box-shadow:0 2px 7px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:3}
+.seat{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#243249;border:2px solid rgba(255,255,255,.2);box-shadow:0 2px 7px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:3}
 .seat-dot{width:100%;height:100%;border-radius:50%;display:block;background:#243249}
 .seat.occupied-seat{background:var(--faction-color,#64748b);border-color:rgba(255,255,255,.38)}
+.seat.controlled-empty-seat{background:transparent;border-color:var(--faction-color,#64748b);box-shadow:0 0 0 2px color-mix(in srgb,var(--faction-color,#64748b) 25%,transparent)}
+.seat.controlled-empty-seat .seat-dot{background:var(--faction-color,#64748b);opacity:.28}
 .seat.occupied-seat .seat-dot{background:var(--faction-color,#64748b)}
 .seat.own-seat{background:#2e78ff;border:2px solid #fff;box-shadow:0 0 0 3px rgba(46,120,255,.35),0 4px 14px rgba(0,0,0,.45);z-index:7}
 .seat.own-seat .seat-dot{background:#2e78ff}
@@ -24,7 +26,7 @@
 .chamber-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 16px;margin-top:13px;color:#d7dee9;font-size:12px}
 .chamber-legend span{display:inline-flex;align-items:center;gap:6px}
 .legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--faction-color,#64748b)}
-@media(max-width:650px){.hemicycle-map{height:320px}.presidium{top:22px;width:38%;height:38px;min-width:105px}.presidium span{font-size:8px}.presidium small{font-size:6px}.seat{width:10px;height:10px;border-width:1.5px}.seat-label{top:12px;font-size:5px}}
+@media(max-width:650px){.hemicycle-map{height:345px}.presidium{top:22px;width:38%;height:38px;min-width:105px}.presidium span{font-size:8px}.presidium small{font-size:6px}.seat{width:10px;height:10px;border-width:1.5px}.seat-label{top:12px;font-size:5px}}
 
 .faction-swatch{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:7px;vertical-align:middle;background:var(--faction-color,#64748b)}
 .side-disabled{opacity:.38;cursor:not-allowed!important}
