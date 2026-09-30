@@ -96,7 +96,7 @@ async function load(){
 async function refreshSessionSilently(){
   if(!supabase || !currentSessionId || !entry || !entry.read_confirmed) return;
   try {
-    const [entryResult, gameResult, walletResult, factionResult, seatResult] = await Promise.all([
+    const [entryResult, gameResult, walletResult, factionResult, seatResult, actionResult] = await Promise.all([
       supabase.rpc("get_session_entry",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_wallet",{p_session_id:currentSessionId}),
