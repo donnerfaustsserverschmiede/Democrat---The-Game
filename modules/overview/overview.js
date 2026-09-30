@@ -123,3 +123,5 @@ export async function mount(user,prefs=null) {
 window.addEventListener("democrat:session-back",()=>{root.hidden=false;renderShell(profileName);loadSessions();});
 
 export function unmount(){if(presenceTimer)clearInterval(presenceTimer);presenceTimer=null;presenceSessionIds=[];if(!root)return;root.hidden=true;root.innerHTML="";if(sessionRoot)sessionRoot.hidden=true;currentUser=null;currentPrefs=null;profileName="Spieler";}
+
+// cache-version: 20260930-18
