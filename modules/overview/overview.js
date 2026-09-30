@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../auth/auth-config-v2.js?v=20260930-3";
-import * as sessionModule from "../session/session.js?v=20261001-26";
+import * as sessionModule from "../session/session.js?v=20261001-27";
 
 const root = document.querySelector("#overview-app");
 const sessionRoot = document.querySelector("#session-app");
