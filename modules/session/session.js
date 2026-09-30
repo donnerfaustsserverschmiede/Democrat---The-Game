@@ -90,7 +90,15 @@ async function load(){
     if(backButton) backButton.addEventListener("click",back);
     return;
   }
-  render();
+  try {
+    render();
+  } catch(error) {
+    console.error("[Democrat] Session render error:", error);
+    const message=error?.stack||error?.message||String(error);
+    root.innerHTML=`<div class="session-shell"><div class="session-error"><strong>Sitzung konnte nicht dargestellt werden.</strong><br><small>${esc(message)}</small><br><button class="session-secondary" type="button" data-back>Zurück</button></div></div>`;
+    const backButton=root.querySelector("[data-back]");
+    if(backButton) backButton.addEventListener("click",back);
+  }
 }
 
 async function refreshSessionSilently(){
@@ -118,8 +126,12 @@ async function refreshSessionSilently(){
     seats=seatResult.error ? seats : (seatResult.data||[]);
     factionActionStatus=actionResult.error ? factionActionStatus : (actionResult.data||[]);
     const scrollY=window.scrollY;
-    render();
-    window.scrollTo(0,scrollY);
+    try {
+      render();
+      window.scrollTo(0,scrollY);
+    } catch(error) {
+      console.error("[Democrat] Background session render error:", error);
+    }
   } catch(_error) {
     // Background refresh failures must never blank or reload the active session.
   }
@@ -573,7 +585,17 @@ export async function mount(user,sessionId,prefs){
    closeDebate();
   root.hidden=false;
   if(!SUPABASE_PUBLISHABLE_KEY||SUPABASE_PUBLISHABLE_KEY.startsWith("REPLACE_"))return;
-  supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};selectedFactionId=null;switchingFaction=false;gameState=null;loadError=null;await load();
+  supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};selectedFactionId=null;switchingFaction=false;gameState=null;loadError=null;
+  try {
+    await load();
+  } catch(error) {
+    console.error("[Democrat] Session mount error:", error);
+    root.hidden=false;
+    root.innerHTML=`<div class="session-shell"><div class="session-error"><strong>Sitzung konnte nicht geladen werden.</strong><br><small>${esc(error?.stack||error?.message||String(error))}</small><br><button class="session-secondary" type="button" data-back>Zurück</button></div></div>`;
+    const backButton=root.querySelector("[data-back]");
+    if(backButton) backButton.addEventListener("click",back);
+    return;
+  }
   gamePollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")refreshSessionSilently();},3000);
 }
 export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);closeDebate();gamePollTimer=null;advanceTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
