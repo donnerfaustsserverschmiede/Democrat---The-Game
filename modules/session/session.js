@@ -9,6 +9,7 @@ let currentPrefs = null;
 let entry = null;
 let factions = [];
 let selectedFactionId = null;
+let seats = [];
 
 const UI = {
   "de-DE": { intro:"Einführung", read:"Ich habe die Einführung gelesen – weiter", choose:"Fraktion wählen", existing:"Bestehende Fraktionen", new:"Neue Fraktion", name:"Fraktionsname", namePlaceholder:"Name der Fraktion", position:"Position im Plenum", left:"Links", center:"Mitte", right:"Rechts", members:"Mitglieder", seats:"Sitze", chooseExisting:"Diese Fraktion wählen", create:"Fraktion gründen und Sitz wählen", assigned:"Dein Sitz ist zugewiesen", assignedText:"Du sitzt in einem zusammenhängenden Fraktionsblock.", seat:"Sitz", back:"Zurück zur Sitzungsübersicht", loading:"Sitzung wird geladen …", error:"Die Sitzung konnte nicht geladen werden.", full:"Voll", selected:"Ausgewählt", required:"Bitte gib einen Fraktionsnamen ein und wähle eine Position.", factionFull:"Diese Fraktion hat bereits 10 Sitze.", sectorFull:"In diesem Sektor sind keine weiteren Fraktionsblöcke frei." },
@@ -29,10 +30,30 @@ async function load(){
   if(error||!data?.length){root.innerHTML=`<div class="session-shell"><div class="session-error">${t().error}</div></div>`;return;}
   entry=data[0];
   if(entry.read_confirmed){
-    const {data:f,error:fe}=await supabase.rpc("get_session_factions",{p_session_id:currentSessionId});
+    const [{data:f,error:fe},{data:s,error:se}]=await Promise.all([
+      supabase.rpc("get_session_factions",{p_session_id:currentSessionId}),
+      supabase.rpc("get_session_seats",{p_session_id:currentSessionId})
+    ]);
     factions=fe?[]:(f||[]);
+    seats=se?[]:(s||[]);
   }
   render();
+}
+
+function renderChamber(){
+  const playerId=currentUser?.id;
+  const seatMarkup=seats.map((s,i)=>{
+    const angle=180-(i/59)*180;
+    const xPos=50+43*Math.cos(angle*Math.PI/180);
+    const yPos=94-76*Math.sin(angle*Math.PI/180);
+    const own=s.user_id===playerId;
+    const occupied=Boolean(s.user_id);
+    const cls=own?"seat own-seat":occupied?"seat occupied-seat":"seat";
+    const label=occupied?(own?"Du":esc(s.profile_name)):String(s.seat_number);
+    const faction=s.faction_name?esc(s.faction_name):"";
+    return `<div class="${cls}" style="--x:${xPos}%;--y:${yPos}%" title="${occupied?esc(s.profile_name)+" · "+faction:"Sitz "+s.seat_number}"><span class="seat-number">${label}</span>${occupied?`<span class="seat-faction">${faction}</span>`:""}</div>`;
+  }).join("");
+  return `<div class="chamber-wrap"><div class="chamber-title">Sitzungsplenum</div><div class="chamber-map"><div class="chamber-sector sector-left"><span>${t().left}</span></div><div class="chamber-sector sector-center"><span>${t().center}</span></div><div class="chamber-sector sector-right"><span>${t().right}</span></div><div class="chamber-table">Präsidium</div><div class="chamber-seats">${seatMarkup}</div></div><div class="chamber-legend">${factions.map(f=>`<span><i class="legend-dot faction-${esc(f.color_code||"blue")}"></i>${esc(f.name)}</span>`).join("")}</div></div>`;
 }
 
 function render(){
@@ -58,7 +79,7 @@ function render(){
           <h2>${esc(entry.faction_name)}</h2>
           <p>${sideLabel(entry.faction_side)} · ${x.seat} <strong>${entry.seat_number}</strong></p>
           <div class="session-seat-note">${x.assignedText}</div>
-          <button class="session-primary" type="button" data-back>${x.back}</button>
+          ${renderChamber()}
         </section>`
       : `
         <section class="session-panel">
@@ -120,4 +141,4 @@ export async function mount(user,sessionId,prefs){
   if(!SUPABASE_PUBLISHABLE_KEY||SUPABASE_PUBLISHABLE_KEY.startsWith("REPLACE_"))return;
   supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};await load();
 }
-export function unmount(){if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];selectedFactionId=null;}
+export function unmount(){if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];selectedFactionId=null;}
