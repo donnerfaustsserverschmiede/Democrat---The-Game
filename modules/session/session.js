@@ -63,14 +63,12 @@ async function load(){
         supabase.rpc("get_session_seats",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_faction_management",{p_session_id:currentSessionId}),
-        supabase.rpc("get_recent_session_interjections",{p_session_id:currentSessionId,p_limit:8})
       ]);
-      const [fr,sr,gr,mr,ir]=results;
+      const [fr,sr,gr,mr]=results;
       if(fr.status==="fulfilled" && !fr.value.error) factions=fr.value.data||[];
       if(sr.status==="fulfilled" && !sr.value.error) seats=sr.value.data||[];
       if(gr.status==="fulfilled" && !gr.value.error) gameState=gr.value.data?.[0]||null;
       if(mr.status==="fulfilled" && !mr.value.error) factionManagement=mr.value.data||[];
-      if(ir.status==="fulfilled" && !ir.value.error) interjections=ir.value.data||[];
       const failed=results.find(r=>r.status==="rejected" || r.value?.error);
       if(failed) loadError=failed.status==="rejected" ? (failed.reason?.message||String(failed.reason)) : (failed.value.error?.message||"Session-Daten konnten nicht vollständig geladen werden.");
     }
@@ -91,12 +89,11 @@ async function load(){
 async function refreshSessionSilently(){
   if(!supabase || !currentSessionId || !entry || !entry.read_confirmed) return;
   try {
-    const [entryResult, gameResult, factionResult, seatResult, interjectionResult] = await Promise.all([
+    const [entryResult, gameResult, factionResult, seatResult] = await Promise.all([
       supabase.rpc("get_session_entry",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_factions",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_seats",{p_session_id:currentSessionId}),
-      supabase.rpc("get_recent_session_interjections",{p_session_id:currentSessionId,p_limit:8})
     ]);
 
     if(entryResult.error || gameResult.error) return;
@@ -109,7 +106,6 @@ async function refreshSessionSilently(){
     gameState=nextGame;
     factions=factionResult.error ? factions : (factionResult.data||[]);
     seats=seatResult.error ? seats : (seatResult.data||[]);
-    interjections=interjectionResult.error ? interjections : (interjectionResult.data||[]);
 
     const scrollY=window.scrollY;
     render();
@@ -507,6 +503,7 @@ async function chooseNew(){
 }
 
 function back(){
+  closeDebate();
   root.hidden=true;root.innerHTML="";
   window.dispatchEvent(new CustomEvent("democrat:session-back"));
 }
