@@ -2,7 +2,7 @@ import { LEGAL_CONFIG, legalIsReleaseReady } from "./legal-config.js";
 import { LEGAL_DOCUMENTS } from "./legal-documents.js";
 
 const legal = document.querySelector("#legal-app");
-const CONSENT_KEY = "democrat_legal_consent_v2";
+const CONSENT_KEY = "democrat_legal_consent_v3";
 
 function showAuth() {
   legal.classList.add("legal-fade-out");
@@ -63,7 +63,7 @@ if (localStorage.getItem(CONSENT_KEY) === "accepted" && legalIsReleaseReady()) {
         </div>
 
         <div class="legal-checks">
-          <label><input type="checkbox" data-check="privacy"><span>Ich habe die Datenschutzerklärung gelesen und zur Kenntnis genommen.</span></label>
+          <label><input type="checkbox" data-check="privacy"><span>Ich habe die Datenschutzerklärung erhalten, gelesen und zur Kenntnis genommen.</span></label>
           <label><input type="checkbox" data-check="terms"><span>Ich habe die Nutzungsbedingungen gelesen und akzeptiere sie.</span></label>
           <label><input type="checkbox" data-check="imprint"><span>Ich habe das Impressum zur Kenntnis genommen.</span></label>
         </div>
@@ -73,7 +73,7 @@ if (localStorage.getItem(CONSENT_KEY) === "accepted" && legalIsReleaseReady()) {
         ${releaseReady ? "" : `
           <div class="legal-blocked">
             <strong>Veröffentlichung noch nicht freigegeben</strong>
-            <span>Die Betreiber- und Kontaktdaten müssen vor dem produktiven Einsatz vollständig hinterlegt werden.</span>
+            <span>Die gesetzlich erforderlichen Betreiber- und Kontaktdaten müssen vor dem produktiven Einsatz vollständig hinterlegt werden.</span>
           </div>
         `}
 
