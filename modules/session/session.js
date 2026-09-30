@@ -261,7 +261,8 @@ function render(){
   root.querySelectorAll("[data-faction]").forEach(b=>b.addEventListener("click",()=>{selectedFactionId=b.dataset.faction;render();}));
   const create=root.querySelector("[data-create]"); if(create) create.addEventListener("click",chooseNew);
   const existing=root.querySelector("[data-existing]"); if(existing) existing.addEventListener("click",chooseExisting);
-  root.querySelectorAll("[data-action]").forEach(b=>b.addEventListener("click",()=>performFactionAction(b.dataset.action)));\n  root.querySelectorAll("[data-kick]").forEach(b=>b.addEventListener("click",()=>factionAction("kick",b.dataset.kick)));
+  root.querySelectorAll("[data-action]").forEach(b=>b.addEventListener("click",()=>performFactionAction(b.dataset.action)));
+  root.querySelectorAll("[data-kick]").forEach(b=>b.addEventListener("click",()=>factionAction("kick",b.dataset.kick)));
   root.querySelectorAll("[data-promote]").forEach(b=>b.addEventListener("click",()=>factionAction("promote",b.dataset.promote)));
   const rd=root.querySelector("[data-remove-deputy]"); if(rd) rd.addEventListener("click",()=>factionAction("remove"));
   const df=root.querySelector("[data-delete-faction]"); if(df) df.addEventListener("click",()=>factionAction("delete"));
