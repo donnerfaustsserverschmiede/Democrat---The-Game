@@ -103,7 +103,7 @@ declare v_uid uuid:=auth.uid(); v_session uuid;
 begin
  select session_id into v_session from game.session_factions where id=p_faction_id for update;
  if v_session is null then raise exception 'faction_not_found'; end if;
- if not exists(select 1 from game.session_factions where id=p_faction_id and leader_user_id=v_uid) then raise exception 'leader_required'; end if;
+ if not exists(select 1 from game.session_factions where id=p_faction_id and (leader_user_id=v_uid or deputy_user_id=v_uid)) then raise exception 'faction_manager_required'; end if;
  if not exists(select 1 from game.session_members where session_id=v_session and user_id=p_member_id and faction_id=p_faction_id) then raise exception 'member_not_found'; end if;
  if p_member_id=v_uid then raise exception 'cannot_promote_self'; end if;
  update game.session_factions set deputy_user_id=p_member_id where id=p_faction_id;
@@ -113,7 +113,7 @@ create or replace function public.remove_session_faction_deputy(p_faction_id uui
 returns void language plpgsql security definer set search_path=game,pg_catalog
 as $$
 begin
- if not exists(select 1 from game.session_factions where id=p_faction_id and leader_user_id=auth.uid()) then raise exception 'leader_required'; end if;
+ if not exists(select 1 from game.session_factions where id=p_faction_id and (leader_user_id=auth.uid() or deputy_user_id=auth.uid())) then raise exception 'faction_manager_required'; end if;
  update game.session_factions set deputy_user_id=null where id=p_faction_id;
 end $$;
 
