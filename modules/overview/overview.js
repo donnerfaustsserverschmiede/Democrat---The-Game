@@ -88,7 +88,7 @@ async function loadSessions() {
 
 async function openSession(sessionId) {
   root.hidden=true;
-  const session=await import("../session/session.js?v=20260930-2");
+  const session=await import("../session/session.js?v=20260930-3");
   await session.mount(currentUser,sessionId,currentPrefs);
 }
 
