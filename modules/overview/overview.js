@@ -86,17 +86,16 @@ async function loadSessions() {
   list.querySelectorAll("[data-session-id]").forEach(button=>button.addEventListener("click",()=>activeTab==="mine"?openSession(button.dataset.sessionId):joinSession(button.dataset.sessionId)));
 }
 
-async function openSession(sessionId) {
+function openSession(sessionId) {
   root.hidden=true;
-  try {
-    const session=await import("../session/session.js?v=20260930-17");
-    await session.mount(currentUser,sessionId,currentPrefs);
-  } catch(error) {
-    console.error("[Democrat] Failed to open session:", error);
-    root.hidden=false;
-    root.innerHTML=`<div class="overview-main"><div class="overview-error"><strong>Sitzung konnte nicht geöffnet werden.</strong><br><small>${escapeHtml(error?.stack||error?.message||String(error))}</small><br><button class="overview-refresh" type="button" data-session-retry>Erneut versuchen</button></div></div>`;
-    root.querySelector("[data-session-retry]")?.addEventListener("click",()=>openSession(sessionId));
-  }
+  Promise.resolve()
+    .then(()=>sessionModule.mount(currentUser,sessionId,currentPrefs))
+    .catch(error=>{
+      console.error("[Democrat] Failed to open session:", error);
+      root.hidden=false;
+      root.innerHTML=`<div class="overview-main"><div class="overview-error"><strong>Sitzung konnte nicht geöffnet werden.</strong><br><small>${escapeHtml(error?.stack||error?.message||String(error))}</small><br><button class="overview-refresh" type="button" data-session-retry>Erneut versuchen</button></div></div>`;
+      root.querySelector("[data-session-retry]")?.addEventListener("click",()=>openSession(sessionId));
+    });
 }
 
 async function joinSession(sessionId) {
