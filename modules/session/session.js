@@ -59,24 +59,12 @@ function renderChamber(){
 }
 
 function renderFactionChooser(x){
-  let html='<div class="faction-switch"><h3>'+x.choose+'</h3><div class="faction-grid">';
-  if(factions.length){
-    factions.forEach(function(f){
-      html+='<button class="faction-card '+(selectedFactionId===f.id?'selected':'')+'" data-faction="'+f.id+'" type="button"><strong><i class="faction-swatch faction-'+esc(f.color_code||'blue')+'"></i>'+esc(f.name)+'</strong><span>'+sideLabel(f.side)+'</span><small>'+f.member_count+'/10 '+x.members+'</small></button>';
-    });
-  } else html+='<div class="session-empty">'+x.existing+': —</div>';
-  html+='</div>'+(selectedFactionId?'<button class="session-primary faction-confirm" type="button" data-existing>'+x.chooseExisting+'</button>':'');
-  html+='<div class="new-faction"><h3>'+x.new+'</h3><label>'+x.name+'<input id="faction-name" maxlength="40" placeholder="'+x.namePlaceholder+'"></label><fieldset><legend>'+x.position+'</legend><div class="side-options"><label><input type="radio" name="side" value="left"> '+x.left+'</label><label><input type="radio" name="side" value="center" checked> '+x.center+'</label><label><input type="radio" name="side" value="right"> '+x.right+'</label></div></fieldset><button class="session-primary" type="button" data-create>'+x.create+'</button><div id="session-action-error" class="session-action-error" hidden></div></div></div>';
-  return html;
-}
-
-function renderFactionChooser(x){
   const counts={left:0,center:0,right:0};
   seats.forEach(s=>{if(s.user_id)counts[s.side]=(counts[s.side]||0)+1;});
   const sideFull=side=>counts[side]>=10;
   let html="<div class=\"faction-switch\"><h3>"+x.choose+"</h3><div class=\"faction-grid\">";
   if(factions.length){
-    factions.forEach(f=>{html+="<button class=\"faction-card ${selectedFactionId===f.id?"selected":""} \" data-faction=\""+f.id+"\" type=\"button\"><strong><i class=\"faction-swatch faction-"+esc(f.color_code||"blue")+"\"></i>"+esc(f.name)+"</strong><span>"+sideLabel(f.side)+"</span><small>"+f.member_count+"/10 "+x.members+"</small></button>";});
+    factions.forEach(f=>{html+="<button class=\"faction-card "+(selectedFactionId===f.id?"selected":"")+" \" data-faction=\""+f.id+"\" type=\"button\"><strong><i class=\"faction-swatch faction-"+esc(f.color_code||"blue")+"\"></i>"+esc(f.name)+"</strong><span>"+sideLabel(f.side)+"</span><small>"+f.member_count+"/10 "+x.members+"</small></button>";});
   }else html+="<div class=\"session-empty\">"+x.existing+": —</div>";
   html+="</div>";
   if(selectedFactionId)html+="<button class=\"session-primary faction-confirm\" type=\"button\" data-existing>"+x.chooseExisting+"</button>";
