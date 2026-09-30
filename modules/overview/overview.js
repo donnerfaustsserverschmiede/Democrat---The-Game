@@ -66,7 +66,12 @@ async function loadSessions() {
   const {data:sessions,error}=await supabase.rpc(rpcName);
   if(error){list.innerHTML=`<div class="overview-error">Sessions could not be loaded.</div>`;return;}
   const visible=sessions||[];
-  presenceSessionIds=visible.map(s=>s.id);
+  if(activeTab==="mine"){
+    presenceSessionIds=visible.map(s=>s.id);
+  } else {
+    const {data:mineSessions}=await supabase.rpc("get_my_sessions");
+    presenceSessionIds=(mineSessions||[]).map(s=>s.id);
+  }
   await updateSessionPresence();
   if(!visible.length){list.innerHTML=`<div class="overview-empty">${activeTab==="mine"?text.emptyMine:text.emptyPublic}</div>`;return;}
   list.innerHTML=visible.map(session=>{
