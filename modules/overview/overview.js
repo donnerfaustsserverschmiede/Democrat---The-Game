@@ -88,8 +88,15 @@ async function loadSessions() {
 
 async function openSession(sessionId) {
   root.hidden=true;
-  const session=await import("../session/session.js?v=20260930-15");
-  await session.mount(currentUser,sessionId,currentPrefs);
+  try {
+    const session=await import("../session/session.js?v=20260930-16");
+    await session.mount(currentUser,sessionId,currentPrefs);
+  } catch(error) {
+    console.error("[Democrat] Failed to open session:", error);
+    root.hidden=false;
+    root.innerHTML=`<div class="overview-main"><div class="overview-error"><strong>Sitzung konnte nicht geöffnet werden.</strong><br><small>${escapeHtml(error?.stack||error?.message||String(error))}</small><br><button class="overview-refresh" type="button" data-session-retry>Erneut versuchen</button></div></div>`;
+    root.querySelector("[data-session-retry]")?.addEventListener("click",()=>openSession(sessionId));
+  }
 }
 
 async function joinSession(sessionId) {
