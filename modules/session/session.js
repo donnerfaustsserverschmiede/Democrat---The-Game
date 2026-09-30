@@ -54,7 +54,6 @@ async function load(){
     entry=entryResult.data[0];
 
     factions=[]; seats=[]; factionManagement=[]; gameState=null;
-
     if(entry.read_confirmed){
       const results=await Promise.allSettled([
         supabase.rpc("get_session_factions",{p_session_id:currentSessionId}),
@@ -62,13 +61,11 @@ async function load(){
         supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_faction_management",{p_session_id:currentSessionId})
       ]);
-
       const [fr,sr,gr,mr]=results;
       if(fr.status==="fulfilled" && !fr.value.error) factions=fr.value.data||[];
       if(sr.status==="fulfilled" && !sr.value.error) seats=sr.value.data||[];
       if(gr.status==="fulfilled" && !gr.value.error) gameState=gr.value.data?.[0]||null;
       if(mr.status==="fulfilled" && !mr.value.error) factionManagement=mr.value.data||[];
-
       const failed=results.find(r=>r.status==="rejected" || r.value?.error);
       if(failed) loadError=failed.status==="rejected" ? (failed.reason?.message||String(failed.reason)) : (failed.value.error?.message||"Session-Daten konnten nicht vollständig geladen werden.");
     }
@@ -83,8 +80,36 @@ async function load(){
     if(backButton) backButton.addEventListener("click",back);
     return;
   }
-
   render();
+}
+
+async function refreshSessionSilently(){
+  if(!supabase || !currentSessionId || !entry || !entry.read_confirmed) return;
+  try {
+    const [entryResult, gameResult, factionResult, seatResult] = await Promise.all([
+      supabase.rpc("get_session_entry",{p_session_id:currentSessionId}),
+      supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId}),
+      supabase.rpc("get_session_factions",{p_session_id:currentSessionId}),
+      supabase.rpc("get_session_seats",{p_session_id:currentSessionId})
+    ]);
+
+    if(entryResult.error || gameResult.error) return;
+
+    const nextEntry=entryResult.data?.[0];
+    const nextGame=gameResult.data?.[0];
+    if(!nextEntry || !nextGame) return;
+
+    entry=nextEntry;
+    gameState=nextGame;
+    factions=factionResult.error ? factions : (factionResult.data||[]);
+    seats=seatResult.error ? seats : (seatResult.data||[]);
+
+    const scrollY=window.scrollY;
+    render();
+    window.scrollTo(0,scrollY);
+  } catch(_error) {
+    // Background refresh failures must never blank or reload the active session.
+  }
 }
 function renderChamber(){
   const playerId=currentUser?.id;
@@ -401,6 +426,6 @@ export async function mount(user,sessionId,prefs){
   root.hidden=false;
   if(!SUPABASE_PUBLISHABLE_KEY||SUPABASE_PUBLISHABLE_KEY.startsWith("REPLACE_"))return;
   supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};selectedFactionId=null;switchingFaction=false;gameState=null;loadError=null;await load();
-  gamePollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")load();},2500);
+  gamePollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")refreshSessionSilently();},3000);
 }
 export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);gamePollTimer=null;advanceTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
