@@ -34,6 +34,8 @@ async function showOverview(user, prefs) {
   await overview.mount(user, prefs);
 }
 
+const FLAG_BY_COUNTRY = {DE:"🇩🇪",ES:"🇪🇸",FR:"🇫🇷",IT:"🇮🇹",US:"🇺🇸",GB:"🇬🇧",AT:"🇦🇹",CH:"🇨🇭",CA:"🇨🇦",AU:"🇦🇺",BR:"🇧🇷",MX:"🇲🇽"};
+
 function render(countries, currentLocale = "de-DE", message = "") {
   const t = labels(currentLocale);
   root.hidden = false;
@@ -47,7 +49,7 @@ function render(countries, currentLocale = "de-DE", message = "") {
         <div class="country-grid">
           ${countries.map(country => `
             <button type="button" class="country-option" data-country="${country.code}">
-              <span class="country-name"><span class="country-flag" aria-hidden="true">${country.flag_emoji || ""}</span>${escapeHtml(country.display_name)}</span>
+              <span class="country-name"><span class="country-flag" aria-hidden="true">${FLAG_BY_COUNTRY[country.code] || "🌐"}</span>${escapeHtml(country.display_name)}</span>
               <span class="country-meta">${escapeHtml(country.language_name)} · ${escapeHtml(country.government_name)}</span>
             </button>
           `).join("")}
