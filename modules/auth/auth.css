@@ -109,7 +109,7 @@ body::after {
   box-shadow: 0 24px 80px rgba(0,0,0,.45);
 }
 
-.auth-brand { text-align: center; margin-bottom: 32px; }
+.auth-brand { text-align: center; margin-bottom: 32px; }.auth-logo{width:min(100%,330px);margin:0 auto 8px;filter:drop-shadow(0 12px 30px rgba(0,0,0,.45))}.auth-mark{display:none}
 .auth-mark {
   width: 64px; height: 64px; margin: 0 auto 16px;
   display: grid; place-items: center;
