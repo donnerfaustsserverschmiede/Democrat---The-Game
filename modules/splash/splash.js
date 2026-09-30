@@ -4,8 +4,7 @@ const legal = document.querySelector("#legal-app");
 splash.innerHTML = `
   <div class="splash-screen" role="status" aria-label="Donnerfaust Gaming">
     <div class="splash-content">
-      <div class="splash-title">DONNERFAUST</div>
-      <div class="splash-subtitle">GAMING</div>
+      <img class="game-logo splash-logo" src="./assets/democrat-logo.svg" alt="Democrat – The Game">
     </div>
   </div>
 `;
