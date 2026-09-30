@@ -91,12 +91,17 @@ async function handleLogin(event) {
   if (!supabase) return renderLogin("Die Authentifizierung ist noch nicht konfiguriert.");
 
   const form = new FormData(event.currentTarget);
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: form.get("email"),
     password: form.get("password")
   });
 
   if (error) return renderLogin(error.message);
+
+  if (!data.user?.email_confirmed_at) {
+    await supabase.auth.signOut();
+    return renderLogin("Deine E-Mail-Adresse wurde noch nicht bestätigt. Öffne die Bestätigungs-E-Mail und bestätige deine Adresse, bevor du dich anmeldest.");
+  }
 
   // Intentionally no game logic here.
   // A future game/session module will receive the authenticated state through a defined interface.
@@ -129,7 +134,7 @@ async function handleRegister(event) {
 
   if (error) return renderRegister(error.message);
 
-  renderLogin("Konto erstellt. Falls eine E-Mail-Bestätigung aktiviert ist, bestätige zuerst deine E-Mail-Adresse.");
+  renderLogin("Konto erstellt. Bitte bestätige jetzt deine E-Mail-Adresse über den Link, den wir dir per E-Mail senden. Erst danach kannst du dich anmelden.");
 }
 
 function escapeHtml(value) {
