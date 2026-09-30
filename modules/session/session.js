@@ -94,6 +94,7 @@ async function load(){
   }
   try {
     render();
+    startStatementCountdown();
   } catch(error) {
     console.error("[Democrat] Session render error:", error);
     const message=error?.stack||error?.message||String(error);
@@ -130,6 +131,7 @@ async function refreshSessionSilently(){
     const scrollY=window.scrollY;
     try {
       render();
+      startStatementCountdown();
       window.scrollTo(0,scrollY);
     } catch(error) {
       console.error("[Democrat] Background session render error:", error);
