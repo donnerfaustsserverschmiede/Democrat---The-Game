@@ -67,6 +67,7 @@ function render(){
           <div class="faction-grid">
             ${factions.length ? factions.map(f=>`<button class="faction-card ${selectedFactionId===f.id?"selected":""}" data-faction="${f.id}" type="button"><strong>${esc(f.name)}</strong><span>${sideLabel(f.side)}</span><small>${f.member_count}/10 ${x.members}</small></button>`).join("") : `<div class="session-empty">${x.existing}: —</div>`}
           </div>
+          ${selectedFactionId ? `<button class="session-primary faction-confirm" type="button" data-existing>${x.chooseExisting}</button>` : ""}
           <div class="new-faction">
             <h3>${x.new}</h3>
             <label>${x.name}<input id="faction-name" maxlength="40" placeholder="${x.namePlaceholder}"></label>
@@ -85,11 +86,20 @@ function render(){
   const read=root.querySelector("[data-read]"); if(read) read.addEventListener("click",confirmRead);
   root.querySelectorAll("[data-faction]").forEach(b=>b.addEventListener("click",()=>{selectedFactionId=b.dataset.faction;render();}));
   const create=root.querySelector("[data-create]"); if(create) create.addEventListener("click",chooseNew);
+  const existing=root.querySelector("[data-existing]"); if(existing) existing.addEventListener("click",chooseExisting);
 }
 
 async function confirmRead(){
   const {error}=await supabase.rpc("confirm_session_read",{p_session_id:currentSessionId});
   if(!error){await load();}
+}
+
+async function chooseExisting(){
+  if(!selectedFactionId)return;
+  const err=root.querySelector("#session-action-error");
+  const {error}=await supabase.rpc("choose_session_faction",{p_session_id:currentSessionId,p_faction_id:selectedFactionId,p_faction_name:null,p_side:null});
+  if(error){err.textContent=error.message?.includes("faction_full")?t().factionFull:t().required;err.hidden=false;return;}
+  selectedFactionId=null;await load();
 }
 
 async function chooseNew(){
