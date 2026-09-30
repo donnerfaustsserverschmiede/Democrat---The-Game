@@ -1,9 +1,40 @@
 #overview-app {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 50% -20%, rgba(229,199,107,.10), transparent 38%),
-    #080c16;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #080c16;
   color: #f4f6fb;
+}
+
+/* Blurred, empty parliamentary chamber backdrop — deliberately without flags,
+   coats of arms or other national insignia. */
+#overview-app::before {
+  content: "";
+  position: fixed;
+  inset: -10%;
+  z-index: -2;
+  pointer-events: none;
+  transform: scale(1.08);
+  filter: blur(10px);
+  opacity: .72;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(214,221,230,.16) 0 4%, transparent 16%),
+    linear-gradient(180deg, rgba(30,43,61,.92) 0 23%, rgba(18,28,42,.98) 23% 100%),
+    repeating-radial-gradient(ellipse at 50% 88%, rgba(93,108,127,.28) 0 1.8%, transparent 1.9% 5.2%),
+    linear-gradient(90deg, transparent 0 8%, rgba(75,91,111,.30) 8.5% 9%, transparent 9.5% 90.5%, rgba(75,91,111,.30) 91% 91.5%, transparent 92%),
+    radial-gradient(ellipse at 50% 12%, rgba(255,255,255,.11), transparent 42%);
+}
+
+#overview-app::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(5,8,14,.48), rgba(5,8,14,.70)),
+    radial-gradient(ellipse at 50% 48%, transparent 0 28%, rgba(3,6,12,.48) 82%);
 }
 
 .overview-shell {
@@ -19,7 +50,7 @@
   gap: 18px;
   padding: 18px 28px;
   border-bottom: 1px solid rgba(255,255,255,.10);
-  background: rgba(8,12,22,.92);
+  background: rgba(8,12,22,.78);
   backdrop-filter: blur(14px);
   position: sticky;
   top: 0;
@@ -104,8 +135,9 @@
   padding: 20px;
   border: 1px solid rgba(255,255,255,.11);
   border-radius: 16px;
-  background: #111827;
-  box-shadow: 0 12px 35px rgba(0,0,0,.20);
+  background: rgba(17,24,39,.78);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 35px rgba(0,0,0,.28);
 }
 
 .session-name {
@@ -151,6 +183,7 @@
   border-radius: 16px;
   color: #aeb8c8;
   background: rgba(17,24,39,.65);
+  backdrop-filter: blur(10px);
 }
 
 .overview-error {
