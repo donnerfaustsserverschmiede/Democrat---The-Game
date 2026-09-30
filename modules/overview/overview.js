@@ -8,6 +8,8 @@ let currentUser = null;
 let activeTab = "mine";
 let currentPrefs = null;
 let profileName = "Spieler";
+let presenceTimer = null;
+let presenceSessionIds = [];
 
 const UI = {
   "de-DE": { title:"Übersicht", subtitle:"Wähle eine Sitzung, an der du teilnehmen möchtest.", mine:"MEINE SITZUNGEN", public:"ÖFFENTLICHE SITZUNGEN", refresh:"↻ Aktualisieren", loading:"Sitzungen werden geladen …", emptyMine:"Du nimmst aktuell an keiner Sitzung teil.", emptyPublic:"Aktuell sind keine öffentlichen Sitzungen verfügbar.", full:"Voll", open:"Offen", participating:"Teilnahme aktiv", joined:"Teilnehmend", openSession:"Sitzung öffnen", join:"Beitreten", seats:"Plätze belegt", country:"Land",sessionLimit:"Du kannst gleichzeitig an maximal 5 Sitzungen teilnehmen." },
@@ -52,6 +54,11 @@ function renderShell(profileName="Spieler") {
   root.querySelector("[data-action='refresh']").addEventListener("click",loadSessions);
 }
 
+async function updateSessionPresence() {
+  if (!supabase || !currentUser || !presenceSessionIds.length) return;
+  await supabase.rpc("touch_my_session_presence", { p_session_ids: presenceSessionIds });
+}
+
 async function loadSessions() {
   const list=root.querySelector("#session-list"); if(!list||!currentUser)return;
   const text=t(); list.innerHTML=`<div class="overview-empty">${text.loading}</div>`;
@@ -59,6 +66,8 @@ async function loadSessions() {
   const {data:sessions,error}=await supabase.rpc(rpcName);
   if(error){list.innerHTML=`<div class="overview-error">Sessions could not be loaded.</div>`;return;}
   const visible=sessions||[];
+  presenceSessionIds=visible.map(s=>s.id);
+  await updateSessionPresence();
   if(!visible.length){list.innerHTML=`<div class="overview-empty">${activeTab==="mine"?text.emptyMine:text.emptyPublic}</div>`;return;}
   list.innerHTML=visible.map(session=>{
     const full=session.player_count>=session.max_players;
@@ -95,8 +104,10 @@ export async function mount(user,prefs=null) {
   currentPrefs=prefs;
   profileName=user.user_metadata?.profile_name||user.email||"Spieler";
   renderShell(profileName); await loadSessions();
+  if (presenceTimer) clearInterval(presenceTimer);
+  presenceTimer = setInterval(updateSessionPresence, 20000);
 }
 
 window.addEventListener("democrat:session-back",()=>{root.hidden=false;renderShell(profileName);loadSessions();});
 
-export function unmount(){if(!root)return;root.hidden=true;root.innerHTML="";if(sessionRoot)sessionRoot.hidden=true;currentUser=null;currentPrefs=null;profileName="Spieler";}
+export function unmount(){if(presenceTimer)clearInterval(presenceTimer);presenceTimer=null;presenceSessionIds=[];if(!root)return;root.hidden=true;root.innerHTML="";if(sessionRoot)sessionRoot.hidden=true;currentUser=null;currentPrefs=null;profileName="Spieler";}
