@@ -30,7 +30,7 @@ function labels(locale = "de-DE") {
 
 async function showOverview(user, prefs) {
   root.hidden = true;
-  const overview = await import("../overview/overview.js?v=20260930-2");
+  const overview = await import("../overview/overview.js?v=20260930-3");
   await overview.mount(user, prefs);
 }
 
