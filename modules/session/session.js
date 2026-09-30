@@ -199,6 +199,7 @@ function back(){
 }
 export async function mount(user,sessionId,prefs){
   if(!root)return;
+  root.hidden=false;
   if(!SUPABASE_PUBLISHABLE_KEY||SUPABASE_PUBLISHABLE_KEY.startsWith("REPLACE_"))return;
   supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};selectedFactionId=null;switchingFaction=false;await load();
 }
