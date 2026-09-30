@@ -47,23 +47,28 @@ async function load(){
 function renderChamber(){
   const playerId=currentUser?.id;
   const seatMarkup=seats.map((seat,index)=>{
-    const row=Math.floor(index/6);
-    const col=index%6;
-    const radii=[46,40,34,28,22];
-    const angles=[150,126,102,78,54,30];
+    const row=Math.floor(index/10);
+    const col=index%10;
+    const radii=[47,42,37,32,27,22];
+    const angles=[165,148.3,131.7,115,98.3,81.7,65,48.3,31.7,15];
     const angle=angles[col]*Math.PI/180;
     const xPos=50+Math.cos(angle)*radii[row];
-    const yPos=28+Math.sin(angle)*radii[row]*0.78;
+    const yPos=30+Math.sin(angle)*radii[row]*0.72;
     const occupied=Boolean(seat.user_id);
+    const controlled=Boolean(seat.faction_id)&&!occupied;
     const own=seat.user_id===playerId;
     const colorClass=seat.faction_color ? " faction-"+esc(seat.faction_color) : "";
-    const cls=own ? "seat own-seat" : occupied ? "seat occupied-seat"+colorClass : "seat";
+    const cls=own ? "seat own-seat" : occupied ? "seat occupied-seat"+colorClass : controlled ? "seat controlled-empty-seat"+colorClass : "seat";
     const label=own ? "Du" : occupied ? esc(seat.profile_name) : "";
-    const title=occupied ? esc(seat.profile_name)+" · "+esc(seat.faction_name||"") : "Freier Sitz";
+    const title=occupied
+      ? esc(seat.profile_name)+" · "+esc(seat.faction_name||"")
+      : controlled
+        ? "Fraktionsplatz · "+esc(seat.faction_name||"")
+        : "Freier Sitz";
     return `<div class="${cls}" style="--x:${xPos}%;--y:${yPos}%" title="${title}"><span class="seat-dot"></span>${label ? `<span class="seat-label">${label}</span>` : ""}</div>`;
   }).join("");
   return `<div class="chamber-wrap">
-    <div class="chamber-title">Sitzungsplenum</div>
+    <div class="chamber-title">Sitzungsplenum · 60 Sitze</div>
     <div class="chamber-map hemicycle-map">
       <div class="presidium"><span>PRÄSIDIUM</span><small>Präsident / Präsidium</small></div>
       <div class="hemicycle-floor"></div>
@@ -74,15 +79,15 @@ function renderChamber(){
 }
 function renderSideOptions(x){
   const counts={left:0,center:0,right:0};
-  seats.forEach(s=>{if(s.user_id)counts[s.side]=(counts[s.side]||0)+1;});
+  seats.forEach(s=>{if(s.faction_id)counts[s.side]=(counts[s.side]||0)+1;});
   return ["left","center","right"].map(side=>{
-    const full=counts[side]>=10;
+    const full=counts[side]>=20;
     return '<label class="'+(full?'side-disabled':'')+'"><input type="radio" name="side" value="'+side+'" '+(side==='center'&&!full?'checked ':'')+(full?'disabled':'')+'> '+sideLabel(side)+(full?' · '+x.full:'')+'</label>';
   }).join('');
 }
 function renderFactionChooser(x){
   const counts={left:0,center:0,right:0};
-  seats.forEach(s=>{if(s.user_id)counts[s.side]=(counts[s.side]||0)+1;});
+  seats.forEach(s=>{if(s.faction_id)counts[s.side]=(counts[s.side]||0)+1;});
   const sideFull=side=>counts[side]>=10;
   let html="<div class=\"faction-switch\"><h3>"+x.choose+"</h3><div class=\"faction-grid\">";
   if(factions.length){
