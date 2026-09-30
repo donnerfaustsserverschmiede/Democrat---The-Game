@@ -127,3 +127,15 @@ grant execute on function public.delete_session_faction(uuid) to authenticated;
 grant execute on function public.kick_session_faction_member(uuid,uuid) to authenticated;
 grant execute on function public.set_session_faction_deputy(uuid,uuid) to authenticated;
 grant execute on function public.remove_session_faction_deputy(uuid) to authenticated;
+
+create or replace function game.assign_new_faction_leader()
+returns trigger language plpgsql security definer set search_path=game,pg_catalog
+as $$
+begin
+  if new.leader_user_id is null then new.leader_user_id:=auth.uid(); end if;
+  return new;
+end $$;
+
+drop trigger if exists trg_assign_new_faction_leader on game.session_factions;
+create trigger trg_assign_new_faction_leader before insert on game.session_factions
+for each row execute function game.assign_new_faction_leader();
