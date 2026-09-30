@@ -1,11 +1,12 @@
 const splash = document.querySelector("#splash-app");
-const legal = document.querySelector("#legal-app");
 
 splash.innerHTML = `
-  <div class="splash-screen" role="status" aria-label="Donnerfaust Gaming">
+  <div class="splash-screen" role="status" aria-label="Democrat – The Game">
     <div class="splash-content">
-      <div class="splash-title">DONNERFAUST</div>
-      <div class="splash-subtitle">GAMING</div>
+      <div class="splash-kicker">DONNERFAUST GAMING PRÄSENTIERT</div>
+      <div class="splash-title">DEMOCRAT</div>
+      <div class="splash-subtitle">THE GAME</div>
+      <div class="splash-rule"></div>
     </div>
   </div>
 `;
@@ -14,7 +15,6 @@ window.setTimeout(() => {
   splash.classList.add("splash-fade-out");
   window.setTimeout(() => {
     splash.remove();
-
     const script = document.createElement("script");
     script.type = "module";
     script.src = "./modules/legal/legal.js";
