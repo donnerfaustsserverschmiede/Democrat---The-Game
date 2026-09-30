@@ -34,7 +34,7 @@
 }
 .country-option:hover { transform: translateY(-2px); border-color: rgba(229,199,107,.55); background: #16243a; }
 .country-option:disabled { opacity: .55; cursor: wait; }
-.country-name { display:block; font-size: 18px; font-weight: 800; }
+.country-name { display:flex; align-items:center; gap:10px; font-size:18px; font-weight:800; }\n.country-flag { font-size:26px; line-height:1; }
 .country-meta { display:block; margin-top: 7px; color:#9eabbf; font-size:13px; line-height:1.4; }
 .country-note { margin-top: 22px; color:#7f8ca1; font-size:12px; line-height:1.5; }
 .country-message { margin-bottom: 18px; padding: 12px 14px; border:1px solid rgba(220,80,80,.35); border-radius:10px; color:#f3b4b4; background:rgba(100,20,20,.18); }
