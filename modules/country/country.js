@@ -10,7 +10,8 @@ function escapeHtml(value) {
 }
 
 function labels(locale = "de-DE") {
-  const map = {
+  const map = {  // Country names stay in each country's own language; the UI is localized after selection.
+
     "de-DE": { title:"Wähle dein Land", text:"Dein Land bestimmt die Sprache des Spiels und welche politischen Institutionen und Sitzungen dir zur Verfügung stehen.", language:"Sprache", form:"Regierungsform", choose:"Land auswählen", save:"Auswahl bestätigen", loading:"Länder werden geladen …", error:"Die Länderauswahl konnte nicht geladen werden." },
     "de-AT": { title:"Wähle dein Land", text:"Dein Land bestimmt die Sprache des Spiels und die passenden politischen Institutionen und Sitzungen.", language:"Sprache", form:"Staatsform", choose:"Land auswählen", save:"Auswahl bestätigen", loading:"Länder werden geladen …", error:"Die Länderauswahl konnte nicht geladen werden." },
     "de-CH": { title:"Wähle dein Land", text:"Dein Land bestimmt die Sprache des Spiels und die passenden politischen Institutionen und Sitzungen.", language:"Sprache", form:"Staatsform", choose:"Land auswählen", save:"Auswahl bestätigen", loading:"Länder werden geladen …", error:"Die Länderauswahl konnte nicht geladen werden." },
@@ -46,7 +47,7 @@ function render(countries, currentLocale = "de-DE", message = "") {
         <div class="country-grid">
           ${countries.map(country => `
             <button type="button" class="country-option" data-country="${country.code}">
-              <span class="country-name">${escapeHtml(country.display_name)}</span>
+              <span class="country-name"><span class="country-flag" aria-hidden="true">${country.flag_emoji || ""}</span>${escapeHtml(country.display_name)}</span>
               <span class="country-meta">${escapeHtml(country.language_name)} · ${escapeHtml(country.government_name)}</span>
             </button>
           `).join("")}
