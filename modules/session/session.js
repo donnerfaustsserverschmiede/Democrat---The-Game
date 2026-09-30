@@ -621,7 +621,11 @@ async function chooseNew(){
   if(!name||!side){err.textContent=x.required;err.hidden=false;return;}
   const {data,error}=await supabase.rpc("choose_session_faction",{p_session_id:currentSessionId,p_faction_id:selectedFactionId,p_faction_name:selectedFactionId?null:name,p_side:selectedFactionId?null:side});
   if(error){err.textContent=mapFactionError(error);err.hidden=false;return;}
-  selectedFactionId=null;switchingFaction=false;await load();
+  if(selectedFactionColor){
+    const colorResult=await supabase.rpc("set_session_faction_color",{p_session_id:currentSessionId,p_color_code:selectedFactionColor});
+    if(colorResult.error){err.textContent=mapFactionError(colorResult.error);err.hidden=false;return;}
+  }
+  selectedFactionId=null;selectedFactionColor=null;switchingFaction=false;await load();
 }
 
 function back(){
