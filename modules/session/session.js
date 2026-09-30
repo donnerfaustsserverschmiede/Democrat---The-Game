@@ -58,6 +58,14 @@ function renderChamber(){
   return `<div class="chamber-wrap"><div class="chamber-title">Sitzungsplenum</div><div class="chamber-map"><div class="chamber-sector sector-left"><span>${t().left}</span></div><div class="chamber-sector sector-center"><span>${t().center}</span></div><div class="chamber-sector sector-right"><span>${t().right}</span></div><div class="chamber-table">Präsidium</div><div class="chamber-seats">${seatMarkup}</div></div><div class="chamber-legend">${factions.map(f=>`<span><i class="legend-dot faction-${esc(f.color_code||"blue")}"></i>${esc(f.name)}</span>`).join("")}</div></div>`;
 }
 
+function renderSideOptions(x){
+  const counts={left:0,center:0,right:0};
+  seats.forEach(s=>{if(s.user_id)counts[s.side]=(counts[s.side]||0)+1;});
+  return ["left","center","right"].map(side=>{
+    const full=counts[side]>=10;
+    return '<label class="'+(full?'side-disabled':'')+'"><input type="radio" name="side" value="'+side+'" '+(side==='center'&&!full?'checked ':'')+(full?'disabled':'')+'> '+sideLabel(side)+(full?' · '+x.full:'')+'</label>';
+  }).join('');
+}
 function renderFactionChooser(x){
   const counts={left:0,center:0,right:0};
   seats.forEach(s=>{if(s.user_id)counts[s.side]=(counts[s.side]||0)+1;});
@@ -69,7 +77,7 @@ function renderFactionChooser(x){
   html+="</div>";
   if(selectedFactionId)html+="<button class=\"session-primary faction-confirm\" type=\"button\" data-existing>"+x.chooseExisting+"</button>";
   html+="<div class=\"new-faction\"><h3>"+x.new+"</h3><label>"+x.name+"<input id=\"faction-name\" maxlength=\"40\" placeholder=\""+x.namePlaceholder+"\"></label><fieldset><legend>"+x.position+"</legend><div class=\"side-options\">";
-  ["left","center","right"].forEach(side=>{const label=sideLabel(side);const full=sideFull(side);html+="<label class=\""+(full?"side-disabled":"")+"\"><input type=\"radio\" name=\"side\" value=\""+side+"\" "+(side==="center"&&!full?"checked ":"")+(full?"disabled":"")+"> "+label+(full?" · "+x.full:"")+"</label>";});
+  html+=renderSideOptions(x);
   html+="</div></fieldset><button class=\"session-primary\" type=\"button\" data-create>"+x.create+"</button><div id=\"session-action-error\" class=\"session-action-error\" hidden></div></div></div>";
   return html;
 }
@@ -111,11 +119,7 @@ function render(){
           <div class="new-faction">
             <h3>${x.new}</h3>
             <label>${x.name}<input id="faction-name" maxlength="40" placeholder="${x.namePlaceholder}"></label>
-            <fieldset><legend>${x.position}</legend><div class="side-options">
-              <label><input type="radio" name="side" value="left"> ${x.left}</label>
-              <label><input type="radio" name="side" value="center" checked> ${x.center}</label>
-              <label><input type="radio" name="side" value="right"> ${x.right}</label>
-            </div></fieldset>
+            <fieldset><legend>${x.position}</legend><div class="side-options">${renderSideOptions(x)}</div></fieldset>
             <button class="session-primary" type="button" data-create>${x.create}</button>
             <div id="session-action-error" class="session-action-error" hidden></div>
           </div>
