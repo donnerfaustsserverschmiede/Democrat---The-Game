@@ -14,6 +14,8 @@ let seats = [];
 let switchingFaction = false;
 let factionManagement = [];
 let factionActionStatus = [];
+let rankings = [];
+let rankingMode = "faction";
 let gameState = null;
 let walletState = null;
 let gamePollTimer = null;
@@ -70,14 +72,16 @@ async function load(){
         supabase.rpc("get_session_wallet",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_faction_management",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_faction_actions",{p_session_id:currentSessionId}),
+        supabase.rpc("get_session_rankings",{p_session_id:currentSessionId}),
       ]);
-      const [fr,sr,gr,mr,wr,ar]=results;
+      const [fr,sr,gr,mr,wr,ar,rr]=results;
       if(fr.status==="fulfilled" && !fr.value.error) factions=fr.value.data||[];
       if(sr.status==="fulfilled" && !sr.value.error) seats=sr.value.data||[];
       if(gr.status==="fulfilled" && !gr.value.error) gameState=gr.value.data?.[0]||null;
       if(wr.status==="fulfilled" && !wr.value.error) walletState=wr.value.data?.[0]||null;
       if(mr.status==="fulfilled" && !mr.value.error) factionManagement=mr.value.data||[];
       if(ar.status==="fulfilled" && !ar.value.error) factionActionStatus=ar.value.data||[];
+      if(rr.status==="fulfilled" && !rr.value.error) rankings=rr.value.data||[];
       const failed=results.find(r=>r.status==="rejected" || r.value?.error);
       if(failed) loadError=failed.status==="rejected" ? (failed.reason?.message||String(failed.reason)) : (failed.value.error?.message||"Session-Daten konnten nicht vollständig geladen werden.");
     }
@@ -107,13 +111,14 @@ async function load(){
 async function refreshSessionSilently(){
   if(!supabase || !currentSessionId || !entry || !entry.read_confirmed) return;
   try {
-    const [entryResult, gameResult, walletResult, factionResult, seatResult, actionResult] = await Promise.all([
+    const [entryResult, gameResult, walletResult, factionResult, seatResult, actionResult, rankResult] = await Promise.all([
       supabase.rpc("get_session_entry",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_wallet",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_factions",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_seats",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_faction_actions",{p_session_id:currentSessionId}),
+      supabase.rpc("get_session_rankings",{p_session_id:currentSessionId}),
     ]);
 
     if(entryResult.error || gameResult.error) return;
@@ -125,6 +130,7 @@ async function refreshSessionSilently(){
     entry=nextEntry;
     gameState=nextGame;
     if(walletResult && !walletResult.error) walletState=walletResult.data?.[0]||walletState;
+    if(rankResult && !rankResult.error) rankings=rankResult.data||[];
     factions=factionResult.error ? factions : (factionResult.data||[]);
     seats=seatResult.error ? seats : (seatResult.data||[]);
     factionActionStatus=actionResult.error ? factionActionStatus : (actionResult.data||[]);
@@ -295,6 +301,15 @@ function renderFactionChooser(x){
   return html;
 }
 function pct(value){return Math.max(0,Math.min(100,Number(value||0)));}
+function renderRankings(){
+  const factionRows=rankings.filter(r=>r.ranking_type==="faction");
+  const playerRows=rankings.filter(r=>r.ranking_type==="player");
+  const rows=rankingMode==="faction"?factionRows:playerRows;
+  const title=rankingMode==="faction"?"Fraktionsrangliste":"Spieler-Rangliste";
+  const tabs='<div class="ranking-tabs"><button type="button" class="ranking-tab '+(rankingMode==="faction"?"active":"")+'" data-ranking-mode="faction">Fraktionsrangliste</button><button type="button" class="ranking-tab '+(rankingMode==="player"?"active":"")+'" data-ranking-mode="player">Spieler-Rangliste</button></div>';
+  const list=rows.length?'<div class="ranking-list">'+rows.map((r,i)=>'<div class="ranking-row '+(r.eliminated?"ranking-eliminated":"")+'"><span class="ranking-rank">'+(i+1)+'.</span><span class="ranking-name"><strong>'+esc(r.subject_name)+'</strong>'+(rankingMode==="player"&&r.faction_name?'<small>'+esc(r.faction_name)+'</small>':"")+'</span><strong class="ranking-points">'+Number(r.points||0)+'/100</strong></div>').join("")+'</div>':'<div class="session-empty">Noch keine Einträge.</div>';
+  return '<section class="ranking-panel"><div class="ranking-heading"><div><div class="session-label">Rangliste</div><h3>'+title+'</h3></div></div>'+tabs+list+'</section>';
+}
 function renderGameHud(){const x=gt(),g=gameState||{},w=walletState||{};const money=Number(w.money??g.money??0);const symbol=w.currency_symbol||"€";return '<div class="game-hud"><div class="hud-card"><span>'+x.playerPoints+'</span><strong>'+pct(g.player_opinion_points)+'/100</strong><small>'+(g.player_eliminated?x.eliminated:'')+'</small></div><div class="hud-card"><span>'+x.factionPoints+'</span><strong>'+pct(g.faction_opinion_points)+'/100</strong><small>'+(g.faction_eliminated?x.eliminated:'')+'</small></div><div class="hud-card"><span>'+t().hudMoney+'</span><strong>'+money.toLocaleString(undefined)+' '+symbol+'</strong><small>'+Number(w.salary_per_minute||0).toLocaleString(undefined)+' '+symbol+' / Min.</small></div></div>';}
 function formatStatementCountdown(deadline){
   const ms=Math.max(0,new Date(deadline||0).getTime()-Date.now());
@@ -516,7 +531,9 @@ async function factionAction(kind,id){
 async function handleStatementCountdown(){
   if(!gameState||gameState.statement_status!=="open"||gameState.session_status!=="active"||!gameState.statement_deadline)return;
   const el=root.querySelector("#statement-countdown");
-  const remaining=Math.max(0,new Date(gameState.statement_deadline).getTime()-Date.now());
+  const serverNow=gameState.server_now?new Date(gameState.server_now).getTime():Date.now();
+  const clockOffset=serverNow-Date.now();
+  const remaining=Math.max(0,new Date(gameState.statement_deadline).getTime()-(Date.now()+clockOffset));
   if(el)el.textContent=formatStatementCountdown(gameState.statement_deadline);
   if(remaining<=0&&advanceTimer===null){
     advanceTimer=window.setTimeout(async()=>{
@@ -588,7 +605,7 @@ function render(){
   const sw=root.querySelector("[data-switch]"); if(sw) sw.addEventListener("click",()=>{switchingFaction=true;render();});
   const cs=root.querySelector("[data-cancel-switch]"); if(cs) cs.addEventListener("click",()=>{switchingFaction=false;selectedFactionId=null;render();});
   const read=root.querySelector("[data-read]"); if(read) read.addEventListener("click",confirmRead);
-  root.querySelectorAll("[data-vote]").forEach(b=>b.addEventListener("click",()=>castVote(b.dataset.vote)));
+  root.querySelectorAll("[data-vote]").forEach(b=>b.addEventListener("click",()=>castVote(b.dataset.vote)));\n  root.querySelectorAll("[data-ranking-mode]").forEach(b=>b.addEventListener("click",()=>{rankingMode=b.dataset.rankingMode==="player"?"player":"faction";render();startStatementCountdown();}));
   root.querySelectorAll("[data-bot-id]").forEach(b=>b.addEventListener("click",()=>openBotDialog(b.dataset.botId)));
   const next=root.querySelector("[data-next-statement]"); if(next) next.addEventListener("click",advanceStatement);
   root.querySelectorAll("[data-faction]").forEach(b=>b.addEventListener("click",()=>{selectedFactionId=b.dataset.faction;selectedFactionColor=null;render();}));
