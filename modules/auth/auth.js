@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./auth-config-v2.js?v=20260930-2";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./auth-config-v2.js?v=20260930-4";
+import * as country from "../country/country.js?v=20260930-5";
 
 const root = document.querySelector("#auth-app");
 
@@ -86,7 +87,6 @@ function renderRegister(message = "") {
 
 async function mountCountrySelection(user) {
   root.hidden = true;
-  const country = await import("../country/country.js?v=20260930-3");
   await country.mount(user);
 }
 
