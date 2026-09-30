@@ -53,7 +53,7 @@ function renderChamber(){
     const angles=[150,126,102,78,54,30];
     const angle=angles[col]*Math.PI/180;
     const xPos=50+Math.cos(angle)*radii[row];
-    const yPos=22+Math.sin(angle)*radii[row]*0.82;
+    const yPos=28+Math.sin(angle)*radii[row]*0.78;
     const occupied=Boolean(seat.user_id);
     const own=seat.user_id===playerId;
     const colorClass=seat.faction_color ? " faction-"+esc(seat.faction_color) : "";
