@@ -9,7 +9,7 @@
 .hemicycle-map{position:relative;width:100%;height:410px;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:22px 22px 8px 8px;background:radial-gradient(ellipse at 50% 100%,rgba(255,255,255,.065),transparent 62%),rgba(4,9,17,.82)}
 .hemicycle-map::before{content:"";position:absolute;left:7%;right:7%;top:13%;height:82%;border:1px solid rgba(255,255,255,.075);border-bottom:0;border-radius:50% 50% 0 0;pointer-events:none}
 .hemicycle-map::after{content:"";position:absolute;left:12%;right:12%;top:24%;height:71%;border:1px solid rgba(229,199,107,.08);border-bottom:0;border-radius:50% 50% 0 0;pointer-events:none}
-.seat-sector-map{position:absolute;left:5%;right:5%;top:58px;width:90%;height:82%;z-index:2;overflow:visible}
+.seat-sector-map{position:absolute;inset:0;width:100%;height:100%;z-index:2;overflow:visible;pointer-events:none}
 .seat-sector{stroke:rgba(255,255,255,.09);stroke-width:.35;vector-effect:non-scaling-stroke;transition:opacity .2s ease,filter .2s ease}
 .seat-sector:hover{opacity:.42}
 .seat-arc,.seat-inner-arc{fill:none;stroke:rgba(255,255,255,.12);stroke-width:.45;vector-effect:non-scaling-stroke}
@@ -33,7 +33,7 @@
 .legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--faction-color,#64748b)}
 @media(max-width:650px){
   .hemicycle-map{height:360px}
-  .seat-sector-map{top:54px;height:82%;width:94%;left:3%;right:3%}
+  .seat-sector-map{inset:0;width:100%;height:100%}
   .presidium{top:18px;width:38%;height:38px;min-width:105px}
   .presidium span{font-size:8px}.presidium small{font-size:6px}
   .seat{width:10px;height:10px;border-width:1.5px}
