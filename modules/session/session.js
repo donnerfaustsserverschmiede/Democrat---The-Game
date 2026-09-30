@@ -312,7 +312,9 @@ function renderRankings(){
 }
 function renderGameHud(){const x=gt(),g=gameState||{},w=walletState||{};const money=Number(w.money??g.money??0);const symbol=w.currency_symbol||"€";return '<div class="game-hud"><div class="hud-card"><span>'+x.playerPoints+'</span><strong>'+pct(g.player_opinion_points)+'/100</strong><small>'+(g.player_eliminated?x.eliminated:'')+'</small></div><div class="hud-card"><span>'+x.factionPoints+'</span><strong>'+pct(g.faction_opinion_points)+'/100</strong><small>'+(g.faction_eliminated?x.eliminated:'')+'</small></div><div class="hud-card"><span>'+t().hudMoney+'</span><strong>'+money.toLocaleString(undefined)+' '+symbol+'</strong><small>'+Number(w.salary_per_minute||0).toLocaleString(undefined)+' '+symbol+' / Min.</small></div></div>';}
 function formatStatementCountdown(deadline){
-  const ms=Math.max(0,new Date(deadline||0).getTime()-Date.now());
+  const serverNow=gameState?.server_now?new Date(gameState.server_now).getTime():Date.now();
+  const clockOffset=serverNow-Date.now();
+  const ms=Math.max(0,new Date(deadline||0).getTime()-(Date.now()+clockOffset));
   const total=Math.ceil(ms/1000);
   const minutes=Math.floor(total/60);
   const seconds=total%60;
