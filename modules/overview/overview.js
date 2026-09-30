@@ -2,10 +2,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../auth/auth-config-v2.js?v=20260930-3";
 
 const root = document.querySelector("#overview-app");
+const sessionRoot = document.querySelector("#session-app");
 let supabase = null;
 let currentUser = null;
 let activeTab = "mine";
 let currentPrefs = null;
+let profileName = "Spieler";
 
 const UI = {
   "de-DE": { title:"Übersicht", subtitle:"Wähle eine Sitzung, an der du teilnehmen möchtest.", mine:"MEINE SITZUNGEN", public:"ÖFFENTLICHE SITZUNGEN", refresh:"↻ Aktualisieren", loading:"Sitzungen werden geladen …", emptyMine:"Du nimmst aktuell an keiner Sitzung teil.", emptyPublic:"Aktuell sind keine öffentlichen Sitzungen verfügbar.", full:"Voll", open:"Offen", participating:"Teilnahme aktiv", joined:"Teilnehmend", join:"Beitreten", seats:"Plätze belegt", country:"Land" },
@@ -28,6 +30,7 @@ function escapeHtml(value) { return String(value).replaceAll("&","&amp;").replac
 function renderShell(profileName="Spieler") {
   const text=t();
   root.hidden=false;
+  if(sessionRoot) sessionRoot.hidden=true;
   root.innerHTML=`
     <div class="overview-shell">
       <header class="overview-hud">
@@ -63,10 +66,10 @@ async function loadSessions() {
       <div><h2 class="session-name">${escapeHtml(session.display_name)}</h2>
       <div class="session-meta">${session.player_count} / ${session.max_players} ${text.seats}</div>
       <span class="session-status">${full?text.full:text.open}${activeTab==="mine"?" · "+text.participating:""}</span></div>
-      <button class="session-action" data-session-id="${session.id}" ${activeTab==="mine"||full?"disabled":""} type="button">${activeTab==="mine"?text.joined:full?text.full:text.join}</button>
+      <button class="session-action" data-session-id="${session.id}" ${full&&activeTab==="public"?"disabled":""} type="button">${activeTab==="mine"?(session.read_confirmed&&session.seat_number?text.joined:"Sitzung öffnen"):full?text.full:text.join}</button>
     </article>`;
   }).join("");
-  list.querySelectorAll("[data-session-id]").forEach(button=>button.addEventListener("click",()=>joinSession(button.dataset.sessionId)));
+  list.querySelectorAll("[data-session-id]").forEach(button=>button.addEventListener("click",()=>activeTab==="mine"?openSession(button.dataset.sessionId):joinSession(button.dataset.sessionId)));
 }
 
 async function joinSession(sessionId) {
@@ -85,8 +88,10 @@ export async function mount(user,prefs=null) {
   if(!prefs){const {data}=await supabase.rpc("get_country_preferences");prefs=data?.[0]||null;}
   if(!prefs?.country_code){root.hidden=true;const country=await import("../country/country.js?v=20260930-1");await country.mount(user);return;}
   currentPrefs=prefs;
-  const profileName=user.user_metadata?.profile_name||user.email||"Spieler";
+  profileName=user.user_metadata?.profile_name||user.email||"Spieler";
   renderShell(profileName); await loadSessions();
 }
 
-export function unmount(){if(!root)return;root.hidden=true;root.innerHTML="";currentUser=null;currentPrefs=null;}
+window.addEventListener("democrat:session-back",()=>{root.hidden=false;renderShell(profileName);loadSessions();});
+
+export function unmount(){if(!root)return;root.hidden=true;root.innerHTML="";if(sessionRoot)sessionRoot.hidden=true;currentUser=null;currentPrefs=null;}
