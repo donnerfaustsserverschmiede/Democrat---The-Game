@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="240 0 420 420" role="img" aria-labelledby="title desc">
+<title>DEMOCRAT – THE GAME App Icon</title><desc>Quadratisches, randloses App-Icon</desc>
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff4b0"/><stop offset=".45" stop-color="#e5c76b"/><stop offset="1" stop-color="#a77a21"/></linearGradient></defs>
+<rect x="240" y="0" width="420" height="420" fill="#070b13"/>
+<circle cx="450" cy="185" r="158" fill="#0d1626" stroke="url(#g)" stroke-width="7"/>
+<path d="M286 216h328M312 216v-78h276v78M334 138l116-74 116 74" fill="none" stroke="url(#g)" stroke-width="9"/>
+<path d="M350 216v-54m50 54v-54m50 54v-54m50 54v-54m50 54v-54" stroke="url(#g)" stroke-width="12"/>
+<path d="M390 92h120" stroke="url(#g)" stroke-width="7"/>
+<path d="M255 254c-43 12-70 42-88 77m478-77c43 12 70 42 88 77" fill="none" stroke="url(#g)" stroke-width="9"/>
+<text x="450" y="305" text-anchor="middle" fill="url(#g)" font-family="Georgia,serif" font-size="76" font-weight="800" letter-spacing="6">DEMOCRAT</text>
+<path d="M240 332h420" stroke="url(#g)" stroke-width="3"/>
+<text x="450" y="372" text-anchor="middle" fill="#f4f6fb" font-family="system-ui,sans-serif" font-size="30" font-weight="700" letter-spacing="12">THE GAME</text>
+</svg>
