@@ -56,7 +56,7 @@
   z-index: 5;
 }
 
-.overview-brand strong {
+.overview-logo{width:150px;height:auto;margin-bottom:4px}.overview-brand strong {
   display: block;
   color: #e5c76b;
   letter-spacing: .14em;
