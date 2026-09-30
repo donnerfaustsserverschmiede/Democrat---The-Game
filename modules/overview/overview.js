@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../auth/auth-config-v2.js?v=20260930-3";
-import * as sessionModule from "../session/session.js?v=20261001-22";
+import * as sessionModule from "../session/session.js?v=20261001-23";
 
 const root = document.querySelector("#overview-app");
 const sessionRoot = document.querySelector("#session-app");
@@ -188,4 +188,4 @@ window.addEventListener("democrat:session-back",()=>{root.hidden=false;renderShe
 
 export function unmount(){if(presenceTimer)clearInterval(presenceTimer);presenceTimer=null;presenceSessionIds=[];if(!root)return;root.hidden=true;root.innerHTML="";if(sessionRoot)sessionRoot.hidden=true;currentUser=null;currentPrefs=null;profileName="Spieler";}
 
-// cache-version: 20261001-22
+// cache-version: 20261001-23
