@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../auth/auth-config-v2.js?v=20260930-3";
-import * as sessionModule from "../session/session.js?v=20260930-19";
+import * as sessionModule from "../session/session.js?v=20260930-21";
 
 const root = document.querySelector("#overview-app");
 const sessionRoot = document.querySelector("#session-app");
@@ -176,7 +176,7 @@ export async function mount(user,prefs=null) {
   if(!SUPABASE_PUBLISHABLE_KEY||SUPABASE_PUBLISHABLE_KEY.startsWith("REPLACE_")){root.hidden=false;root.innerHTML=`<div class="overview-main"><div class="overview-error">Supabase configuration is missing.</div></div>`;return;}
   supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY); currentUser=user;
   if(!prefs){const {data}=await supabase.rpc("get_country_preferences");prefs=data?.[0]||null;}
-  if(!prefs?.country_code){root.hidden=true;const country=await import("../country/country.js?v=20260930-1");await country.mount(user);return;}
+  if(!prefs?.country_code){root.hidden=false;root.innerHTML=`<div class="overview-main"><div class="overview-error">Bitte zuerst ein Land auswählen.</div></div>`;return;}
   currentPrefs=prefs;
   profileName=user.user_metadata?.profile_name||user.email||"Spieler";
   renderShell(profileName); await loadSessions();
@@ -188,4 +188,4 @@ window.addEventListener("democrat:session-back",()=>{root.hidden=false;renderShe
 
 export function unmount(){if(presenceTimer)clearInterval(presenceTimer);presenceTimer=null;presenceSessionIds=[];if(!root)return;root.hidden=true;root.innerHTML="";if(sessionRoot)sessionRoot.hidden=true;currentUser=null;currentPrefs=null;profileName="Spieler";}
 
-// cache-version: 20260930-20
+// cache-version: 20260930-21
