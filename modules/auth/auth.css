@@ -14,6 +14,85 @@ html, body {
 
 body { min-height: 100vh; }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: -6%;
+  z-index: -3;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 18%, rgba(214,191,137,.22) 0 4%, transparent 15%),
+    radial-gradient(ellipse at 50% 48%, rgba(25,42,67,.9) 0 15%, transparent 36%),
+    linear-gradient(180deg, rgba(191,166,113,.30) 0 10%, transparent 23%),
+    repeating-linear-gradient(90deg, transparent 0 7%, rgba(130,145,164,.12) 7.2% 7.8%, transparent 8% 15%),
+    linear-gradient(180deg, #293241 0%, #121a28 38%, #070b13 100%);
+  filter: blur(12px);
+  transform: scale(1.06);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(5,8,13,.28), rgba(5,8,13,.70)),
+    radial-gradient(ellipse at center, transparent 15%, rgba(3,6,11,.62) 78%);
+}
+
+.auth-shell {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(5,8,13,.12), rgba(5,8,13,.28)),
+    repeating-linear-gradient(
+      92deg,
+      transparent 0 8.5%,
+      rgba(220,210,185,.055) 8.7% 9%,
+      transparent 9.2% 17%
+    );
+}
+
+.auth-shell::before {
+  content: "";
+  position: absolute;
+  width: 92vw;
+  height: 48vh;
+  left: 4vw;
+  bottom: -8vh;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(8,14,23,.72) 0 5px,
+      transparent 5px 34px
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0 8%,
+      rgba(31,43,59,.72) 8% 17%,
+      transparent 17% 23%,
+      rgba(31,43,59,.72) 23% 32%,
+      transparent 32% 68%,
+      rgba(31,43,59,.72) 68% 77%,
+      transparent 77% 83%,
+      rgba(31,43,59,.72) 83% 92%,
+      transparent 92%
+    );
+  transform: perspective(520px) rotateX(58deg);
+  filter: blur(9px);
+  opacity: .78;
+}
+
+.auth-card {
+  position: relative;
+  z-index: 2;
+  backdrop-filter: blur(18px);
+  background: rgba(17,24,39,.88);
+}
+
 .auth-shell {
   min-height: 100vh;
   display: grid;
