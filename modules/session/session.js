@@ -44,25 +44,48 @@ function sideLabel(side){const x=t();return side==="left"?x.left:side==="center"
 
 async function load(){
   root.hidden=false;
+  loadError=null;
   root.innerHTML=`<div class="session-shell"><div class="session-loading">${t().loading}</div></div>`;
-  const {data,error}=await supabase.rpc("get_session_entry",{p_session_id:currentSessionId});
-  if(error||!data?.length){root.innerHTML=`<div class="session-shell"><div class="session-error">${t().error}</div></div>`;return;}
-  entry=data[0];
-  if(entry.read_confirmed){
-    const [{data:f,error:fe},{data:s,error:se},{data:g,error:ge}]=await Promise.all([
-      supabase.rpc("get_session_factions",{p_session_id:currentSessionId}),
-      supabase.rpc("get_session_seats",{p_session_id:currentSessionId}),
-      supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId})
-    ]);
-    factions=fe?[]:(f||[]);
-    seats=se?[]:(s||[]);
-    gameState=ge?null:(g?.[0]||null);
-    const {data:fm}=await supabase.rpc("get_session_faction_management",{p_session_id:currentSessionId});
-    factionManagement=fm||[];
+
+  try {
+    const entryResult=await supabase.rpc("get_session_entry",{p_session_id:currentSessionId});
+    if(entryResult.error) throw entryResult.error;
+    if(!entryResult.data?.length) throw new Error("session_entry_not_found");
+    entry=entryResult.data[0];
+
+    factions=[]; seats=[]; factionManagement=[]; gameState=null;
+
+    if(entry.read_confirmed){
+      const results=await Promise.allSettled([
+        supabase.rpc("get_session_factions",{p_session_id:currentSessionId}),
+        supabase.rpc("get_session_seats",{p_session_id:currentSessionId}),
+        supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId}),
+        supabase.rpc("get_session_faction_management",{p_session_id:currentSessionId})
+      ]);
+
+      const [fr,sr,gr,mr]=results;
+      if(fr.status==="fulfilled" && !fr.value.error) factions=fr.value.data||[];
+      if(sr.status==="fulfilled" && !sr.value.error) seats=sr.value.data||[];
+      if(gr.status==="fulfilled" && !gr.value.error) gameState=gr.value.data?.[0]||null;
+      if(mr.status==="fulfilled" && !mr.value.error) factionManagement=mr.value.data||[];
+
+      const failed=results.find(r=>r.status==="rejected" || r.value?.error);
+      if(failed) loadError=failed.status==="rejected" ? (failed.reason?.message||String(failed.reason)) : (failed.value.error?.message||"Session-Daten konnten nicht vollständig geladen werden.");
+    }
+  } catch(error){
+    loadError=error?.message||"Die Sitzung konnte nicht geladen werden.";
+    entry=entry||null;
   }
+
+  if(!entry){
+    root.innerHTML=`<div class="session-shell"><div class="session-error">${esc(loadError||t().error)}</div><button class="session-secondary" type="button" data-back>${t().back}</button></div>`;
+    const backButton=root.querySelector("[data-back]");
+    if(backButton) backButton.addEventListener("click",back);
+    return;
+  }
+
   render();
 }
-
 function renderChamber(){
   const playerId=currentUser?.id;
   const colorByName={
@@ -273,7 +296,7 @@ function render(){
       <div><img class="game-logo session-logo" src="./assets/democrat-logo.svg" alt="Democrat – The Game"><h1>${esc(entry.display_name)}</h1><div class="session-chamber">${esc(entry.chamber_name)} · ${entry.player_count}/${entry.max_players}</div></div>
       <button class="session-back" type="button" data-back>×</button>
     </header>
-    <main class="session-main">
+    <main class="session-main">\n       ${loadError ? `<div class="session-action-error">${esc(loadError)}</div>` : ""}
       ${!entry.read_confirmed ? `
         <section class="session-panel session-intro">
           <div class="session-label">${x.intro}</div>
@@ -377,7 +400,7 @@ export async function mount(user,sessionId,prefs){
   if(advanceTimer)window.clearTimeout(advanceTimer);
   root.hidden=false;
   if(!SUPABASE_PUBLISHABLE_KEY||SUPABASE_PUBLISHABLE_KEY.startsWith("REPLACE_"))return;
-  supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};selectedFactionId=null;switchingFaction=false;gameState=null;await load();
+  supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};selectedFactionId=null;switchingFaction=false;gameState=null;loadError=null;await load();
   gamePollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")load();},2500);
 }
 export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);gamePollTimer=null;advanceTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
