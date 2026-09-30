@@ -3,5 +3,5 @@
 
 export const SUPABASE_URL = "https://vjiqloioablknekaykgw.supabase.co";
 
-// Replace this placeholder with the project's publishable key before deployment.
-export const SUPABASE_PUBLISHABLE_KEY = "REPLACE_WITH_SUPABASE_PUBLISHABLE_KEY";
+// This is a public publishable key. Never replace it with a service_role/secret key.
+export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Huwv4AHcB_IQjZhzW-8VZA_wlmJwvRd";
