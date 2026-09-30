@@ -86,21 +86,31 @@ function renderRegister(message = "") {
   root.querySelector("#register-form").addEventListener("submit", handleRegister);
 }
 
+async function mountOverview(user) {
+  root.hidden = true;
+  const overview = await import("../overview/overview.js?v=20260930-1");
+  await overview.mount(user);
+}
+
+async function restoreExistingSession() {
+  if (!supabase) return;
+  const { data } = await supabase.auth.getSession();
+  if (data.session?.user) await mountOverview(data.session.user);
+}
+
 async function handleLogin(event) {
   event.preventDefault();
   if (!supabase) return renderLogin("Die Authentifizierung ist noch nicht konfiguriert.");
 
   const form = new FormData(event.currentTarget);
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: form.get("email"),
     password: form.get("password")
   });
 
   if (error) return renderLogin(error.message);
 
-  // Intentionally no game logic here.
-  // A future game/session module will receive the authenticated state through a defined interface.
-  renderLogin("Anmeldung erfolgreich.");
+  await mountOverview(data.user);
 }
 
 async function handleRegister(event) {
@@ -117,7 +127,7 @@ async function handleRegister(event) {
     return renderRegister("Die Passwörter stimmen nicht überein.");
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -128,6 +138,11 @@ async function handleRegister(event) {
   });
 
   if (error) return renderRegister(error.message);
+
+  if (data.session?.user) {
+    await mountOverview(data.session.user);
+    return;
+  }
 
   renderLogin("Konto erstellt. Du kannst dich direkt mit deiner E-Mail-Adresse und deinem Passwort anmelden.");
 }
@@ -142,3 +157,4 @@ function escapeHtml(value) {
 }
 
 renderEntry();
+restoreExistingSession();
