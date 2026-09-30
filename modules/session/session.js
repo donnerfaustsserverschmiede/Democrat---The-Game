@@ -545,6 +545,7 @@ function render(){
             <h3>${x.new}</h3>
             <label>${x.name}<input id="faction-name" maxlength="40" placeholder="${x.namePlaceholder}"></label>
             <fieldset><legend>${x.position}</legend><div class="side-options">${renderSideOptions(x)}</div></fieldset>
+            <div class="faction-color-picker"><h3>${x.color} <span>${x.chooseColor}</span></h3><div class="color-options">${["red","blue","green","yellow","purple","orange"].map(color=>{const used=factions.some(f=>f.color_code===color);return "<button type=\"button\" class=\"color-choice faction-"+color+(used?" unavailable":"")+(selectedFactionColor===color?" selected":"")+" \" data-new-faction-color=\""+color+"\" "+(used?"disabled":"")+" aria-label=\""+color+"\"></button>";}).join("")}</div></div>
             <button class="session-primary" type="button" data-create>${x.create}</button>
             <div id="session-action-error" class="session-action-error" hidden></div>
           </div>
@@ -619,7 +620,7 @@ async function chooseNew(){
   const x=t(),name=root.querySelector("#faction-name")?.value.trim(),side=root.querySelector("input[name='side']:checked")?.value;
   const err=root.querySelector("#session-action-error");
   if(!name||!side){err.textContent=x.required;err.hidden=false;return;}
-  const {data,error}=await supabase.rpc("choose_session_faction",{p_session_id:currentSessionId,p_faction_id:selectedFactionId,p_faction_name:selectedFactionId?null:name,p_side:selectedFactionId?null:side});
+  const {data,error}=await supabase.rpc("choose_session_faction",{p_session_id:currentSessionId,p_faction_id:selectedFactionId,p_faction_name:selectedFactionId?null:name,p_side:selectedFactionId?null:side,p_color_code:selectedFactionId?null:(selectedFactionColor||null)});
   if(error){err.textContent=mapFactionError(error);err.hidden=false;return;}
   if(selectedFactionColor){
     const colorResult=await supabase.rpc("set_session_faction_color",{p_session_id:currentSessionId,p_color_code:selectedFactionColor});
