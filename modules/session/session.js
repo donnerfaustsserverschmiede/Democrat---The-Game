@@ -222,9 +222,9 @@ function renderChamber(){
       const factionBot=bot&&Boolean(seat.faction_id);
       const colorClass=seat.faction_color ? " faction-"+esc(seat.faction_color) : "";
       const cls=own
-        ? "seat own-seat"
+        ? "seat own-seat"+colorClass
         : factionBot
-          ? "seat bot-seat faction-bot-seat"
+          ? "seat bot-seat faction-bot-seat"+colorClass
         : bot
           ? "seat bot-seat"
           : occupied
