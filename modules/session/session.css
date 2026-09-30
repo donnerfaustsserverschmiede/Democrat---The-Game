@@ -114,3 +114,18 @@
 .debate-composer textarea{flex:1;min-height:52px;max-height:140px;resize:vertical;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:#070d17;color:#fff;font:inherit}
 .debate-composer .session-primary{align-self:flex-end;min-height:52px}
 @media(max-width:600px){.debate-composer{align-items:stretch}.debate-composer .session-primary{min-width:82px;padding:0 12px}.debate-message{max-width:96%}}
+
+.bot-seat{padding:0;font:inherit;cursor:pointer;background:#59677b;border-color:rgba(255,255,255,.42);box-shadow:0 0 0 2px rgba(255,255,255,.08),0 2px 7px rgba(0,0,0,.35)}
+.bot-seat:hover{transform:translate(-50%,-50%) scale(1.25);border-color:#e5c76b;box-shadow:0 0 0 3px rgba(229,199,107,.22),0 4px 14px rgba(0,0,0,.45)}
+.bot-seat .seat-dot{background:#7b8798}
+.session-majority-panel{margin-top:12px}
+.bot-dialog-backdrop{position:fixed;inset:0;z-index:3200;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.76);backdrop-filter:blur(10px)}
+.bot-dialog{width:min(560px,100%);padding:20px;border:1px solid rgba(229,199,107,.25);border-radius:18px;background:#101827;box-shadow:0 24px 80px rgba(0,0,0,.55)}
+.bot-dialog-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.bot-dialog h2{margin:6px 0 0}
+.bot-dialog p{color:#c8d1df;line-height:1.55}
+.bot-choice-grid,.bot-method-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.bot-choice-grid button{min-height:52px}
+.bot-choice-grid button.selected{border-color:#e5c76b;box-shadow:0 0 0 1px #e5c76b inset}
+.bot-method{margin-top:0}
+@media(max-width:650px){.bot-choice-grid,.bot-method-grid{grid-template-columns:1fr}.bot-dialog{padding:17px}}
