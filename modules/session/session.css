@@ -44,3 +44,10 @@
 .session-danger{width:100%;min-height:42px;border:1px solid rgba(255,120,120,.28);border-radius:10px;background:rgba(100,25,30,.48);color:#ffd5d5;font:inherit;font-weight:750}
 .management-delete{margin-top:16px}
 @media(max-width:650px){.management-member{align-items:flex-start;flex-direction:column}.management-actions{width:100%;justify-content:stretch}.management-action{flex:1}}
+
+.faction-actions{margin-top:24px;padding-top:22px;border-top:1px solid rgba(255,255,255,.1)}
+.faction-actions h3{margin:0 0 8px}
+.faction-actions p{margin:0;color:#aeb8c8;font-size:13px;line-height:1.5}
+.faction-action-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+.faction-action{margin-top:0;min-height:52px;font-size:12px}
+@media(max-width:650px){.faction-action-grid{grid-template-columns:1fr}}
