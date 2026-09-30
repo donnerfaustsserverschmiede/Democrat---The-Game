@@ -206,6 +206,7 @@ function renderChamber(){
       const bot=Boolean(seat.bot_id||seat.is_bot);
       const controlled=Boolean(seat.faction_id)&&!occupied&&!bot;
       const own=seat.user_id===playerId;
+      const factionBot=bot&&Boolean(seat.faction_id);
       const colorClass=seat.faction_color ? " faction-"+esc(seat.faction_color) : "";
       const cls=own
         ? "seat own-seat"
@@ -218,8 +219,6 @@ function renderChamber(){
             : controlled
               ? "seat controlled-empty-seat"+colorClass
               : "seat";
-
-      const factionBot=bot&&Boolean(seat.faction_id);
       const title=factionBot
         ? esc(t().factionBot)+" · "+esc(seat.faction_name||"")
         : bot
