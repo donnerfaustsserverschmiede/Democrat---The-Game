@@ -25,6 +25,20 @@ const UI = {
   "en-US": { intro:"Introduction", read:"I have read the introduction – continue", choose:"Choose a faction", existing:"Existing factions", new:"New faction", name:"Faction name", namePlaceholder:"Faction name", position:"Position in the chamber", left:"Left", center:"Centre", right:"Right", members:"Members", seats:"Seats", chooseExisting:"Choose this faction", create:"Create faction and choose seat", assigned:"Your seat is assigned", assignedText:"You are placed in a contiguous faction block.", seat:"Seat", back:"Back to session overview", changeFaction:"Change faction", cancel:"Cancel", loading:"Loading session …", error:"The session could not be loaded.", full:"Full", selected:"Selected", required:"Enter a faction name and choose a position.", factionFull:"This faction already has 10 seats.", sectorFull:"No faction blocks are free in this sector.", management:"Faction management", leader:"Faction chair", deputy:"Deputy chair", promote:"Appoint deputy", removeDeputy:"Remove deputy", kick:"Remove from faction", deleteFaction:"Delete faction", deleteConfirm:"Delete this faction? All members will lose faction membership.", kickConfirm:"Remove this member from the faction?", actions:"Faction actions",actionHint:"Actions can secure additional empty faction seats. Players already seated are never displaced.",speech:"Faction speech · +1 seat",committee:"Committee work · +2 seats",publicity:"Public outreach · +3 seats",actionError:"The action could not be executed." }
 };
 function t(){ return Object.assign({},UI["de-DE"],UI[currentPrefs?.locale]||{}); }
+function gt(){
+  const x=t();
+  return {
+    playerPoints:x.playerPoints||x.hudPlayer||"Eigene Meinungspunkte",
+    factionPoints:x.factionPoints||x.hudFaction||"Fraktions-Meinungspunkte",
+    winnerPlayer:x.winnerPlayer||"SIEG · SPIELER",
+    winnerFaction:x.winnerFaction||"SIEG · FRAKTION",
+    winner:x.winner||"Gewinner",
+    noWinner:x.noWinner||"Kein Gewinner",
+    sessionEnded:x.sessionEnded||"DIE SITZUNG IST BEENDET",
+    eliminated:x.eliminated||"AUSGESCHIEDEN",
+    eliminatedText:x.eliminatedText||"Du bist ausgeschieden."
+  };
+}
 function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
 function sideLabel(side){const x=t();return side==="left"?x.left:side==="center"?x.center:x.right;}
 
