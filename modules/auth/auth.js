@@ -86,7 +86,7 @@ function renderRegister(message = "") {
 
 async function mountCountrySelection(user) {
   root.hidden = true;
-  const country = await import("../country/country.js?v=20260930-1");
+  const country = await import("../country/country.js?v=20260930-2");
   await country.mount(user);
 }
 
