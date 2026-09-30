@@ -176,11 +176,21 @@ async function confirmRead(){
   if(!error){await load();}
 }
 
+function mapFactionError(error){
+  const code=error?.code||"";
+  const msg=error?.message||"";
+  if(code==="faction_full"||msg.includes("faction_full"))return t().factionFull;
+  if(code==="sector_full"||msg.includes("sector_full"))return t().sectorFull;
+  if(code==="faction_name_required"||msg.includes("faction_name_required"))return t().required;
+  if(code==="faction_side_required"||msg.includes("faction_side_required"))return t().required;
+  if(code==="session_read_required"||msg.includes("session_read_required"))return t().read;
+  return msg||t().required;
+}
 async function chooseExisting(){
   if(!selectedFactionId)return;
   const err=root.querySelector("#session-action-error");
   const {error}=await supabase.rpc("choose_session_faction",{p_session_id:currentSessionId,p_faction_id:selectedFactionId,p_faction_name:null,p_side:null});
-  if(error){err.textContent=error.message?.includes("faction_full")?t().factionFull:error.message?.includes("sector_full")?t().sectorFull:t().required;err.hidden=false;return;}
+  if(error){err.textContent=mapFactionError(error);err.hidden=false;return;}
   selectedFactionId=null;switchingFaction=false;await load();
 }
 
@@ -189,7 +199,7 @@ async function chooseNew(){
   const err=root.querySelector("#session-action-error");
   if(!name||!side){err.textContent=x.required;err.hidden=false;return;}
   const {data,error}=await supabase.rpc("choose_session_faction",{p_session_id:currentSessionId,p_faction_id:selectedFactionId,p_faction_name:selectedFactionId?null:name,p_side:selectedFactionId?null:side});
-  if(error){err.textContent=error.message?.includes("faction_full")?x.factionFull:error.message?.includes("sector_full")?x.sectorFull:x.required;err.hidden=false;return;}
+  if(error){err.textContent=mapFactionError(error);err.hidden=false;return;}
   selectedFactionId=null;switchingFaction=false;await load();
 }
 
