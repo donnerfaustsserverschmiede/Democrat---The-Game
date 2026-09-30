@@ -124,7 +124,7 @@ function renderChamber(){
     <div class="chamber-title">Sitzungsverteilung · 60 Sitze</div>
     <div class="chamber-map hemicycle-map">
       <div class="presidium"><span>PRÄSIDIUM</span><small>Präsident / Präsidium</small></div>
-      <svg class="seat-sector-map" viewBox="0 0 100 100" aria-hidden="true">
+      <svg class="seat-sector-map" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <path class="seat-arc" d="M 8 88 A 45 32.4 0 0 1 92 88"></path>
         <path class="seat-inner-arc" d="M 29 88 A 23 16.56 0 0 1 71 88"></path>
         ${sectorMarkup.join("")}
