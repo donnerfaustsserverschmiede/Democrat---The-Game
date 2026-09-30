@@ -119,7 +119,7 @@ function render(){
   root.innerHTML=`
   <div class="session-shell">
     <header class="session-header">
-      <div><div class="session-kicker">DEMOCRAT</div><h1>${esc(entry.display_name)}</h1><div class="session-chamber">${esc(entry.chamber_name)} · ${entry.player_count}/${entry.max_players}</div></div>
+      <div><img class="game-logo session-logo" src="./assets/democrat-logo.svg" alt="Democrat – The Game"><h1>${esc(entry.display_name)}</h1><div class="session-chamber">${esc(entry.chamber_name)} · ${entry.player_count}/${entry.max_players}</div></div>
       <button class="session-back" type="button" data-back>×</button>
     </header>
     <main class="session-main">
