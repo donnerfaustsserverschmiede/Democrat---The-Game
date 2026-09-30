@@ -161,11 +161,11 @@ begin
   where at.action_code=p_action_code and at.active for update;
   if not found then raise exception 'action_not_available'; end if;
 
-  select max(created_at) into v_last
-  from game.session_faction_action_log
-  where session_id=p_session_id
-    and faction_id=v_faction.id
-    and action_code=v_action.action_code;
+  select max(l.created_at) into v_last
+  from game.session_faction_action_log l
+  where l.session_id=p_session_id
+    and l.faction_id=v_faction.id
+    and l.action_code=v_action.action_code;
 
   if v_last is not null
      and v_last > now()-make_interval(secs=>v_action.cooldown_seconds)
