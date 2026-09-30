@@ -88,17 +88,81 @@ async function loadSessions() {
 }
 
 function openSession(sessionId) {
+  const text=t();
+  if(!sessionRoot){
+    root.hidden=false;
+    root.innerHTML=`<div class="overview-main"><div class="overview-error"><strong>Sitzungsfenster fehlt.</strong><br><small>Das Element #session-app wurde nicht gefunden.</small></div></div>`;
+    return;
+  }
+
+  // Switch immediately. Never leave the player on a blank/hidden screen.
   root.hidden=true;
+  sessionRoot.hidden=false;
+  sessionRoot.innerHTML=`
+    <div class="session-shell">
+      <div class="session-loading">
+        <strong>Sitzung wird geladen …</strong>
+        <span>${escapeHtml(sessionId)}</span>
+      </div>
+    </div>`;
+
+  let loadFinished=false;
+  const timeoutId=window.setTimeout(()=>{
+    if(loadFinished)return;
+    loadFinished=true;
+    sessionRoot.hidden=false;
+    sessionRoot.innerHTML=`
+      <div class="session-shell">
+        <div class="session-error">
+          <strong>Sitzung konnte nicht geladen werden.</strong><br>
+          <small>Der Ladevorgang hat zu lange gedauert.</small><br>
+          <button class="session-secondary" type="button" data-session-retry>Erneut versuchen</button>
+          <button class="session-secondary" type="button" data-session-back>Zurück</button>
+        </div>
+      </div>`;
+    sessionRoot.querySelector("[data-session-retry]")?.addEventListener("click",()=>openSession(sessionId));
+    sessionRoot.querySelector("[data-session-back]")?.addEventListener("click",()=>{
+      sessionRoot.hidden=true;
+      sessionRoot.innerHTML="";
+      root.hidden=false;
+      renderShell(profileName);
+      loadSessions();
+    });
+  },15000);
+
   Promise.resolve()
     .then(()=>sessionModule.mount(currentUser,sessionId,currentPrefs))
+    .then(()=>{
+      if(loadFinished)return;
+      loadFinished=true;
+      window.clearTimeout(timeoutId);
+      sessionRoot.hidden=false;
+    })
     .catch(error=>{
-      console.error("[Democrat] Failed to open session:", error);
-      root.hidden=false;
-      root.innerHTML=`<div class="overview-main"><div class="overview-error"><strong>Sitzung konnte nicht geöffnet werden.</strong><br><small>${escapeHtml(error?.stack||error?.message||String(error))}</small><br><button class="overview-refresh" type="button" data-session-retry>Erneut versuchen</button></div></div>`;
-      root.querySelector("[data-session-retry]")?.addEventListener("click",()=>openSession(sessionId));
+      if(loadFinished)return;
+      loadFinished=true;
+      window.clearTimeout(timeoutId);
+      console.error("[Democrat] Failed to open session:",error);
+      sessionRoot.hidden=false;
+      sessionRoot.innerHTML=`
+        <div class="session-shell">
+          <div class="session-error">
+            <strong>Sitzung konnte nicht geöffnet werden.</strong><br>
+            <small>${escapeHtml(error?.stack||error?.message||String(error))}</small><br>
+            <button class="session-secondary" type="button" data-session-retry>Erneut versuchen</button>
+            <button class="session-secondary" type="button" data-session-back>Zurück</button>
+          </div>
+        </div>`;
+      sessionRoot.querySelector("[data-session-retry]")?.addEventListener("click",()=>openSession(sessionId));
+      sessionRoot.querySelector("[data-session-back]")?.addEventListener("click",()=>{
+        sessionRoot.hidden=true;
+        sessionRoot.innerHTML="";
+        root.hidden=false;
+        renderShell(profileName);
+        loadSessions();
+      });
     });
 }
-
 async function joinSession(sessionId) {
   root.querySelectorAll("[data-session-id]").forEach(button=>button.disabled=true);
   const {error}=await supabase.rpc("join_session",{p_session_id:sessionId});
@@ -124,4 +188,4 @@ window.addEventListener("democrat:session-back",()=>{root.hidden=false;renderShe
 
 export function unmount(){if(presenceTimer)clearInterval(presenceTimer);presenceTimer=null;presenceSessionIds=[];if(!root)return;root.hidden=true;root.innerHTML="";if(sessionRoot)sessionRoot.hidden=true;currentUser=null;currentPrefs=null;profileName="Spieler";}
 
-// cache-version: 20260930-19
+// cache-version: 20260930-20
