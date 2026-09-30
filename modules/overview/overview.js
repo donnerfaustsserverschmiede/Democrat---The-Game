@@ -81,7 +81,7 @@ async function openSession(sessionId) {
 async function joinSession(sessionId) {
   root.querySelectorAll("[data-session-id]").forEach(button=>button.disabled=true);
   const {error}=await supabase.rpc("join_session",{p_session_id:sessionId});
-  if(error){if(error.message?.includes("session_limit_reached")){const box=root.querySelector(".overview-error");if(box)box.textContent=t().sessionLimit||"Du kannst gleichzeitig an maximal 5 Sitzungen teilnehmen.";}await loadSessions();return;}
+  if(error){if(error.message?.includes("session_limit_reached")) alert(t().sessionLimit||"Du kannst gleichzeitig an maximal 5 Sitzungen teilnehmen."); await loadSessions();return;}
   activeTab="mine";
   await openSession(sessionId);
 }
