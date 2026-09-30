@@ -1,8 +1,23 @@
-html, body { margin: 0; min-height: 100%; background: #05080d; }
-#splash-app { position: fixed; inset: 0; z-index: 9999; }
-.splash-screen { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at center, rgba(229,199,107,.07), transparent 42%), #05080d; opacity: 1; transition: opacity .5s ease; }
-.splash-screen.splash-fade-out { opacity: 0; }
-.splash-content { text-align: center; animation: splash-enter .8s ease-out both; }
-.splash-title { font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 8vw, 72px); font-weight: 800; letter-spacing: .16em; color: #e5c76b; text-shadow: 0 0 28px rgba(229,199,107,.2); }
-.splash-subtitle { margin-top: 7px; font-family: Inter, system-ui, sans-serif; font-size: clamp(14px, 3vw, 24px); font-weight: 700; letter-spacing: .55em; color: #f4f6fb; }
-@keyframes splash-enter { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: scale(1); } }
+html, body { margin:0; min-height:100%; background:#050d18; }
+#splash-app { position:fixed; inset:0; z-index:9999; }
+.splash-screen {
+  position:fixed; inset:0; display:grid; place-items:center; overflow:hidden;
+  background:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px),
+    radial-gradient(circle at 50% 42%, rgba(26,74,116,.55), transparent 44%), #050d18;
+  background-size:42px 42px,42px 42px,auto,auto;
+  opacity:1; transition:opacity .5s ease;
+}
+.splash-screen::before {
+  content:""; position:absolute; width:min(72vw,420px); aspect-ratio:1; border:1px solid rgba(201,164,76,.3);
+  border-radius:50%; box-shadow:0 0 0 18px rgba(201,164,76,.025),0 0 0 42px rgba(201,164,76,.02);
+}
+.splash-screen::after { content:""; position:absolute; left:8%; right:8%; top:50%; height:1px; background:rgba(201,164,76,.14); }
+.splash-screen.splash-fade-out { opacity:0; }
+.splash-content { position:relative; z-index:1; text-align:center; animation:splash-enter .8s ease-out both; }
+.splash-kicker { margin-bottom:18px; color:#b9c7d4; font:700 11px/1 system-ui,sans-serif; letter-spacing:.38em; text-transform:uppercase; }
+.splash-title { font:800 clamp(40px,10vw,82px)/.95 Georgia,"Times New Roman",serif; letter-spacing:.12em; color:#f3f5f7; text-shadow:0 8px 32px rgba(0,0,0,.4); }
+.splash-subtitle { margin-top:12px; color:#d2b45e; font:700 clamp(12px,3vw,18px)/1 system-ui,sans-serif; letter-spacing:.48em; text-transform:uppercase; }
+.splash-rule { width:120px; height:1px; margin:22px auto 0; background:linear-gradient(90deg,transparent,#c9a44c,transparent); }
+@keyframes splash-enter { from { opacity:0; transform:translateY(8px) scale(.98); } to { opacity:1; transform:none; } }
