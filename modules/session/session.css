@@ -35,3 +35,13 @@
 .session-secondary{width:100%;min-height:44px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(10,17,29,.75);color:#e9edf3;font:inherit;font-weight:700;margin-top:10px}
 .faction-switch{margin-top:24px;padding-top:22px;border-top:1px solid rgba(255,255,255,.1)}
 .faction-switch h3{margin:0 0 14px}
+
+.faction-management{margin-top:24px;padding-top:22px;border-top:1px solid rgba(255,255,255,.1)}
+.faction-management h3{margin:0 0 14px}
+.management-member{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.management-member strong,.management-member span{display:block}.management-member span{margin-top:4px;color:#aeb8c8;font-size:12px}
+.management-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.management-action{width:auto;min-height:36px;margin:0;padding:7px 10px;font-size:12px}
+.session-danger{width:100%;min-height:42px;border:1px solid rgba(255,120,120,.28);border-radius:10px;background:rgba(100,25,30,.48);color:#ffd5d5;font:inherit;font-weight:750}
+.management-delete{margin-top:16px}
+@media(max-width:650px){.management-member{align-items:flex-start;flex-direction:column}.management-actions{width:100%;justify-content:stretch}.management-action{flex:1}}
