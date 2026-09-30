@@ -46,32 +46,27 @@ async function load(){
 
 function renderChamber(){
   const playerId=currentUser?.id;
-  const seatMarkup=seats.map((s,i)=>{
-    // Parliamentary hemicycle: three concentric rows facing the presidium.
-    // 30 seats = 3 rows x 10 seats, ordered from the outer/left arc inward.
-    const row=Math.floor(i/10);
-    const col=i%10;
-    const rowRadius=[45,34,23][row];
-    const angleDeg=150-(col/9)*120;
-    const angle=angleDeg*Math.PI/180;
-    const xPos=50+Math.cos(angle)*rowRadius;
-    const yPos=24+Math.sin(angle)*rowRadius;
-    const own=s.user_id===playerId;
-    const occupied=Boolean(s.user_id);
-    const colorClass=s.faction_color?" faction-"+esc(s.faction_color):"";
-    const cls=own?"seat own-seat":occupied?"seat occupied-seat"+colorClass:"seat";
-    const label=occupied?(own?"Du":esc(s.profile_name)):String(s.seat_number);
-    const faction=s.faction_name?esc(s.faction_name):"";
-    return `<div class="${cls}" style="--x:${xPos}%;--y:${yPos}%" title="${occupied?esc(s.profile_name)+" · "+faction:"Sitz "+s.seat_number}"><span class="seat-number">${label}</span>${occupied?`<span class="seat-faction">${faction}</span>`:""}</div>`;
+  const seatMarkup=seats.map((seat,index)=>{
+    const row=Math.floor(index/6);
+    const col=index%6;
+    const radii=[46,40,34,28,22];
+    const angles=[150,126,102,78,54,30];
+    const angle=angles[col]*Math.PI/180;
+    const xPos=50+Math.cos(angle)*radii[row];
+    const yPos=22+Math.sin(angle)*radii[row]*0.82;
+    const occupied=Boolean(seat.user_id);
+    const own=seat.user_id===playerId;
+    const colorClass=seat.faction_color ? " faction-"+esc(seat.faction_color) : "";
+    const cls=own ? "seat own-seat" : occupied ? "seat occupied-seat"+colorClass : "seat";
+    const label=own ? "Du" : occupied ? esc(seat.profile_name) : "";
+    const title=occupied ? esc(seat.profile_name)+" · "+esc(seat.faction_name||"") : "Freier Sitz";
+    return `<div class="${cls}" style="--x:${xPos}%;--y:${yPos}%" title="${title}"><span class="seat-dot"></span>${label ? `<span class="seat-label">${label}</span>` : ""}</div>`;
   }).join("");
   return `<div class="chamber-wrap">
     <div class="chamber-title">Sitzungsplenum</div>
     <div class="chamber-map hemicycle-map">
       <div class="presidium"><span>PRÄSIDIUM</span><small>Präsident / Präsidium</small></div>
       <div class="hemicycle-floor"></div>
-      <div class="chamber-sector sector-left"><span>${t().left}</span></div>
-      <div class="chamber-sector sector-center"><span>${t().center}</span></div>
-      <div class="chamber-sector sector-right"><span>${t().right}</span></div>
       <div class="chamber-seats">${seatMarkup}</div>
     </div>
     <div class="chamber-legend">${factions.map(f=>`<span><i class="legend-dot faction-${esc(f.color_code||"blue")}"></i>${esc(f.name)}</span>`).join("")}</div>
