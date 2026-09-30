@@ -16,7 +16,7 @@ window.setTimeout(() => {
 
     const script = document.createElement("script");
     script.type = "module";
-    script.src = "./modules/legal/legal.js";
+    script.src = "./modules/legal/legal.js?v=20260930-5";
     document.body.appendChild(script);
   }, 500);
 }, 2000);
