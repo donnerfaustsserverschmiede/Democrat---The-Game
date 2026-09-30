@@ -21,6 +21,7 @@ let advanceTimer = null;
 let debateOpen = false;
 let debateMessages = [];
 let debatePollTimer = null;
+let countdownTimer = null;
 let loadError = null;
 
 const UI = {
@@ -293,7 +294,27 @@ function renderFactionChooser(x){
 }
 function pct(value){return Math.max(0,Math.min(100,Number(value||0)));}
 function renderGameHud(){const x=gt(),g=gameState||{},w=walletState||{};const money=Number(w.money??g.money??0);const symbol=w.currency_symbol||"€";return '<div class="game-hud"><div class="hud-card"><span>'+x.playerPoints+'</span><strong>'+pct(g.player_opinion_points)+'/100</strong><small>'+(g.player_eliminated?x.eliminated:'')+'</small></div><div class="hud-card"><span>'+x.factionPoints+'</span><strong>'+pct(g.faction_opinion_points)+'/100</strong><small>'+(g.faction_eliminated?x.eliminated:'')+'</small></div><div class="hud-card"><span>'+t().hudMoney+'</span><strong>'+money.toLocaleString(undefined)+' '+symbol+'</strong><small>'+Number(w.salary_per_minute||0).toLocaleString(undefined)+' '+symbol+' / Min.</small></div></div>';}
-function renderPresidentStatement(){const x=t(),g=gameState||{},r=g.statement_status==="resolved",ended=g.session_status==="ended";let body='';if(ended){const kind=g.winner_type==="faction"?gt().winnerFaction:g.winner_type==="player"?gt().winnerPlayer:"";body='<div class="session-ended-banner">'+gt().sessionEnded+'</div>'+(g.winner_name?'<div class="winner-card"><strong>'+gt().winner+' · '+esc(kind)+'</strong><span>'+esc(g.winner_name)+'</span></div>':'<div class="winner-card"><span>'+gt().noWinner+'</span></div>');}else{body='<div class="president-label">'+x.president+' · '+(g.statement_number?'Aussage '+g.statement_number:'')+'</div>'+(g.statement_text?'<h2>'+esc(g.statement_text)+'</h2>':'')+(r?'<div class="statement-resolved">'+(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie)+'</div>':'');}return '<section class="president-statement">'+body+'</section>';}
+function formatStatementCountdown(deadline){
+  const ms=Math.max(0,new Date(deadline||0).getTime()-Date.now());
+  const total=Math.ceil(ms/1000);
+  const minutes=Math.floor(total/60);
+  const seconds=total%60;
+  return String(minutes).padStart(2,"0")+":"+String(seconds).padStart(2,"0");
+}
+function renderPresidentStatement(){
+  const x=t(),g=gameState||{},resolved=g.statement_status==="resolved",ended=g.session_status==="ended";
+  let body="";
+  if(ended){
+    const kind=g.winner_type==="faction"?gt().winnerFaction:g.winner_type==="player"?gt().winnerPlayer:"";
+    body='<div class="session-ended-banner">'+gt().sessionEnded+'</div>'+(g.winner_name?'<div class="winner-card"><strong>'+gt().winner+' · '+esc(kind)+'</strong><span>'+esc(g.winner_name)+'</span></div>':'<div class="winner-card"><span>'+gt().noWinner+'</span></div>');
+  }else{
+    body='<div class="president-label">'+x.president+' · '+(g.statement_number?"Aussage "+g.statement_number:"")+'</div>'+
+      (g.statement_text?'<h2>'+esc(g.statement_text)+'</h2>':"")+
+      (g.statement_status==="open"&&g.statement_deadline?'<div class="statement-countdown"><span>Abstimmung endet in</span><strong id="statement-countdown">'+formatStatementCountdown(g.statement_deadline)+'</strong></div>':"")+
+      (resolved?'<div class="statement-resolved">'+(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie)+'</div>':"");
+  }
+  return '<section class="president-statement">'+body+'</section>';
+}
 async function influenceBot(botId,choice,method){try{const {error}=await supabase.rpc("influence_session_bot",{p_session_id:currentSessionId,p_bot_id:botId,p_choice:choice,p_method:method});if(error)throw error;await load();}catch(error){alert(error?.message?.includes("insufficient_funds")?t().insufficientFunds:t().botInfluenceError);}}
 function openBotDialog(botId){const bot=seats.find(s=>String(s.bot_id||"")===String(botId));if(!bot||!gameState||gameState.statement_status!=="open"||gameState.session_status!=="active")return;const x=t(),overlay=document.createElement("div");overlay.className="bot-dialog-backdrop";overlay.innerHTML='<section class="bot-dialog" role="dialog" aria-modal="true"><div class="bot-dialog-head"><div><div class="session-label">'+x.botTitle+'</div><h2>'+esc(bot.profile_name||"Bürger")+'</h2></div><button type="button" class="debate-close" data-bot-close>×</button></div><p>'+x.botHint+'</p><div class="bot-choice-grid"><button type="button" class="session-secondary" data-bot-choice="approve">'+x.botApprove+'</button><button type="button" class="session-secondary" data-bot-choice="reject">'+x.botReject+'</button></div><div class="bot-method-grid"><button type="button" class="session-primary bot-method" data-bot-method="moral">'+x.moral+'</button><button type="button" class="session-primary bot-method" data-bot-method="bribe">'+x.bribe+'</button></div></section>';document.body.appendChild(overlay);let selectedChoice="approve";overlay.querySelector('[data-bot-choice="approve"]')?.classList.add("selected");overlay.querySelectorAll("[data-bot-choice]").forEach(b=>b.addEventListener("click",()=>{selectedChoice=b.dataset.botChoice;overlay.querySelectorAll("[data-bot-choice]").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");}));overlay.querySelectorAll("[data-bot-method]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;await influenceBot(botId,selectedChoice,b.dataset.botMethod);overlay.remove();}));overlay.querySelector("[data-bot-close]")?.addEventListener("click",()=>overlay.remove());}
 function renderFactionVote(){const x=t(),g=gameState||{},yes=Number(g.faction_approve_votes||0),no=Number(g.faction_reject_votes||0),inter=Number(g.faction_interject_votes||0),d=yes+no,yp=d?Math.round(yes/d*100):0,np=d?100-yp:0;const result=g.statement_status==="resolved"?(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie):"";return '<div class="faction-vote-panel"><div class="faction-vote-head"><span>'+x.factionVote+'</span><strong>'+d+'/'+(g.faction_member_count||0)+'</strong></div><div class="faction-vote-bar"><i style="width:'+yp+'%"></i><b style="width:'+np+'%"></b></div><div class="faction-vote-numbers"><span>'+x.approve+': '+yp+'%</span><span>'+x.reject+': '+np+'%</span>'+(inter?'<span>'+x.interject+': '+inter+'</span>':'')+'</div>'+(result?'<div class="faction-result">'+result+'</div>':(d<Number(g.faction_member_count||0)?'<div class="faction-waiting">'+x.waiting+'</div>':''))+'</div>';}
@@ -490,6 +511,23 @@ async function factionAction(kind,id){
   if(result?.error){alert(result.error.message);return;}
   await load();
 }
+async function handleStatementCountdown(){
+  if(!gameState||gameState.statement_status!=="open"||gameState.session_status!=="active"||!gameState.statement_deadline)return;
+  const el=root.querySelector("#statement-countdown");
+  const remaining=Math.max(0,new Date(gameState.statement_deadline).getTime()-Date.now());
+  if(el)el.textContent=formatStatementCountdown(gameState.statement_deadline);
+  if(remaining<=0&&advanceTimer===null){
+    advanceTimer=window.setTimeout(async()=>{
+      advanceTimer=null;
+      try{await supabase.rpc("advance_session_statement",{p_session_id:currentSessionId});}finally{await load();}
+    },50);
+  }
+}
+function startStatementCountdown(){
+  if(countdownTimer)window.clearInterval(countdownTimer);
+  countdownTimer=window.setInterval(handleStatementCountdown,1000);
+  handleStatementCountdown();
+}
 function render(){
   const x=t();
   const assigned=entry.faction_id&&entry.seat_number;
@@ -645,4 +683,4 @@ export async function mount(user,sessionId,prefs){
   }
   gamePollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")refreshSessionSilently();},3000);
 }
-export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);closeDebate();gamePollTimer=null;advanceTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
+export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);if(countdownTimer)window.clearInterval(countdownTimer);closeDebate();gamePollTimer=null;advanceTimer=null;countdownTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
