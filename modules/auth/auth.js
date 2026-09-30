@@ -86,16 +86,16 @@ function renderRegister(message = "") {
   root.querySelector("#register-form").addEventListener("submit", handleRegister);
 }
 
-async function mountOverview(user) {
+async function mountCountrySelection(user) {
   root.hidden = true;
-  const overview = await import("../overview/overview.js?v=20260930-1");
-  await overview.mount(user);
+  const country = await import("../country/country.js?v=20260930-1");
+  await country.mount(user);
 }
 
 async function restoreExistingSession() {
   if (!supabase) return;
   const { data } = await supabase.auth.getSession();
-  if (data.session?.user) await mountOverview(data.session.user);
+  if (data.session?.user) await mountCountrySelection(data.session.user);
 }
 
 async function handleLogin(event) {
@@ -110,7 +110,7 @@ async function handleLogin(event) {
 
   if (error) return renderLogin(error.message);
 
-  await mountOverview(data.user);
+  await mountCountrySelection(data.user);
 }
 
 async function handleRegister(event) {
@@ -140,7 +140,7 @@ async function handleRegister(event) {
   if (error) return renderRegister(error.message);
 
   if (data.session?.user) {
-    await mountOverview(data.session.user);
+    await mountCountrySelection(data.session.user);
     return;
   }
 
