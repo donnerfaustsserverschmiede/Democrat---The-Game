@@ -12,6 +12,7 @@ let selectedFactionId = null;
 let seats = [];
 let switchingFaction = false;
 let factionManagement = [];
+let factionActionStatus = [];
 let gameState = null;
 let walletState = null;
 let gamePollTimer = null;
@@ -58,7 +59,7 @@ async function load(){
     if(!entryResult.data?.length) throw new Error("session_entry_not_found");
     entry=entryResult.data[0];
 
-    factions=[]; seats=[]; factionManagement=[]; gameState=null;
+    factions=[]; seats=[]; factionManagement=[]; factionActionStatus=[]; gameState=null;
     if(entry.read_confirmed){
       const results=await Promise.allSettled([
         supabase.rpc("get_session_factions",{p_session_id:currentSessionId}),
@@ -66,13 +67,15 @@ async function load(){
         supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_wallet",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_faction_management",{p_session_id:currentSessionId}),
+        supabase.rpc("get_session_faction_actions",{p_session_id:currentSessionId}),
       ]);
-      const [fr,sr,gr,mr,wr]=results;
+      const [fr,sr,gr,mr,wr,ar]=results;
       if(fr.status==="fulfilled" && !fr.value.error) factions=fr.value.data||[];
       if(sr.status==="fulfilled" && !sr.value.error) seats=sr.value.data||[];
       if(gr.status==="fulfilled" && !gr.value.error) gameState=gr.value.data?.[0]||null;
       if(wr.status==="fulfilled" && !wr.value.error) walletState=wr.value.data?.[0]||null;
       if(mr.status==="fulfilled" && !mr.value.error) factionManagement=mr.value.data||[];
+      if(ar.status==="fulfilled" && !ar.value.error) factionActionStatus=ar.value.data||[];
       const failed=results.find(r=>r.status==="rejected" || r.value?.error);
       if(failed) loadError=failed.status==="rejected" ? (failed.reason?.message||String(failed.reason)) : (failed.value.error?.message||"Session-Daten konnten nicht vollständig geladen werden.");
     }
@@ -99,6 +102,7 @@ async function refreshSessionSilently(){
       supabase.rpc("get_session_wallet",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_factions",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_seats",{p_session_id:currentSessionId}),
+      supabase.rpc("get_session_faction_actions",{p_session_id:currentSessionId}),
     ]);
 
     if(entryResult.error || gameResult.error) return;
@@ -112,7 +116,7 @@ async function refreshSessionSilently(){
     if(walletResult && !walletResult.error) walletState=walletResult.data?.[0]||walletState;
     factions=factionResult.error ? factions : (factionResult.data||[]);
     seats=seatResult.error ? seats : (seatResult.data||[]);
-
+    factionActionStatus=actionResult.error ? factionActionStatus : (actionResult.data||[]);
     const scrollY=window.scrollY;
     render();
     window.scrollTo(0,scrollY);
@@ -205,6 +209,8 @@ function renderChamber(){
       const colorClass=seat.faction_color ? " faction-"+esc(seat.faction_color) : "";
       const cls=own
         ? "seat own-seat"
+        : factionBot
+          ? "seat bot-seat faction-bot-seat"
         : bot
           ? "seat bot-seat"
           : occupied
@@ -213,15 +219,18 @@ function renderChamber(){
               ? "seat controlled-empty-seat"+colorClass
               : "seat";
 
-      const title=bot
-        ? esc(seat.profile_name||"Bürger")
-        : occupied
+      const factionBot=bot&&Boolean(seat.faction_id);
+      const title=factionBot
+        ? esc(t().factionBot)+" · "+esc(seat.faction_name||"")
+        : bot
+          ? esc(seat.profile_name||"Bürger")
+          : occupied
           ? esc(seat.profile_name)+" · "+esc(seat.faction_name||"")
           : controlled
             ? "Fraktionsplatz · "+esc(seat.faction_name||"")
             : "Freier Sitz · "+esc(sideLabel(sector.key));
 
-      seatMarkup.push(bot
+      seatMarkup.push(bot&&!factionBot
         ? `<button class="${cls}" style="--x:${p.x.toFixed(3)}%;--y:${p.y.toFixed(3)}%" title="${title}" data-bot-id="${esc(seat.bot_id)}" aria-label="${title}"><span class="seat-dot"></span></button>`
         : `<div class="${cls}" style="--x:${p.x.toFixed(3)}%;--y:${p.y.toFixed(3)}%" title="${title}"><span class="seat-dot"></span></div>`
       );
@@ -361,15 +370,40 @@ function closeDebate(){
 }
 
 async function advanceStatement(){if(!gameState||gameState.statement_status!=="resolved"||gameState.session_status!=="active")return;await supabase.rpc("advance_session_statement",{p_session_id:currentSessionId});await load();}
+function formatCooldown(seconds){
+  const total=Math.max(0,Number(seconds||0));
+  const minutes=Math.floor(total/60);
+  const secs=Math.floor(total%60);
+  return String(minutes).padStart(2,"0")+":"+String(secs).padStart(2,"0");
+}
 function renderFactionActions(){
   const x=t();
+  const labels={fraktionsrede:x.speech,ausschussarbeit:x.committee,oeffentlichkeitsarbeit:x.publicity};
+  const rows=factionActionStatus||[];
+  const maxExtra=10;
+  const claimed=Math.max(0,...rows.map(r=>Number(r.extra_seats_claimed||0)));
   return `<div class="faction-actions">
     <h3>${x.actions}</h3>
     <p>${x.actionHint}</p>
+    <div class="faction-seat-capacity"><strong>${x.extraSeats}: ${claimed}/${maxExtra}</strong></div>
     <div class="faction-action-grid">
-      <button type="button" class="session-secondary faction-action" data-action="fraktionsrede">${x.speech}</button>
-      <button type="button" class="session-secondary faction-action" data-action="ausschussarbeit">${x.committee}</button>
-      <button type="button" class="session-secondary faction-action" data-action="oeffentlichkeitsarbeit">${x.publicity}</button>
+      ${rows.map(r=>{
+        const remaining=Number(r.cooldown_remaining_seconds||0);
+        const reward=Number(r.seat_reward||0);
+        const maxed=Number(r.extra_seats_claimed||0)>=maxExtra;
+        const noBots=Number(r.available_bot_seats||0)<reward;
+        const disabled=remaining>0||maxed||noBots;
+        const status=maxed
+          ? `${x.extraSeats}: ${maxExtra}/${maxExtra}`
+          : remaining>0
+            ? `${x.cooldown}: ${formatCooldown(remaining)}`
+            : noBots
+              ? x.noBotSeats
+              : x.cooldownReady;
+        return `<button type="button" class="session-secondary faction-action" data-action="${esc(r.action_code)}" ${disabled?"disabled":""}>
+          <span>${labels[r.action_code]||esc(r.action_code)}</span><small>${status}</small>
+        </button>`;
+      }).join("")}
     </div>
     <div id="faction-action-error" class="session-action-error" hidden></div>
   </div>`;
@@ -378,7 +412,15 @@ async function performFactionAction(code){
   const box=root.querySelector("#faction-action-error");
   const {error}=await supabase.rpc("perform_faction_action",{p_session_id:currentSessionId,p_action_code:code});
   if(error){
-    if(box){box.hidden=false;box.textContent=t().actionError;}
+    if(box){
+      box.hidden=false;
+      const msg=error.message||"";
+      box.textContent=msg.includes("action_cooldown") ? t().cooldown :
+        msg.includes("faction_extra_seat_limit") ? t().extraSeats+" · "+t().maxExtraSeats :
+        msg.includes("not_enough_neutral_bot_seats") ? t().noBotSeats :
+        t().actionError;
+    }
+    await load();
     return;
   }
   await load();
@@ -497,6 +539,9 @@ function mapFactionError(error){
   if(code==="session_read_required"||msg.includes("session_read_required"))return t().read;
   if(code==="player_eliminated"||msg.includes("player_eliminated"))return t().eliminated;
   if(code==="faction_eliminated"||msg.includes("faction_eliminated"))return t().eliminated;
+  if(msg.includes("action_cooldown"))return t().cooldown;
+  if(msg.includes("faction_extra_seat_limit"))return t().extraSeats+" · "+t().maxExtraSeats;
+  if(msg.includes("not_enough_neutral_bot_seats"))return t().noBotSeats;
   if(code==="session_ended"||msg.includes("session_ended"))return t().sessionEnded;
   return msg||t().required;
 }
@@ -532,4 +577,4 @@ export async function mount(user,sessionId,prefs){
   supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};selectedFactionId=null;switchingFaction=false;gameState=null;loadError=null;await load();
   gamePollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")refreshSessionSilently();},3000);
 }
-export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);closeDebate();gamePollTimer=null;advanceTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
+export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);closeDebate();gamePollTimer=null;advanceTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
