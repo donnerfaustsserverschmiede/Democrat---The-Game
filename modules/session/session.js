@@ -88,7 +88,7 @@ function renderSideOptions(x){
 function renderFactionChooser(x){
   const counts={left:0,center:0,right:0};
   seats.forEach(s=>{if(s.faction_id)counts[s.side]=(counts[s.side]||0)+1;});
-  const sideFull=side=>counts[side]>=10;
+  const sideFull=side=>counts[side]>=20;
   let html="<div class=\"faction-switch\"><h3>"+x.choose+"</h3><div class=\"faction-grid\">";
   if(factions.length){
     factions.forEach(f=>{html+="<button class=\"faction-card "+(selectedFactionId===f.id?"selected":"")+" \" data-faction=\""+f.id+"\" type=\"button\"><strong><i class=\"faction-swatch faction-"+esc(f.color_code||"blue")+"\"></i>"+esc(f.name)+"</strong><span>"+sideLabel(f.side)+"</span><small>"+f.member_count+"/10 "+x.members+"</small></button>";});
