@@ -1016,11 +1016,20 @@ async function handleStatementCountdown(){
   if(el)el.textContent=formatStatementCountdown(deadline);
   if(label)label.textContent="Nächste Entscheidung in";
 }
+function handleSpeechCountdown(){
+  const el=root.querySelector("#speech-countdown");
+  if(!el||!speechState?.slot_expires_at)return;
+  const activeUntil=speechState.paused_until&&new Date(speechState.paused_until).getTime()>Date.now()
+    ?new Date(speechState.paused_until).getTime()
+    :new Date(speechState.slot_expires_at).getTime();
+  el.textContent=formatCountdown(Math.max(0,activeUntil-Date.now())/1000);
+}
 function startStatementCountdown(){
   if(countdownTimer)window.clearInterval(countdownTimer);
     if(statementPollTimer)window.clearInterval(statementPollTimer);
-  countdownTimer=window.setInterval(handleStatementCountdown,1000);
+  countdownTimer=window.setInterval(()=>{handleStatementCountdown();handleSpeechCountdown();},1000);
   handleStatementCountdown();
+  handleSpeechCountdown();
 }
 function mailboxEventIcon(type){
   return ({statement_started:"▣",statement_resolved:"✓",vote_cast:"◉",debate_posted:"◆",player_joined:"+",player_left:"−",faction_action:"★"}[type]||"•");
