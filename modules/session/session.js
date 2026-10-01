@@ -552,9 +552,11 @@ async function refreshInterjections(){
     await supabase.rpc("claim_session_statement_speaker",{p_session_id:currentSessionId});
     const {data,error}=await supabase.rpc("get_session_interjection_state",{p_session_id:currentSessionId});
     if(error)return;
-    statementInterjectionState=data||[];
-    render();
-    startStatementCountdown();
+    const next=data||[];
+    const signature=rows=>JSON.stringify((rows||[]).map(x=>[x.id,x.status,x.message,x.expires_at,x.is_mine]));
+    const changed=signature(statementInterjectionState)!==signature(next);
+    statementInterjectionState=next;
+    if(changed){ render(); startStatementCountdown(); }
   }catch(_error){}
 }
 function startStatementPolling(){
