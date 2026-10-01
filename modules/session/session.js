@@ -27,7 +27,7 @@ let debateOpen = false;
 let debateMessages = [];
 let debatePollTimer = null;
 let statementPollTimer = null;
-let statementInterjectionState = [];
+
 let finalizeSessionTimer = null;
 let countdownTimer = null;
 let countdownTransitioning = false;
@@ -39,7 +39,7 @@ let factionMenuOpen = false;
 let mailboxOpen = false;
 let mailboxEvents = [];
 let mailboxLoading = false;
-let statementDraftDirty = false;
+
 let speechState = null;
 let speechChannel = null;
 let speechPeers = new Map();
@@ -602,54 +602,6 @@ async function sendDebateMessage(event){
   }finally{
     if(button)button.disabled=false;
   }
-}
-async function OLD_requestStatement(){
-  if(!supabase||!currentSessionId)return;
-  const button=root.querySelector("[data-statement-request]");
-  if(button)button.disabled=true;
-  const {error}=await supabase.rpc("request_session_statement",{p_session_id:currentSessionId});
-  if(error){
-    const msg=error.message||"";
-    const box=root.querySelector("#vote-error");
-    if(box){
-      box.hidden=false;
-      box.textContent=msg.includes("statement_banned")
-        ? t().statementBanned
-        : msg.includes("statement_cooldown")
-          ? t().statementCooldown
-          : "Wortmeldung konnte nicht vorgemerkt werden.";
-    }
-  }
-  await refreshInterjections();
-  const mine=statementInterjectionState.find(x=>x.is_mine && ["pending","granted"].includes(x.status));
-  if(button && !mine)button.disabled=false;
-}
-async function OLD_submitStatementForm(event){
-  event.preventDefault();
-  const input=root.querySelector("#statement-input"); const button=root.querySelector("#statement-form button"); const box=root.querySelector("#statement-form-error");
-  const mine=statementInterjectionState.find(x=>x.is_mine&&x.status==="granted");
-  if(!mine||!input?.value.trim())return;
-  if(button)button.disabled=true;
-  const {data,error}=await supabase.rpc("submit_session_statement",{p_session_id:currentSessionId,p_request_id:mine.id,p_message:input.value.trim()});
-  if(error){
-    if(box){
-      box.hidden=false;
-      const msg=error.message||"";
-      box.textContent=msg.includes("statement_write_window_expired")
-        ? t().statementExpired
-        : msg.includes("statement_word_expired")
-          ? t().statementExpired
-          : msg.includes("statement_word_not_granted")
-            ? "Das Wort wurde noch nicht erteilt."
-            : msg||t().statementRejected;
-    }
-    if(button)button.disabled=false;
-    await refreshInterjections();
-    return;
-  }
-  if(data?.[0]?.status==="rejected" && box){box.hidden=false;box.textContent=t().statementRejected;}
-  statementDraftDirty=false;
-  await refreshInterjections();
 }
 async function refreshSpeechState(shouldRender=true){
   if(!supabase||!currentSessionId||!entry?.read_confirmed)return;
@@ -1263,7 +1215,7 @@ export async function mount(user,sessionId,prefs){
    closeDebate();
   root.hidden=false;
   if(!SUPABASE_PUBLISHABLE_KEY||SUPABASE_PUBLISHABLE_KEY.startsWith("REPLACE_"))return;
-  supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};statementDraftDirty=false;countdownStatementId=null;countdownDeadline=null;selectedFactionId=null;selectedFactionColor=null;newFactionName="";newFactionSide=null;switchingFaction=false;gameState=null;loadError=null;
+  supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};countdownStatementId=null;countdownDeadline=null;selectedFactionId=null;selectedFactionColor=null;newFactionName="";newFactionSide=null;switchingFaction=false;gameState=null;loadError=null;
   try {
     await load();
   } catch(error) {
