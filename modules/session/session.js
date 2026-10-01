@@ -94,8 +94,11 @@ async function load(){
       if(ar.status==="fulfilled" && !ar.value.error) factionActionStatus=ar.value.data||[];
       if(rr.status==="fulfilled" && !rr.value.error) rankings=rr.value.data||[];
       if(mb.status==="fulfilled" && !mb.value.error) mailboxEvents=mb.value.data||[];
-      const failed=results.find(r=>r.status==="rejected" || r.value?.error);
-      if(failed) loadError=failed.status==="rejected" ? (failed.reason?.message||String(failed.reason)) : (failed.value.error?.message||"Session-Daten konnten nicht vollständig geladen werden.");
+      const criticalResults=[gr,cr];
+      const criticalFailed=criticalResults.find(r=>r.status==="rejected" || r.value?.error);
+      if(criticalFailed) loadError=criticalFailed.status==="rejected"
+        ? (criticalFailed.reason?.message||String(criticalFailed.reason))
+        : (criticalFailed.value.error?.message||"Die Sitzungsdaten konnten nicht geladen werden.");
     }
   } catch(error){
     loadError=error?.message||"Die Sitzung konnte nicht geladen werden.";
