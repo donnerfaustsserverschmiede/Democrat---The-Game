@@ -1,17 +1,12 @@
 html,body{margin:0;min-height:100%;background:#05080d}
 #splash-app{position:fixed;inset:0;z-index:9999}
-.splash-sequence{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(circle at center,rgba(229,199,107,.07),transparent 42%),#05080d;opacity:1;transition:opacity .5s ease}
+.splash-sequence{position:fixed;inset:0;display:grid;place-items:center;background:#05080d;opacity:1;transition:opacity .5s ease}
 .splash-sequence.splash-fade-out{opacity:0}
-.publisher-splash{text-align:center;animation:splash-enter .8s ease-out both}
-.publisher-mark{font-family:Georgia,"Times New Roman",serif;font-size:clamp(34px,9vw,76px);font-weight:800;letter-spacing:.12em;color:#e5c76b;text-shadow:0 0 30px rgba(229,199,107,.22)}
-.publisher-sub{margin-top:8px;font-family:Inter,system-ui,sans-serif;font-size:clamp(14px,3vw,24px);font-weight:700;letter-spacing:.55em;color:#f4f6fb}
+.publisher-splash{width:100%;height:100%;display:grid;place-items:center;animation:splash-enter .8s ease-out both}
+.publisher-logo{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
 .game-splash{display:none;text-align:center}
 .game-splash.game-in{display:block;animation:game-enter .7s ease-out both}
 .game-logo{display:block;object-fit:contain}
 .splash-logo{width:min(78vw,620px);max-height:48vh;filter:drop-shadow(0 16px 40px rgba(0,0,0,.55))}
-.splash-error{display:flex;flex-direction:column;align-items:center;gap:14px;padding:30px;text-align:center;color:#f4f6fb;font-family:Inter,system-ui,sans-serif}
-.splash-error strong{font-size:24px;color:#e5c76b}
-.splash-error span{color:#aeb8c8}
-.splash-error button{border:1px solid #e5c76b;border-radius:10px;padding:12px 22px;background:#111827;color:#e5c76b;font-weight:800}
-@keyframes splash-enter{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+@keyframes splash-enter{from{opacity:0;transform:scale(1.02)}to{opacity:1;transform:scale(1)}}
 @keyframes game-enter{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
