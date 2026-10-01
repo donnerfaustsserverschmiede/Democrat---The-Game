@@ -195,8 +195,23 @@ async function refreshSessionSilently(){
     seats=seatResult.error ? seats : (seatResult.data||[]);
     factionActionStatus=actionResult.error ? factionActionStatus : (actionResult.data||[]);
     const scrollY=window.scrollY;
+    const draft=document.querySelector("#statement-input");
+    const draftValue=draft?.value||"";
+    const draftStart=draft?.selectionStart??draftValue.length;
+    const draftEnd=draft?.selectionEnd??draftValue.length;
+    const hadFocus=document.activeElement===draft;
     try {
       render();
+      // Background refresh darf ein laufendes Statement nicht zerstören.
+      // Ein bereits begonnener Text bleibt samt Cursorposition erhalten.
+      const restored=document.querySelector("#statement-input");
+      if(restored && statementInterjectionState.some(x=>x.is_mine&&x.status==="granted")){
+        restored.value=draftValue;
+        if(hadFocus){
+          restored.focus({preventScroll:true});
+          try{restored.setSelectionRange(draftStart,draftEnd);}catch(_){}
+        }
+      }
       // Nur die Darstellung aktualisieren. Der Countdown verwendet die bereits
       // gemerkte Deadline derselben Aussage und wird nicht zurückgesetzt.
       if(gameState?.session_status==="ended") scheduleSessionFinalization();
@@ -641,7 +656,23 @@ async function refreshInterjections(){
     const signature=rows=>JSON.stringify((rows||[]).map(x=>[x.id,x.status,x.message,x.expires_at,x.is_mine]));
     const changed=signature(statementInterjectionState)!==signature(next);
     statementInterjectionState=next;
-    if(changed){ render(); startStatementCountdown(); }
+    if(changed){
+      const draft=document.querySelector("#statement-input");
+      const draftValue=draft?.value||"";
+      const draftStart=draft?.selectionStart??draftValue.length;
+      const draftEnd=draft?.selectionEnd??draftValue.length;
+      const hadFocus=document.activeElement===draft;
+      render();
+      const restored=document.querySelector("#statement-input");
+      if(restored && statementInterjectionState.some(x=>x.is_mine&&x.status==="granted")){
+        restored.value=draftValue;
+        if(hadFocus){
+          restored.focus({preventScroll:true});
+          try{restored.setSelectionRange(draftStart,draftEnd);}catch(_){}
+        }
+      }
+      startStatementCountdown();
+    }
   }catch(_error){}
 }
 function startStatementPolling(){
