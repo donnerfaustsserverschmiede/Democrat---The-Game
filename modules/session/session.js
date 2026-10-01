@@ -1024,7 +1024,7 @@ export async function mount(user,sessionId,prefs){
    closeDebate();
   root.hidden=false;
   if(!SUPABASE_PUBLISHABLE_KEY||SUPABASE_PUBLISHABLE_KEY.startsWith("REPLACE_"))return;
-  supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};selectedFactionId=null;selectedFactionColor=null;newFactionName="";newFactionSide=null;switchingFaction=false;gameState=null;loadError=null;
+  supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};countdownStatementId=null;countdownDeadline=null;selectedFactionId=null;selectedFactionColor=null;newFactionName="";newFactionSide=null;switchingFaction=false;gameState=null;loadError=null;
   try {
     await load();
   } catch(error) {
