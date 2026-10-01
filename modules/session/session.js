@@ -578,14 +578,24 @@ async function sendDebateMessage(event){
 }
 async function requestStatement(){
   if(!supabase||!currentSessionId)return;
-  const button=root.querySelector("[data-statement-request]"); if(button)button.disabled=true;
+  const button=root.querySelector("[data-statement-request]");
+  if(button)button.disabled=true;
   const {error}=await supabase.rpc("request_session_statement",{p_session_id:currentSessionId});
   if(error){
     const msg=error.message||"";
     const box=root.querySelector("#vote-error");
-    if(box){box.hidden=false;box.textContent=msg.includes("statement_banned")?t().statementBanned:msg.includes("statement_cooldown")?t().statementCooldown:msg;}
+    if(box){
+      box.hidden=false;
+      box.textContent=msg.includes("statement_banned")
+        ? t().statementBanned
+        : msg.includes("statement_cooldown")
+          ? t().statementCooldown
+          : "Wortmeldung konnte nicht vorgemerkt werden.";
+    }
   }
   await refreshInterjections();
+  const mine=statementInterjectionState.find(x=>x.is_mine && ["pending","granted"].includes(x.status));
+  if(button && !mine)button.disabled=false;
 }
 async function submitStatementForm(event){
   event.preventDefault();
@@ -899,7 +909,7 @@ function render(){
             <div id="session-action-error" class="session-action-error" hidden></div>
           </div>
         </section>`}
-      ${assigned && gameState?.statement_status==="open" && !gameState?.player_eliminated && gameState?.session_status!=="ended" ? `<div class="decision-bar"><div class="decision-title">${x.decision}</div><div class="decision-buttons"><button class="decision-button approve" type="button" data-vote="approve" ${gameState?.my_choice?"disabled":""}>${x.approve}</button><button class="decision-button interject" type="button" data-vote="debate" ${gameState?.my_choice?"disabled":""}>${x.interject}</button><button class="decision-button statement-request" type="button" data-statement-request ${gameState?.statement_status!=="open"||gameState?.session_status!=="active"||gameState?.player_eliminated?"disabled":""}>${x.statement||"Statement"}</button><button class="decision-button reject" type="button" data-vote="reject" ${gameState?.my_choice?"disabled":""}>${x.reject}</button></div></div>` : ""}
+      ${assigned && gameState?.statement_status==="open" && !gameState?.player_eliminated && gameState?.session_status!=="ended" ? `<div class="decision-bar"><div class="decision-title">${x.decision}</div><div class="decision-buttons"><button class="decision-button approve" type="button" data-vote="approve" ${gameState?.my_choice?"disabled":""}>${x.approve}</button><button class="decision-button interject" type="button" data-vote="debate" ${gameState?.my_choice?"disabled":""}>${x.interject}</button><button class="decision-button statement-request" type="button" data-statement-request ${gameState?.statement_status!=="open"||gameState?.session_status!=="active"||gameState?.player_eliminated||statementInterjectionState.some(x=>x.is_mine&&["pending","granted"].includes(x.status))?"disabled":""}>${x.statement||"Statement"}</button><button class="decision-button reject" type="button" data-vote="reject" ${gameState?.my_choice?"disabled":""}>${x.reject}</button></div></div>` : ""}
     </main>
   </div>`;
   root.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>back()));
