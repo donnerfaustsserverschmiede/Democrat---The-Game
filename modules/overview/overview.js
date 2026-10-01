@@ -161,8 +161,10 @@ async function loadSessions() {
   if(!visible.length){list.innerHTML=`<div class="overview-empty">${activeTab==="mine"?text.emptyMine:text.emptyPublic}</div>`;return;}
   list.innerHTML=visible.map(session=>{
     const full=session.player_count>=session.max_players;
-    return `<article class="session-card">
-      <div><h2 class="session-name">${escapeHtml(session.display_name)}</h2>
+    const isCommittee=session.session_code==="committee";
+    const sessionKind=isCommittee?(session.locale?.startsWith("de")?"AUSSCHUSS":"COMMITTEE"):(session.locale?.startsWith("de")?"PARLAMENT":"PARLIAMENT");
+    return `<article class="session-card ${isCommittee?"session-card-committee":""}">
+      <div><div class="session-type-badge">${sessionKind}</div><h2 class="session-name">${escapeHtml(session.display_name)}</h2>
       <div class="session-meta">${session.player_count} / ${session.max_players} ${text.seats}</div>
       <span class="session-status">${full?text.full:text.open}${activeTab==="mine"?" · "+text.participating:""}</span></div>
       <button class="session-action" data-session-id="${session.id}" ${full&&activeTab==="public"?"disabled":""} type="button">${activeTab==="mine"?(session.read_confirmed&&session.seat_number?text.joined:text.openSession):full?text.full:text.join}</button>
