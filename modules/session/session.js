@@ -749,7 +749,7 @@ async function handleVoiceSignal(payload){
 }
 async function setupSpeechChannel(){
   if(!supabase||!currentSessionId||speechChannel)return;
-  speechChannel=supabase.channel("session-voice:"+currentSessionId,{config:{presence:{key:String(currentUser.id)},broadcast:{ack:false,self:false}}});
+  speechChannel=supabase.channel("session-voice:"+currentSessionId,{config:{private:true,presence:{key:String(currentUser.id)},broadcast:{ack:false,self:false}}});
   speechChannel.on("broadcast",{event:"voice-signal"},({payload})=>handleVoiceSignal(payload));
   speechChannel.on("presence",{event:"sync"},()=>{ensureSpeakerPeers();});
   speechChannel.on("presence",{event:"join"},({newPresences})=>{
