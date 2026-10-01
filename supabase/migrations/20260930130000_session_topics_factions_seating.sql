@@ -63,7 +63,8 @@ alter table game.session_members drop constraint if exists session_members_facti
 alter table game.session_members drop constraint if exists session_members_seat_session_fkey;
 alter table game.session_members add constraint session_members_faction_session_fkey
   foreign key(session_id,faction_id)
-  references game.session_factions(session_id,id) on delete set null;
+  references game.session_factions(session_id,id)
+    on delete set null (faction_id);
 alter table game.session_members add constraint session_members_seat_session_fkey
   foreign key(session_id,seat_number)
   references game.session_seats(session_id,seat_number) on delete set null;
