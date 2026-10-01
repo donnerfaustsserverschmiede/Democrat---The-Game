@@ -46,8 +46,8 @@ export async function open(){
       <div class="player-decision-box">
         <div class="player-decision-head"><h3>Entscheidungsbilanz</h3><span>${Number(p.decisions||0)} Entscheidungen</span></div>
         <div class="player-bars">
-          <div><span>Gut fürs Volk</span><strong>${Number(p.good_decisions||0)}</strong></div>
-          <div><span>Schlecht fürs Volk</span><strong>${Number(p.bad_decisions||0)}</strong></div>
+          <div><span>Gemeinwohlfördernd</span><strong>${Number(p.good_decisions||0)}</strong></div>
+          <div><span>Gemeinwohlschädigend</span><strong>${Number(p.bad_decisions||0)}</strong></div>
         </div>
         <p class="overview-panel-muted">Die Volksmeinung wird aus deinen tatsächlichen Abstimmungen und deren Bürgerwirkung über deine abgeschlossenen Sitzungen berechnet.</p>
       </div>
