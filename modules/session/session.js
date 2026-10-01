@@ -17,6 +17,7 @@ let factionActionStatus = [];
 let rankings = [];
 let rankingMode = "faction";
 let gameState = null;
+let statementContext = null;
 let walletState = null;
 let gamePollTimer = null;
 let advanceTimer = null;
@@ -64,21 +65,23 @@ async function load(){
     if(!entryResult.data?.length) throw new Error("session_entry_not_found");
     entry=entryResult.data[0];
 
-    factions=[]; seats=[]; factionManagement=[]; factionActionStatus=[]; gameState=null;
+    factions=[]; seats=[]; factionManagement=[]; factionActionStatus=[]; gameState=null; statementContext=null;
     if(entry.read_confirmed){
       const results=await Promise.allSettled([
         supabase.rpc("get_session_factions",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_seats",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId}),
+        supabase.rpc("get_session_statement_context",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_wallet",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_faction_management",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_faction_actions",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_rankings",{p_session_id:currentSessionId}),
       ]);
-      const [fr,sr,gr,mr,wr,ar,rr]=results;
+      const [fr,sr,gr,cr,mr,wr,ar,rr]=results;
       if(fr.status==="fulfilled" && !fr.value.error) factions=fr.value.data||[];
       if(sr.status==="fulfilled" && !sr.value.error) seats=sr.value.data||[];
       if(gr.status==="fulfilled" && !gr.value.error) gameState=gr.value.data?.[0]||null;
+      if(cr.status==="fulfilled" && !cr.value.error) statementContext=cr.value.data?.[0]||null;
       if(wr.status==="fulfilled" && !wr.value.error) walletState=wr.value.data?.[0]||null;
       if(mr.status==="fulfilled" && !mr.value.error) factionManagement=mr.value.data||[];
       if(ar.status==="fulfilled" && !ar.value.error) factionActionStatus=ar.value.data||[];
@@ -112,9 +115,10 @@ async function load(){
 async function refreshSessionSilently(){
   if(!supabase || !currentSessionId || !entry || !entry.read_confirmed) return;
   try {
-    const [entryResult, gameResult, walletResult, factionResult, seatResult, actionResult, rankResult] = await Promise.all([
+    const [entryResult, gameResult, contextResult, walletResult, factionResult, seatResult, actionResult, rankResult] = await Promise.all([
       supabase.rpc("get_session_entry",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId}),
+      supabase.rpc("get_session_statement_context",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_wallet",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_factions",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_seats",{p_session_id:currentSessionId}),
@@ -130,6 +134,7 @@ async function refreshSessionSilently(){
 
     entry=nextEntry;
     gameState=nextGame;
+    if(contextResult && !contextResult.error) statementContext=contextResult.data?.[0]||statementContext;
     if(walletResult && !walletResult.error) walletState=walletResult.data?.[0]||walletState;
     if(rankResult && !rankResult.error) rankings=rankResult.data||[];
     factions=factionResult.error ? factions : (factionResult.data||[]);
@@ -327,14 +332,18 @@ function formatStatementCountdown(deadline){
   return String(minutes).padStart(2,"0")+":"+String(seconds).padStart(2,"0");
 }
 function renderPresidentStatement(){
-  const x=t(),g=gameState||{},resolved=g.statement_status==="resolved",ended=g.session_status==="ended";
+  const x=t(),g=gameState||{},c=statementContext||{},resolved=g.statement_status==="resolved",ended=g.session_status==="ended";
   let body="";
   if(ended){
     const kind=g.winner_type==="faction"?gt().winnerFaction:g.winner_type==="player"?gt().winnerPlayer:"";
     body='<div class="session-ended-banner">'+gt().sessionEnded+'</div>'+(g.winner_name?'<div class="winner-card"><strong>'+gt().winner+' · '+esc(kind)+'</strong><span>'+esc(g.winner_name)+'</span></div>':'<div class="winner-card"><span>'+gt().noWinner+'</span></div>');
   }else{
-    body='<div class="president-label">'+x.president+' · '+(g.statement_number?"Aussage "+g.statement_number:"")+'</div>'+
+    const typeLabels={gesetzesvorlage:"Gesetzesvorlage",haushaltsentscheidung:"Haushaltsentscheidung",verwaltungsentscheidung:"Verwaltungsentscheidung",parlamentarische_entscheidung:"Parlamentarische Entscheidung",parliamentary_decision:"Parlamentarische Entscheidung"};
+    const decisionType=typeLabels[c.decision_type]||"Parlamentarische Entscheidung";
+    body='<div class="president-label">'+x.president+' · Tagesordnungspunkt '+(g.statement_number||"")+'</div>'+
+      '<div class="statement-meta"><span>'+esc(decisionType)+'</span><span>'+esc(c.political_area||"Politik")+'</span></div>'+
       (g.statement_text?'<h2>'+esc(g.statement_text)+'</h2>':"")+
+      (c.context_text?'<p class="statement-context">'+esc(c.context_text)+'</p>':"")+
       (g.statement_status==="open"&&g.session_status==="active"&&getStatementDeadline()?'<div class="statement-countdown"><span id="statement-countdown-label">'+(countdownTransitioning?"Entscheidung wird ausgewertet …":"Nächste Entscheidung in")+'</span><strong id="statement-countdown">'+formatStatementCountdown(getStatementDeadline())+'</strong></div>':"")+
       (resolved?'<div class="statement-resolved">'+(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie)+'</div>':"");
   }
