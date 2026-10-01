@@ -1,7 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../auth/auth-config-v2.js?v=20260930-3";
 import * as sessionModule from "../session/session.js?v=20261001-30";
-import { upgradeGuestAccountFromSettings } from "../auth/auth.js?v=20261001-3";
 
 const root = document.querySelector("#overview-app");
 const sessionRoot = document.querySelector("#session-app");
@@ -120,7 +119,16 @@ function openSettingsPanel(){
     if(password!==confirm){ message.hidden=false; message.textContent="Die Passwörter stimmen nicht überein."; return; }
     button.disabled=true; button.textContent="Wird gespeichert …"; message.hidden=true;
     try{
-      const user=await upgradeGuestAccountFromSettings({email,password});
+      const {data,error}=await supabase.auth.updateUser({
+        email,
+        password,
+        data:{profile_name:name}
+      });
+      if(error) throw error;
+      const {error:profileError}=await supabase.rpc("sync_profile_name",{p_profile_name:name});
+      if(profileError) throw profileError;
+      const user=data?.user;
+      if(!user) throw new Error("Das Konto konnte nicht aktualisiert werden.");
       currentUser=user;
       profileName=user.user_metadata?.profile_name||profileName;
       message.hidden=false;
@@ -270,4 +278,4 @@ window.addEventListener("democrat:session-back",()=>{root.hidden=false;renderShe
 
 export function unmount(){if(presenceTimer)clearInterval(presenceTimer);presenceTimer=null;presenceSessionIds=[];if(!root)return;root.hidden=true;root.innerHTML="";if(sessionRoot)sessionRoot.hidden=true;currentUser=null;currentPrefs=null;profileName="Spieler";}
 
-// cache-version: 20261001-31
+// cache-version: 20261001-32
