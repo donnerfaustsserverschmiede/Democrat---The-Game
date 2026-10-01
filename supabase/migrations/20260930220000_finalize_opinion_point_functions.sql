@@ -73,8 +73,8 @@ begin
    return;
  end if;
 
- select count(*) filter(where sv_vote.choice='approve')::int,
-       count(*) filter(where sv_vote.choice='reject')::int
+ select count(*) filter(where sv_faction.choice='approve')::int,
+       count(*) filter(where sv_faction.choice='reject')::int
  into v_faction_yes,v_faction_no
  from game.session_votes sv_faction where sv_faction.statement_id=v_statement.id and sv_faction.faction_id=v_member.faction_id;
 
