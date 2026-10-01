@@ -52,10 +52,10 @@ begin
    where session_id=p_session_id and user_id=v_uid;
  end if;
 
- select count(*) filter(where choice='approve')::int,
-       count(*) filter(where choice='reject')::int
+ select count(*) filter(where sv_vote.choice='approve')::int,
+       count(*) filter(where sv_vote.choice='reject')::int
  into v_yes,v_no
- from game.session_votes where statement_id=v_statement.id;
+ from game.session_votes sv_vote where sv_vote.statement_id=v_statement.id;
 
  if v_player_points>=100 then
    update game.sessions set status='ended',winner_type='player',winner_user_id=v_uid,winner_faction_id=null,ended_at=now(),end_reason='player_reached_100'
@@ -73,11 +73,10 @@ begin
    return;
  end if;
 
- select count(*) filter(where choice='approve')::int,
-       count(*) filter(where choice='reject')::int
+ select count(*) filter(where sv_vote.choice='approve')::int,
+       count(*) filter(where sv_vote.choice='reject')::int
  into v_faction_yes,v_faction_no
- from game.session_votes
- where statement_id=v_statement.id and faction_id=v_member.faction_id;
+ from game.session_votes sv_faction where sv_faction.statement_id=v_statement.id and sv_faction.faction_id=v_member.faction_id;
 
  select count(*)::int into v_faction_eligible
  from game.session_members m
@@ -127,7 +126,7 @@ begin
  where m.session_id=p_session_id and (m.eliminated_at is null or sv.id is not null);
 
  select count(*)::int into v_session_voted
- from game.session_votes where statement_id=v_statement.id;
+ from game.session_votes sv_vote where sv_vote.statement_id=v_statement.id;
 
  if not v_ended and v_session_voted=v_session_eligible then
    update game.session_statements
@@ -144,8 +143,8 @@ begin
    where id=p_session_id;
  end if;
 
- select approval into v_player_points from game.session_player_stats where session_id=p_session_id and user_id=v_uid;
- select approval into v_faction_points from game.session_faction_stats where session_id=p_session_id and faction_id=v_member.faction_id;
+ select ps_final.approval into v_player_points from game.session_player_stats ps_final where session_id=p_session_id and user_id=v_uid;
+ select fs_final.approval into v_faction_points from game.session_faction_stats fs_final where session_id=p_session_id and faction_id=v_member.faction_id;
 
  return query select v_statement.id,p_choice,
    (select s.status='resolved' from game.session_statements s where s.id=v_statement.id),
