@@ -82,7 +82,7 @@ begin
  from game.session_members m
  left join game.session_votes sv on sv.statement_id=v_statement.id and sv.user_id=m.user_id
  where m.session_id=p_session_id and m.faction_id=v_member.faction_id
-   and (m.eliminated_at is null or sv.id is not null);
+   and (m.eliminated_at is null or sv.user_id is not null);
 
  select count(*)::int into v_faction_voted
  from game.session_votes where statement_id=v_statement.id and faction_id=v_member.faction_id;
