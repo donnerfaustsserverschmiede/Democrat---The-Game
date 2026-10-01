@@ -358,3 +358,59 @@
 .session-majority-bar b,
 .session-majority-bar em{transition:width .25s ease}
 .session-majority-panel .faction-vote-numbers span:last-child{color:#7f8a9b}
+
+
+/* Player statement / speaking queue */
+.player-statement{
+  margin:14px 0 0;
+  padding:14px 16px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  background:rgba(255,255,255,.035);
+}
+.player-statement-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+}
+.player-statement-head time{
+  opacity:.65;
+  font-size:.8rem;
+}
+.player-statement-text{
+  line-height:1.5;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.player-statement-granted{
+  border-color:rgba(216,173,45,.45);
+  background:rgba(216,173,45,.06);
+}
+.player-statement-notice{
+  border-color:rgba(59,130,246,.35);
+}
+.player-statement-pending{
+  opacity:.8;
+  font-size:.92rem;
+}
+#statement-form{
+  display:grid;
+  gap:10px;
+}
+#statement-input{
+  width:100%;
+  min-height:96px;
+  resize:vertical;
+  box-sizing:border-box;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.22);
+  color:inherit;
+  font:inherit;
+}
+.statement-request{
+  border:1px solid rgba(216,173,45,.5);
+}
