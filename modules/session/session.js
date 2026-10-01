@@ -582,7 +582,7 @@ function render(){
           ${(!gameState?.player_eliminated && gameState?.session_status!=="ended") ? renderFactionActions() : ""}${renderFactionManagement()}${(!gameState?.player_eliminated && gameState?.session_status!=="ended") ? (switchingFaction ? renderFactionChooser(x) : `<button class="session-primary" type="button" data-switch>${x.changeFaction}</button>`) : ""}
           ${switchingFaction ? `<button class="session-secondary" type="button" data-cancel-switch>${x.cancel}</button>` : ""}
         
-          ${gameState?.statement_status==="resolved" ? `<button class="session-secondary next-statement" type="button" data-next-statement>${x.nextStatement}</button>` : ""}</section>`
+          </section>`
       : `
         <section class="session-panel">
           <div class="session-label">${x.choose}</div>
