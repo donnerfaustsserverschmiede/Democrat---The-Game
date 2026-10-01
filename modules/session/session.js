@@ -27,6 +27,10 @@ let debatePollTimer = null;
 let countdownTimer = null;
 let countdownTransitioning = false;
 let loadError = null;
+let factionMenuOpen = false;
+let mailboxOpen = false;
+let mailboxEvents = [];
+let mailboxLoading = false;
 
 const UI = {
   "de-DE": { intro:"Einführung", read:"Ich habe die Einführung gelesen – weiter", choose:"Fraktion wählen", existing:"Bestehende Fraktionen", new:"Neue Fraktion", name:"Fraktionsname", namePlaceholder:"Name der Fraktion", position:"Position im Plenum", left:"Links", center:"Mitte", right:"Rechts", members:"Mitglieder", seats:"Sitze", chooseExisting:"Diese Fraktion wählen", create:"Fraktion gründen und Sitz wählen", assigned:"Dein Sitz ist zugewiesen", assignedText:"Du sitzt in einem zusammenhängenden Fraktionsblock.", seat:"Sitz", back:"Zurück zur Sitzungsübersicht", changeFaction:"Fraktion wechseln", cancel:"Abbrechen", loading:"Sitzung wird geladen …", error:"Die Sitzung konnte nicht geladen werden.", full:"Voll", selected:"Ausgewählt", required:"Bitte gib einen Fraktionsnamen ein und wähle eine Position.", factionFull:"Diese Fraktion hat bereits 10 Sitze.", sectorFull:"In diesem Sektor sind keine weiteren Fraktionsblöcke frei.", management:"Fraktionsverwaltung",hudPlayer:"Eigene Meinungspunkte",hudFaction:"Fraktions-Meinungspunkte",hudMoney:"Geld",president:"PRÄSIDENT",decision:"Deine Entscheidung",approve:"Zustimmung",interject:"Debatte",reject:"Ablehnung",voted:"Deine Entscheidung wurde gespeichert",factionVote:"Fraktionsstimme",resultApproved:"Fraktion stimmt zu",resultRejected:"Fraktion lehnt ab",resultTie:"Stimmengleichheit",nextStatement:"Nächste Aussage",voteError:"Entscheidung konnte nicht gespeichert werden.",debateTitle:"Debatte",debatePlaceholder:"Schreibe etwas zur aktuellen Sitzung …",debateSend:"Senden",debateClose:"Debatte schließen",debateEmpty:"Noch keine Beiträge. Starte die Debatte.",moderationRemoved:"Dein Beitrag verstößt gegen die Sitzungsregeln. Du wurdest aus dieser Sitzung entfernt.",waiting:"Warten auf die übrigen Fraktionsmitglieder …",points:"Punkte",eliminated:"AUSGESCHIEDEN",winnerPlayer:"SIEG · SPIELER",winnerFaction:"SIEG · FRAKTION",sessionEnded:"DIE SITZUNG IST BEENDET",leader:"Fraktionsvorsitz", deputy:"Stellvertretender Vorsitz", promote:"Zum Stellvertreter ernennen", removeDeputy:"Stellvertretung aufheben", kick:"Aus Fraktion entfernen", deleteFaction:"Fraktion löschen", deleteConfirm:"Fraktion wirklich löschen? Alle Mitglieder verlieren ihre Fraktionszugehörigkeit.", kickConfirm:"Mitglied wirklich aus der Fraktion entfernen?" , actions:"Fraktionsaktionen",actionHint:"Aktionen können zusätzliche leere Fraktionsplätze sichern. Besetzte Plätze werden niemals verdrängt.",speech:"Fraktionsrede · +1 Sitz · 1.500",committee:"Ausschussarbeit · +2 Sitze · 4.000",publicity:"Öffentlichkeitsarbeit · +3 Sitze · 9.000",actionError:"Aktion konnte nicht ausgeführt werden.",color:"Fraktionsfarbe",chooseColor:"Farbe wählen",saveColor:"Farbe speichern",colorSaved:"Fraktionsfarbe gespeichert.",colorTaken:"Diese Farbe wird bereits von einer anderen Fraktion verwendet.",colorPermission:"Nur Fraktionsvorsitz oder Stellvertretung kann die Fraktionsfarbe ändern.",invalidColor:"Ungültige Fraktionsfarbe.",seatCost1:"1 Sitz · 1.500",seatCost2:"2 Sitze · 4.000",seatCost3:"3 Sitze · 9.000",insufficientFunds:"Dafür reicht dein Geld nicht.",sessionMajority:"Sitzungsmehrheit",botTitle:"Fraktionsloser Bürger",botHint:"Dieser Bürger gehört keiner Fraktion an und kann beeinflusst werden.",botApprove:"Für Zustimmung beeinflussen",botReject:"Für Ablehnung beeinflussen",moral:"Moralisch überzeugen · kostenlos",bribe:"Bestechen · 750",botInfluenceError:"Der Bürger konnte nicht beeinflusst werden."},
@@ -76,8 +80,9 @@ async function load(){
         supabase.rpc("get_session_faction_management",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_faction_actions",{p_session_id:currentSessionId}),
         supabase.rpc("get_session_rankings",{p_session_id:currentSessionId}),
+        supabase.rpc("get_session_mailbox",{p_session_id:currentSessionId,p_limit:200}),
       ]);
-      const [fr,sr,gr,cr,mr,wr,ar,rr]=results;
+      const [fr,sr,gr,cr,mr,wr,ar,rr,mb]=results;
       if(fr.status==="fulfilled" && !fr.value.error) factions=fr.value.data||[];
       if(sr.status==="fulfilled" && !sr.value.error) seats=sr.value.data||[];
       if(gr.status==="fulfilled" && !gr.value.error) gameState=gr.value.data?.[0]||null;
@@ -86,6 +91,7 @@ async function load(){
       if(mr.status==="fulfilled" && !mr.value.error) factionManagement=mr.value.data||[];
       if(ar.status==="fulfilled" && !ar.value.error) factionActionStatus=ar.value.data||[];
       if(rr.status==="fulfilled" && !rr.value.error) rankings=rr.value.data||[];
+      if(mb.status==="fulfilled" && !mb.value.error) mailboxEvents=mb.value.data||[];
       const failed=results.find(r=>r.status==="rejected" || r.value?.error);
       if(failed) loadError=failed.status==="rejected" ? (failed.reason?.message||String(failed.reason)) : (failed.value.error?.message||"Session-Daten konnten nicht vollständig geladen werden.");
     }
@@ -115,7 +121,7 @@ async function load(){
 async function refreshSessionSilently(){
   if(!supabase || !currentSessionId || !entry || !entry.read_confirmed) return;
   try {
-    const [entryResult, gameResult, contextResult, walletResult, factionResult, seatResult, actionResult, rankResult] = await Promise.all([
+    const [entryResult, gameResult, contextResult, walletResult, factionResult, seatResult, actionResult, rankResult, mailboxResult] = await Promise.all([
       supabase.rpc("get_session_entry",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_statement_context",{p_session_id:currentSessionId}),
@@ -124,6 +130,7 @@ async function refreshSessionSilently(){
       supabase.rpc("get_session_seats",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_faction_actions",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_rankings",{p_session_id:currentSessionId}),
+      supabase.rpc("get_session_mailbox",{p_session_id:currentSessionId,p_limit:200}),
     ]);
 
     if(entryResult.error || gameResult.error) return;
@@ -137,6 +144,7 @@ async function refreshSessionSilently(){
     if(contextResult && !contextResult.error) statementContext=contextResult.data?.[0]||statementContext;
     if(walletResult && !walletResult.error) walletState=walletResult.data?.[0]||walletState;
     if(rankResult && !rankResult.error) rankings=rankResult.data||[];
+    if(mailboxResult && !mailboxResult.error) mailboxEvents=mailboxResult.data||[];
     factions=factionResult.error ? factions : (factionResult.data||[]);
     seats=seatResult.error ? seats : (seatResult.data||[]);
     factionActionStatus=actionResult.error ? factionActionStatus : (actionResult.data||[]);
@@ -589,16 +597,70 @@ function startStatementCountdown(){
   countdownTimer=window.setInterval(handleStatementCountdown,1000);
   handleStatementCountdown();
 }
+function mailboxEventIcon(type){
+  return ({statement_started:"▣",statement_resolved:"✓",vote_cast:"◉",debate_posted:"◆",player_joined:"+",player_left:"−",faction_action:"★"}[type]||"•");
+}
+function renderMailboxOverlay(){
+  if(!mailboxOpen)return "";
+  const x=t();
+  return `<div class="session-overlay session-mailbox-overlay" role="dialog" aria-modal="true" aria-label="Sitzungs-Mailbox">
+    <section class="session-overlay-window mailbox-window">
+      <header class="session-overlay-header">
+        <div><div class="session-label">Sitzungs-Mailbox</div><h2>Verlauf der Sitzung</h2></div>
+        <button type="button" class="overlay-close" data-mailbox-close aria-label="Schließen">×</button>
+      </header>
+      <div class="mailbox-list">
+        ${mailboxLoading
+          ? '<div class="session-empty">Mailbox wird geladen …</div>'
+          : mailboxEvents.length
+            ? mailboxEvents.map(e=>`<article class="mailbox-event">
+                <div class="mailbox-event-icon">${mailboxEventIcon(e.event_type)}</div>
+                <div class="mailbox-event-body">
+                  <div class="mailbox-event-head"><strong>${esc(e.title)}</strong><time>${new Date(e.created_at).toLocaleString([], {day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</time></div>
+                  ${e.description?'<p>'+esc(e.description)+'</p>':""}
+                </div>
+              </article>`).join("")
+            : '<div class="session-empty">Noch keine Ereignisse in dieser Sitzung.</div>'}
+      </div>
+    </section>
+  </div>`;
+}
+function renderFactionOverlay(){
+  if(!factionMenuOpen)return "";
+  const x=t();
+  return `<div class="session-overlay faction-overlay" role="dialog" aria-modal="true" aria-label="${x.management}">
+    <section class="session-overlay-window faction-menu-window">
+      <header class="session-overlay-header">
+        <div><div class="session-label">Fraktion</div><h2>${esc(entry?.faction_name||"Fraktionsmenü")}</h2></div>
+        <button type="button" class="overlay-close" data-faction-close aria-label="Schließen">×</button>
+      </header>
+      <div class="session-overlay-content">
+        ${renderFactionActions() || ""}
+        ${renderFactionManagement() || ""}
+        ${(!gameState?.player_eliminated && gameState?.session_status!=="ended")
+          ? (switchingFaction ? renderFactionChooser(x) : '<button class="session-primary" type="button" data-switch>'+x.changeFaction+'</button>')
+          : ""}
+        ${switchingFaction ? '<button class="session-secondary" type="button" data-cancel-switch>'+x.cancel+'</button>' : ""}
+        <button class="session-danger" type="button" data-leave-session>Sitzung verlassen</button>
+      </div>
+    </section>
+  </div>`;
+}
 function render(){
   const x=t();
   const assigned=entry.faction_id&&entry.seat_number;
   root.innerHTML=`
   <div class="session-shell">
     <header class="session-header">
-      <div><img class="game-logo session-logo" src="./assets/democrat-logo.svg" alt="Democrat – The Game"><h1>${esc(entry.display_name)}</h1><div class="session-chamber">${esc(entry.chamber_name)} · ${entry.player_count}/${entry.max_players} Spieler · 60/60 Sitze</div></div>
+      <div class="session-header-main">
+        <img class="game-logo session-logo" src="./assets/democrat-logo.svg" alt="Democrat – The Game">
+        <div><h1>${esc(entry.display_name)}</h1><div class="session-chamber">${esc(entry.chamber_name)} · ${entry.player_count}/${entry.max_players} Spieler · 60/60 Sitze</div></div>
+      </div>
       <button class="session-back" type="button" data-back>×</button>
+      ${assigned ? renderGameHud() : ""}
     </header>
-    <main class="session-main">\n       ${loadError ? `<div class="session-action-error">${esc(loadError)}</div>` : ""}
+    <main class="session-main">
+      ${loadError ? `<div class="session-action-error">${esc(loadError)}</div>` : ""}
       ${!entry.read_confirmed ? `
         <section class="session-panel session-intro">
           <div class="session-label">${x.intro}</div>
@@ -607,22 +669,18 @@ function render(){
           <button class="session-primary" type="button" data-read>${x.read}</button>
         </section>`
       : assigned ? `
-        <section class="session-panel session-assigned">
-          ${renderGameHud()}
+        <section class="session-panel session-assigned session-live">
           ${renderPresidentStatement()}
           ${renderFactionVote()}
-           ${renderSessionMajority()}
-           ${gameState?.my_choice ? `<div class="vote-recorded">${x.voted} · ${gameState.my_choice==="approve"?x.approve:gameState.my_choice==="reject"?x.reject:x.interject}</div>` : ""}
+          ${renderSessionMajority()}
+          ${gameState?.my_choice ? `<div class="vote-recorded">${x.voted} · ${gameState.my_choice==="approve"?x.approve:gameState.my_choice==="reject"?x.reject:x.interject}</div>` : ""}
           <div id="vote-error" class="session-action-error" hidden></div>
-          <div class="session-label">${x.assigned}</div>
-          <h2>${esc(entry.faction_name)}</h2>
-          <p>${sideLabel(entry.faction_side)} · ${x.seat} <strong>${entry.seat_number}</strong></p>
-          <div class="session-seat-note">${x.assignedText}</div>
           ${renderChamber()}
-          ${(!gameState?.player_eliminated && gameState?.session_status!=="ended") ? renderFactionActions() : ""}${renderFactionManagement()}${(!gameState?.player_eliminated && gameState?.session_status!=="ended") ? (switchingFaction ? renderFactionChooser(x) : `<button class="session-primary" type="button" data-switch>${x.changeFaction}</button>`) : ""}
-          ${switchingFaction ? `<button class="session-secondary" type="button" data-cancel-switch>${x.cancel}</button>` : ""}
-          <button class="session-danger" type="button" data-leave-session>Sitzung verlassen</button>
-          </section>`
+          <button class="session-edge-button session-faction-edge" type="button" data-faction-menu>Fraktion</button>
+          <button class="session-edge-button session-mailbox-edge" type="button" data-mailbox>📬 Mailbox${mailboxEvents.length?'<span class="mailbox-badge">'+Math.min(mailboxEvents.length,99)+'</span>':""}</button>
+          ${renderFactionOverlay()}
+          ${renderMailboxOverlay()}
+        </section>`
       : `
         <section class="session-panel">
           <div class="session-label">${x.choose}</div>
@@ -640,36 +698,44 @@ function render(){
             <div id="session-action-error" class="session-action-error" hidden></div>
           </div>
         </section>`}
-    ${gameState?.statement_status==="open" && !gameState?.player_eliminated && gameState?.session_status!=="ended" ? `<div class="decision-bar"><div class="decision-title">${x.decision}</div><div class="decision-buttons"><button class="decision-button approve" type="button" data-vote="approve" ${gameState?.my_choice?"disabled":""}>${x.approve}</button><button class="decision-button interject" type="button" data-vote="debate" ${gameState?.my_choice?"disabled":""}>${x.interject}</button><button class="decision-button reject" type="button" data-vote="reject" ${gameState?.my_choice?"disabled":""}>${x.reject}</button></div></div>` : ""}
+      ${gameState?.statement_status==="open" && !gameState?.player_eliminated && gameState?.session_status!=="ended" ? `<div class="decision-bar"><div class="decision-title">${x.decision}</div><div class="decision-buttons"><button class="decision-button approve" type="button" data-vote="approve" ${gameState?.my_choice?"disabled":""}>${x.approve}</button><button class="decision-button interject" type="button" data-vote="debate" ${gameState?.my_choice?"disabled":""}>${x.interject}</button><button class="decision-button reject" type="button" data-vote="reject" ${gameState?.my_choice?"disabled":""}>${x.reject}</button></div></div>` : ""}
     </main>
   </div>`;
   root.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>back()));
-  const sw=root.querySelector("[data-switch]"); if(sw) sw.addEventListener("click",()=>{switchingFaction=true;render();});
-  const cs=root.querySelector("[data-cancel-switch]"); if(cs) cs.addEventListener("click",()=>{switchingFaction=false;selectedFactionId=null;render();});
-  const read=root.querySelector("[data-read]"); if(read) read.addEventListener("click",confirmRead);
+  root.querySelector("[data-faction-menu]")?.addEventListener("click",()=>{factionMenuOpen=true;render();});
+  root.querySelector("[data-faction-close]")?.addEventListener("click",()=>{factionMenuOpen=false;switchingFaction=false;render();});
+  root.querySelector("[data-mailbox]")?.addEventListener("click",async()=>{mailboxOpen=true;mailboxLoading=true;render();await refreshMailbox();});
+  root.querySelector("[data-mailbox-close]")?.addEventListener("click",()=>{mailboxOpen=false;render();});
+  root.querySelector("[data-switch]")?.addEventListener("click",()=>{switchingFaction=true;render();});
+  root.querySelector("[data-cancel-switch]")?.addEventListener("click",()=>{switchingFaction=false;selectedFactionId=null;render();});
+  root.querySelector("[data-read]")?.addEventListener("click",confirmRead);
   root.querySelectorAll("[data-vote]").forEach(b=>b.addEventListener("click",()=>castVote(b.dataset.vote)));
-  const leaveButton=root.querySelector("[data-leave-session]"); if(leaveButton) leaveButton.addEventListener("click",leaveCurrentSession);
+  root.querySelector("[data-leave-session]")?.addEventListener("click",leaveCurrentSession);
   root.querySelectorAll("[data-ranking-mode]").forEach(b=>b.addEventListener("click",()=>{rankingMode=b.dataset.rankingMode==="player"?"player":"faction";render();startStatementCountdown();}));
   root.querySelectorAll("[data-bot-id]").forEach(b=>b.addEventListener("click",()=>openBotDialog(b.dataset.botId)));
   root.querySelectorAll("[data-faction]").forEach(b=>b.addEventListener("click",()=>{selectedFactionId=b.dataset.faction;selectedFactionColor=null;render();}));
   root.querySelectorAll("[data-faction-color]").forEach(b=>b.addEventListener("click",()=>{selectedFactionColor=b.dataset.factionColor;render();}));
   root.querySelectorAll("[data-new-faction-color]").forEach(b=>b.addEventListener("click",()=>{selectedFactionColor=b.dataset.newFactionColor;render();}));
-  root.querySelectorAll("[data-management-color]").forEach(b=>b.addEventListener("click",async()=>{
-    const color=b.dataset.managementColor;
-    b.disabled=true;
-    const {error}=await supabase.rpc("set_session_faction_color",{p_session_id:currentSessionId,p_color_code:color});
-    if(error) alert(mapFactionError(error));
-    await load();
-  }));
+  root.querySelectorAll("[data-management-color]").forEach(b=>b.addEventListener("click",async()=>{const color=b.dataset.managementColor;b.disabled=true;const {error}=await supabase.rpc("set_session_faction_color",{p_session_id:currentSessionId,p_color_code:color});if(error) alert(mapFactionError(error));await load();});
   const create=root.querySelector("[data-create]"); if(create) create.addEventListener("click",chooseNew);
   const existing=root.querySelector("[data-existing]"); if(existing) existing.addEventListener("click",chooseExisting);
   root.querySelectorAll("[data-action]").forEach(b=>b.addEventListener("click",()=>performFactionAction(b.dataset.action)));
   root.querySelectorAll("[data-kick]").forEach(b=>b.addEventListener("click",()=>factionAction("kick",b.dataset.kick)));
   root.querySelectorAll("[data-promote]").forEach(b=>b.addEventListener("click",()=>factionAction("promote",b.dataset.promote)));
-  const rd=root.querySelector("[data-remove-deputy]"); if(rd) rd.addEventListener("click",()=>factionAction("remove"));
-  const df=root.querySelector("[data-delete-faction]"); if(df) df.addEventListener("click",()=>factionAction("delete"));
+  root.querySelector("[data-remove-deputy]")?.addEventListener("click",()=>factionAction("remove"));
+  root.querySelector("[data-delete-faction]")?.addEventListener("click",()=>factionAction("delete"));
 }
 
+async function refreshMailbox(){
+  if(!supabase||!currentSessionId)return;
+  try{
+    const {data,error}=await supabase.rpc("get_session_mailbox",{p_session_id:currentSessionId,p_limit:200});
+    if(!error) mailboxEvents=data||[];
+  }finally{
+    mailboxLoading=false;
+    if(mailboxOpen)render();
+  }
+}
 async function confirmRead(){
   const {error}=await supabase.rpc("confirm_session_read",{p_session_id:currentSessionId});
   if(!error){await load();}
@@ -741,6 +807,8 @@ async function leaveCurrentSession(){
 }
 function back(){
   closeDebate();
+  factionMenuOpen=false;
+  mailboxOpen=false;
   root.hidden=true;root.innerHTML="";
   window.dispatchEvent(new CustomEvent("democrat:session-back"));
 }
