@@ -59,6 +59,9 @@ function renderShell(profileName="Spieler") {
       </nav>
       <div id="overview-overlay" class="overview-overlay" hidden></div>
     </div>`;
+  const overlay=root.querySelector("#overview-overlay");
+  playerModule.init({client:supabase,user:currentUser,target:overlay});
+  partyModule.init({client:supabase,user:currentUser,target:overlay});
   root.querySelectorAll("[data-tab]").forEach(button=>button.addEventListener("click",async()=>{activeTab=button.dataset.tab;renderShell(profileName);await loadSessions();}));
   root.querySelector("[data-action='refresh']").addEventListener("click",loadSessions);
   root.querySelector("[data-action='party']").addEventListener("click",()=>partyModule.open());
@@ -261,8 +264,6 @@ export async function mount(user,prefs=null) {
   currentPrefs=prefs;
   profileName=user.user_metadata?.profile_name||user.email||"Spieler";
   const overlay=root.querySelector("#overview-overlay");
-  playerModule.init({client:supabase,user,target:overlay});
-  partyModule.init({client:supabase,user,target:overlay});
   renderShell(profileName); await loadSessions();
   if (presenceTimer) clearInterval(presenceTimer);
   presenceTimer = setInterval(updateSessionPresence, 20000);
@@ -272,4 +273,4 @@ window.addEventListener("democrat:session-back",()=>{root.hidden=false;renderShe
 
 export function unmount(){if(presenceTimer)clearInterval(presenceTimer);presenceTimer=null;presenceSessionIds=[];if(!root)return;root.hidden=true;root.innerHTML="";if(sessionRoot)sessionRoot.hidden=true;currentUser=null;currentPrefs=null;profileName="Spieler";}
 
-// cache-version: 20261001-36
+// cache-version: 20261001-37
