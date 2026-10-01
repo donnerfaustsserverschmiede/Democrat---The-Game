@@ -716,7 +716,7 @@ function render(){
   root.querySelectorAll("[data-faction]").forEach(b=>b.addEventListener("click",()=>{selectedFactionId=b.dataset.faction;selectedFactionColor=null;render();}));
   root.querySelectorAll("[data-faction-color]").forEach(b=>b.addEventListener("click",()=>{selectedFactionColor=b.dataset.factionColor;render();}));
   root.querySelectorAll("[data-new-faction-color]").forEach(b=>b.addEventListener("click",()=>{selectedFactionColor=b.dataset.newFactionColor;render();}));
-  root.querySelectorAll("[data-management-color]").forEach(b=>b.addEventListener("click",async()=>{const color=b.dataset.managementColor;b.disabled=true;const {error}=await supabase.rpc("set_session_faction_color",{p_session_id:currentSessionId,p_color_code:color});if(error) alert(mapFactionError(error));await load();});
+  root.querySelectorAll("[data-management-color]").forEach(b=>b.addEventListener("click",async()=>{const color=b.dataset.managementColor;b.disabled=true;const {error}=await supabase.rpc("set_session_faction_color",{p_session_id:currentSessionId,p_color_code:color});if(error) alert(mapFactionError(error));await load();}));
   const create=root.querySelector("[data-create]"); if(create) create.addEventListener("click",chooseNew);
   const existing=root.querySelector("[data-existing]"); if(existing) existing.addEventListener("click",chooseExisting);
   root.querySelectorAll("[data-action]").forEach(b=>b.addEventListener("click",()=>performFactionAction(b.dataset.action)));
