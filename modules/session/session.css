@@ -166,3 +166,7 @@
 .statement-context{margin:0 auto 18px;max-width:760px;color:#b9c3d1!important;font-size:14px!important;line-height:1.55!important}
 
 .statement-consequence{margin:12px auto 0;max-width:760px;padding:10px 12px;border-left:2px solid #e5c76b;color:#d5dbe5!important;font-size:13px!important;line-height:1.5!important;background:rgba(229,199,107,.04);border-radius:0 8px 8px 0}
+
+.session-top-actions{display:flex;justify-content:flex-end;gap:10px;padding:10px 14px 0}
+.session-danger{border:1px solid rgba(220,80,80,.45);background:rgba(120,25,25,.18);color:#f0b0b0;border-radius:10px;padding:8px 13px;font-weight:700;cursor:pointer}
+.session-danger:hover{background:rgba(150,30,30,.28)}
