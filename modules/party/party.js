@@ -67,37 +67,54 @@ async function renderPartyDirectory(profile){
 
 async function renderOwnParty(party){
  const [mg,mem,ups]=await Promise.all([
-   supabase.rpc("get_party_management",{p_party_id:party.id}),
-   supabase.rpc("get_party_members",{p_party_id:party.id}),
-   supabase.rpc("get_party_upgrades",{p_party_id:party.id})
+  supabase.rpc("get_party_management",{p_party_id:party.id}),
+  supabase.rpc("get_party_members",{p_party_id:party.id}),
+  supabase.rpc("get_party_upgrades",{p_party_id:party.id})
  ]);
  if(mg.error)throw mg.error;if(mem.error)throw mem.error;if(ups.error)throw ups.error;
- const p=mg.data?.[0]||party;const members=mem.data||[];const upgrades=ups.data||[];
- const canManage=party.role==="owner"||party.role==="deputy";
+ const p=mg.data?.[0]||party,members=mem.data||[],upgrades=ups.data||[];
+ const canManage=party.role==="owner"||party.role==="deputy",isOwner=party.role==="owner";
  overlay.innerHTML=`
  <section class="overview-panel party-panel">
   <button class="overview-panel-close" data-close type="button">×</button>
-  <div class="party-heading"><div><span class="party-kicker">PARTEI-DASHBOARD</span><h2>${esc(p.name)} <small>${esc(p.tag)}</small></h2><span class="party-role">${party.role==="owner"?"Vorsitzender":party.role==="deputy"?"Stellvertreter":"Mitglied"}</span></div><div class="party-opinion"><strong>${pct(p.opinion)}</strong><span>Parteimeinung</span></div></div>
+  <div class="party-heading"><div><span class="party-kicker">PARTEI-DASHBOARD</span><h2>${esc(p.name)} <small>${esc(p.tag)}</small></h2><span class="party-role">${isOwner?"Vorsitzender":party.role==="deputy"?"Stellvertreter":"Mitglied"}</span></div><div class="party-opinion"><strong>${pct(p.opinion)}</strong><span>Parteimeinung</span></div></div>
   <div class="party-stat-grid"><article><span>Parteikasse</span><strong>${money(p.treasury)}</strong></article><article><span>Mitglieder</span><strong>${p.member_count}/${p.max_members}</strong></article><article><span>Tägliche Einnahmen</span><strong>${money(p.daily_income)}</strong><small>500 € je Mitglied + Ausbauten</small></article><article><span>Parteilevel</span><strong>${p.level}</strong></article></div>
   <section class="party-section"><div class="party-section-head"><h3>Mitglieder</h3><span>${members.length} Mitglieder</span></div><div class="party-members">${members.map(m=>`
    <article class="party-member"><div><strong>${esc(m.profile_name)}</strong><span>${m.role==="owner"?"Vorsitzender":m.role==="deputy"?"Stellvertreter":"Mitglied"} · ${pct(m.public_opinion)} Volksmeinung</span></div><div class="party-member-actions">
-    ${party.role==="owner"&&m.role!=="owner"?`<button data-deputy="${m.user_id}" type="button">${m.role==="deputy"?"Stellvertreter":"Zum Stellvertreter"}</button>`:""}
+    ${isOwner&&m.role!=="owner"?`<button data-deputy="${m.user_id}" type="button">${m.role==="deputy"?"Stellvertreter":"Zum Stellvertreter"}</button>`:""}
     ${canManage&&m.role!=="owner"&&!(party.role==="deputy"&&m.role==="deputy")?`<button data-kick="${m.user_id}" class="danger" type="button">Kicken</button>`:""}
-   </div></article>`).join("")}</div>${party.role!=="owner"?`<button class="party-leave" data-leave type="button">Partei verlassen</button>`:""}${party.role==="owner"?`<p class="overview-panel-muted">Als Vorsitzender kannst du die Partei derzeit nicht verlassen. Eine Übergabe des Vorsitzes kommt mit der nächsten Verwaltungsstufe.</p>`:""}</section>
+   </div></article>`).join("")}</div>${!isOwner?`<button class="party-leave" data-leave type="button">Partei verlassen</button>`:""}</section>
+  <section class="party-section"><div class="party-section-head"><h3>Rangliste</h3><span>Volksmeinung</span></div>
+   <div class="party-ranking-tabs"><button class="party-tab active" data-tab="players" type="button">Parteispieler</button><button class="party-tab" data-tab="parties" type="button">Parteien</button></div>
+   <div id="party-ranking-content" class="party-ranking-content">Rangliste wird geladen …</div>
+  </section>
   <section class="party-section"><div class="party-section-head"><h3>Parteiaktionen</h3><span>Ausbauten aus der Parteikasse</span></div><div class="party-upgrades">${upgrades.map(u=>`
-   <article class="party-upgrade"><div><strong>${esc(u.display_name)}</strong><span>${esc(u.description)}</span><small>Stufe ${u.level}/${u.max_level} · Nächste Kosten: ${u.next_cost?money(u.next_cost):"MAX"}</small></div><button data-upgrade="${u.code}" type="button" ${!canManage||!u.next_cost?"disabled":""}>Ausbauen</button></article>`).join("")}</div></section>
+   <article class="party-upgrade"><div><strong>${esc(u.display_name)}</strong><span>${esc(u.description)}</span><small>Stufe ${u.level}/${u.max_level} · Nächste Kosten: ${u.next_cost?money(u.next_cost):"MAX"}</small></div><button data-upgrade="${u.code}" type="button" ${!canManage||!u.next_cost?"disabled":""}>Ausbauen</button></article>`).join("")}</div>
+  </section>
+  ${canManage?`<section class="party-section"><div class="party-section-head"><h3>Verwaltung</h3><span>Vorsitzender & Stellvertreter</span></div>
+   <form id="party-settings-form" class="overview-settings-form party-admin-form">
+    <label>Parteiname<input name="name" value="${esc(p.name)}" maxlength="40" minlength="3" required></label>
+    <label>Tag<input name="tag" value="${esc(p.tag)}" maxlength="6" minlength="2" required></label>
+    <label>Farbe<input name="color" value="${esc(p.color||"#2e78ff")}" pattern="#[0-9A-Fa-f]{6}" required></label>
+    <label>Logo<input name="logo" value="${esc(p.logo_path||"")}" maxlength="300" placeholder="Logo-URL oder Pfad"></label>
+    <label>Beschreibung<textarea name="description" maxlength="500">${esc(p.description||"")}</textarea></label>
+    <div id="party-admin-message" class="overview-settings-message" hidden></div>
+    <button class="overview-settings-save" type="submit">Einstellungen speichern</button>
+   </form>
+   ${isOwner?`<div class="party-close-box"><strong>Partei schließen</strong><p>Alle Mitglieder werden parteilos und die Partei wird aus der Parteienliste entfernt.</p><button class="party-leave" data-close-party type="button">Partei endgültig schließen</button></div>`:""}
+  </section>`:""}
  </section>`;
  overlay.querySelector("[data-close]")?.addEventListener("click",close);
+ const rankContent=overlay.querySelector("#party-ranking-content");
+ async function loadPlayerRanks(){const {data,error}=await supabase.rpc("get_party_player_rankings",{p_party_id:party.id});if(error){rankContent.innerHTML=`<div class="overview-error">${esc(error.message)}</div>`;return;}rankContent.innerHTML=(data||[]).map(x=>`<div class="party-rank-row"><strong>#${x.rank}</strong><span>${esc(x.profile_name)} <small>${x.role==="owner"?"Vorsitzender":x.role==="deputy"?"Stellvertreter":"Mitglied"}</small></span><b>${pct(x.public_opinion)}</b></div>`).join("")||'<div class="overview-panel-muted">Keine Mitglieder.</div>';}
+ async function loadPartyRanks(){const {data,error}=await supabase.rpc("get_party_rankings");if(error){rankContent.innerHTML=`<div class="overview-error">${esc(error.message)}</div>`;return;}rankContent.innerHTML=(data||[]).map(x=>`<div class="party-rank-row"><strong>#${x.rank}</strong><span>${esc(x.party_name)} <small>${esc(x.party_tag)} · ${x.member_count} Mitglieder</small></span><b>${pct(x.party_opinion)}</b></div>`).join("")||'<div class="overview-panel-muted">Keine Parteien.</div>';}
+ await loadPlayerRanks();
+ overlay.querySelectorAll("[data-tab]").forEach(tab=>tab.addEventListener("click",async()=>{overlay.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));tab.classList.add("active");if(tab.dataset.tab==="players")await loadPlayerRanks();else await loadPartyRanks();}));
  overlay.querySelectorAll("[data-deputy]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;try{const {error}=await supabase.rpc("change_party_role",{p_party_id:party.id,p_member_id:b.dataset.deputy,p_role:"deputy"});if(error)throw error;await open();}catch(e){b.disabled=false;alert(errorText(e));}}));
  overlay.querySelectorAll("[data-kick]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;try{const {error}=await supabase.rpc("kick_party_member",{p_party_id:party.id,p_member_id:b.dataset.kick});if(error)throw error;await open();}catch(e){b.disabled=false;alert(errorText(e));}}));
  overlay.querySelectorAll("[data-upgrade]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;try{const {error}=await supabase.rpc("purchase_party_upgrade",{p_party_id:party.id,p_upgrade_code:b.dataset.upgrade});if(error)throw error;await open();}catch(e){b.disabled=false;alert(errorText(e));}}));
  overlay.querySelector("[data-leave]")?.addEventListener("click",async b=>{b.currentTarget.disabled=true;try{const {error}=await supabase.rpc("leave_party",{p_party_id:party.id});if(error)throw error;await open();}catch(e){b.currentTarget.disabled=false;alert(errorText(e));}});
-  const rankContent=overlay.querySelector("#party-ranking-content");
-  if(rankContent){
-    async function loadPlayerRanks(){const {data,error}=await supabase.rpc("get_party_player_rankings",{p_party_id:party.id});if(error){rankContent.innerHTML=`<div class="overview-error">${esc(error.message)}</div>`;return;}rankContent.innerHTML=(data||[]).map(x=>`<div class="party-rank-row"><strong>#${x.rank}</strong><span>${esc(x.profile_name)} <small>${x.role==="owner"?"Vorsitzender":x.role==="deputy"?"Stellvertreter":"Mitglied"}</small></span><b>${pct(x.public_opinion)}</b></div>`).join("")||'<div class="overview-panel-muted">Keine Mitglieder.</div>';}
-    async function loadPartyRanks(){const {data,error}=await supabase.rpc("get_party_rankings");if(error){rankContent.innerHTML=`<div class="overview-error">${esc(error.message)}</div>`;return;}rankContent.innerHTML=(data||[]).map(x=>`<div class="party-rank-row"><strong>#${x.rank}</strong><span>${esc(x.party_name)} <small>${esc(x.party_tag)} · ${x.member_count} Mitglieder</small></span><b>${pct(x.party_opinion)}</b></div>`).join("")||'<div class="overview-panel-muted">Keine Parteien.</div>';}
-    await loadPlayerRanks();
-    overlay.querySelectorAll("[data-tab]").forEach(tab=>tab.addEventListener("click",async()=>{overlay.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));tab.classList.add("active");if(tab.dataset.tab==="players")await loadPlayerRanks();else await loadPartyRanks();}));
-  }
-
+ overlay.querySelector("#party-settings-form")?.addEventListener("submit",async ev=>{ev.preventDefault();const f=new FormData(ev.currentTarget),msg=overlay.querySelector("#party-admin-message"),btn=ev.currentTarget.querySelector("button");btn.disabled=true;try{const {error}=await supabase.rpc("update_party_settings",{p_party_id:party.id,p_name:String(f.get("name")||""),p_tag:String(f.get("tag")||""),p_color:String(f.get("color")||""),p_logo_path:String(f.get("logo")||""),p_description:String(f.get("description")||"")});if(error)throw error;await open();}catch(e){msg.hidden=false;msg.className="overview-settings-message error";msg.textContent=errorText(e);btn.disabled=false;}});
+ overlay.querySelector("[data-close-party]")?.addEventListener("click",async b=>{if(!confirm("Partei wirklich endgültig schließen? Alle Mitglieder werden parteilos."))return;b.currentTarget.disabled=true;try{const {error}=await supabase.rpc("close_party",{p_party_id:party.id});if(error)throw error;await open();}catch(e){b.currentTarget.disabled=false;alert(errorText(e));}});
+}
 }
