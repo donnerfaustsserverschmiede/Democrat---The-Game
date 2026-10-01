@@ -1,0 +1,3 @@
+-- Fix party chat functions where RETURNS TABLE(user_id ...) collided with
+-- the unqualified user_id column reference in PL/pgSQL.
+-- Deployed definitions in Supabase use explicit table aliases and v_uid.
