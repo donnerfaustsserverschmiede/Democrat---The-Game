@@ -937,20 +937,6 @@ async function handleStatementCountdown(){
   const serverNow=gameState.server_now?new Date(gameState.server_now).getTime():Date.now();
   const clockOffset=serverNow-Date.now();
   const remaining=Math.max(0,new Date(deadline).getTime()-(Date.now()+clockOffset));
-  const granted=statementInterjectionState.find(x=>x.status==="granted" && x.granted_at);
-  if(granted){
-    const grantMs=new Date(granted.granted_at).getTime();
-    const writeRemaining=Math.max(0,grantMs+5*60*1000-(Date.now()+clockOffset));
-    const slotRemaining=Math.max(0,grantMs+10*60*1000-(Date.now()+clockOffset));
-    if(writeEl)writeEl.textContent=formatCountdown(writeRemaining/1000);
-    if(slotEl)slotEl.textContent=formatCountdown(slotRemaining/1000);
-    const input=root.querySelector("#statement-input");
-    const send=root.querySelector("#statement-form button");
-    if(writeRemaining<=0){
-      if(input){input.disabled=true;input.placeholder=t().statementExpired;}
-      if(send)send.disabled=true;
-    }
-  }
   if(remaining<=0){
     if(el)el.textContent="00:00";
     if(label)label.textContent="Entscheidung wird ausgewertet …";
@@ -1231,4 +1217,4 @@ export async function mount(user,sessionId,prefs){
   startStatementPolling();
   refreshSpeechState(true);
 }
-export function unmount(){closeSpeechPeers();stopSpeechLocalStream();if(speechChannel&&supabase){supabase.removeChannel(speechChannel);speechChannel=null;}if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);if(countdownTimer)window.clearInterval(countdownTimer);if(statementPollTimer)window.clearInterval(statementPollTimer);if(finalizeSessionTimer)window.clearTimeout(finalizeSessionTimer);if(presenceTimer)window.clearInterval(presenceTimer);closeDebate();gamePollTimer=null;advanceTimer=null;countdownTimer=null;statementPollTimer=null;finalizeSessionTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;statementDraftDirty=false;speechState=null;speechVoiceSignature="";speechActiveVoiceUserId=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
+export function unmount(){closeSpeechPeers();stopSpeechLocalStream();if(speechChannel&&supabase){supabase.removeChannel(speechChannel);speechChannel=null;}if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);if(countdownTimer)window.clearInterval(countdownTimer);if(statementPollTimer)window.clearInterval(statementPollTimer);if(finalizeSessionTimer)window.clearTimeout(finalizeSessionTimer);if(presenceTimer)window.clearInterval(presenceTimer);closeDebate();gamePollTimer=null;advanceTimer=null;countdownTimer=null;statementPollTimer=null;finalizeSessionTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;speechState=null;speechVoiceSignature="";speechActiveVoiceUserId=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
