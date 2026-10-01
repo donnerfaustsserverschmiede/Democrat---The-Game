@@ -308,3 +308,20 @@
   .overview-profile-button{min-width:92px;min-height:48px;padding:0 10px}
   .overview-panel{padding:26px 20px}
 }
+
+.session-type-badge{
+  display:inline-flex;
+  align-items:center;
+  margin-bottom:7px;
+  padding:5px 9px;
+  border:1px solid rgba(229,199,107,.28);
+  border-radius:999px;
+  background:rgba(229,199,107,.08);
+  color:#e5c76b;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.1em;
+}
+.session-card-committee{
+  border-color:rgba(229,199,107,.20);
+}
