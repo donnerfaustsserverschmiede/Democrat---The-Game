@@ -42,10 +42,10 @@ begin
     or (v_statement.citizen_impact<0 and p_choice='reject') then v_player_delta:=abs(v_statement.citizen_impact);
  else v_player_delta:=-abs(v_statement.citizen_impact); end if;
 
- update game.session_player_stats
- set approval=greatest(0,least(100,approval+v_player_delta)),updated_at=now()
- where session_id=p_session_id and user_id=v_uid
- returning approval into v_player_points;
+ update game.session_player_stats ps_vote
+ set approval=greatest(0,least(100,ps_vote.approval+v_player_delta)),updated_at=now()
+ where ps_vote.session_id=p_session_id and ps_vote.user_id=v_uid
+ returning ps_vote.approval into v_player_points;
 
  if v_player_points=0 then
    update game.session_members set eliminated_at=coalesce(eliminated_at,now())
@@ -85,7 +85,8 @@ begin
    and (m.eliminated_at is null or sv.user_id is not null);
 
  select count(*)::int into v_faction_voted
- from game.session_votes where statement_id=v_statement.id and faction_id=v_member.faction_id;
+ from game.session_votes sv_faction2
+ where sv_faction2.statement_id=v_statement.id and sv_faction2.faction_id=v_member.faction_id;
 
  if v_faction_yes>v_faction_no then v_outcome:='approved';
  elsif v_faction_no>v_faction_yes then v_outcome:='rejected';
@@ -98,10 +99,10 @@ begin
        or (v_statement.citizen_impact<0 and v_outcome='rejected') then abs(v_statement.citizen_impact)
      else -abs(v_statement.citizen_impact) end;
 
-   update game.session_faction_stats
-   set approval=greatest(0,least(100,approval+v_faction_delta)),updated_at=now()
-   where session_id=p_session_id and faction_id=v_member.faction_id
-   returning approval into v_faction_points;
+   update game.session_faction_stats fs_vote
+   set approval=greatest(0,least(100,fs_vote.approval+v_faction_delta)),updated_at=now()
+   where fs_vote.session_id=p_session_id and fs_vote.faction_id=v_member.faction_id
+   returning fs_vote.approval into v_faction_points;
 
    if v_faction_points=0 then
      update game.session_faction_stats set eliminated_at=coalesce(eliminated_at,now())
@@ -138,13 +139,13 @@ begin
    where id=v_statement.id;
  end if;
 
- if not v_ended and not exists(select 1 from game.session_members where session_id=p_session_id and eliminated_at is null) then
+ if not v_ended and not exists(select 1 from game.session_members sm_end where sm_end.session_id=p_session_id and sm_end.eliminated_at is null) then
    update game.sessions set status='ended',winner_type=null,winner_user_id=null,winner_faction_id=null,ended_at=now(),end_reason='all_players_eliminated'
    where id=p_session_id;
  end if;
 
- select ps_final.approval into v_player_points from game.session_player_stats ps_final where session_id=p_session_id and user_id=v_uid;
- select fs_final.approval into v_faction_points from game.session_faction_stats fs_final where session_id=p_session_id and faction_id=v_member.faction_id;
+ select ps_final.approval into v_player_points from game.session_player_stats ps_final where ps_final.session_id=p_session_id and ps_final.user_id=v_uid;
+ select fs_final.approval into v_faction_points from game.session_faction_stats fs_final where fs_final.session_id=p_session_id and fs_final.faction_id=v_member.faction_id;
 
  return query select v_statement.id,p_choice,
    (select s.status='resolved' from game.session_statements s where s.id=v_statement.id),
