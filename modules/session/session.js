@@ -636,6 +636,7 @@ function render(){
   const cs=root.querySelector("[data-cancel-switch]"); if(cs) cs.addEventListener("click",()=>{switchingFaction=false;selectedFactionId=null;render();});
   const read=root.querySelector("[data-read]"); if(read) read.addEventListener("click",confirmRead);
   root.querySelectorAll("[data-vote]").forEach(b=>b.addEventListener("click",()=>castVote(b.dataset.vote)));
+  const leaveButton=root.querySelector("[data-leave-session]"); if(leaveButton) leaveButton.addEventListener("click",leaveCurrentSession);
   root.querySelectorAll("[data-ranking-mode]").forEach(b=>b.addEventListener("click",()=>{rankingMode=b.dataset.rankingMode==="player"?"player":"faction";render();startStatementCountdown();}));
   root.querySelectorAll("[data-bot-id]").forEach(b=>b.addEventListener("click",()=>openBotDialog(b.dataset.botId)));
   root.querySelectorAll("[data-faction]").forEach(b=>b.addEventListener("click",()=>{selectedFactionId=b.dataset.faction;selectedFactionColor=null;render();}));
@@ -707,6 +708,25 @@ async function chooseNew(){
   selectedFactionId=null;selectedFactionColor=null;switchingFaction=false;await load();
 }
 
+async function leaveCurrentSession(){
+  if(!currentSessionId||!supabase)return;
+  const confirmed=window.confirm("Möchtest du diese Sitzung wirklich vollständig verlassen? Dein Sitzungsplatz wird frei und die Sitzung wird aus „Meine Sitzungen“ entfernt.");
+  if(!confirmed)return;
+  try{
+    const {error}=await supabase.rpc("leave_session",{p_session_id:currentSessionId});
+    if(error)throw error;
+    closeDebate();
+    if(gamePollTimer)window.clearInterval(gamePollTimer);
+    if(advanceTimer)window.clearTimeout(advanceTimer);
+    if(countdownTimer)window.clearInterval(countdownTimer);
+    gamePollTimer=null;advanceTimer=null;countdownTimer=null;
+    const leftId=currentSessionId;
+    root.hidden=true;root.innerHTML="";
+    window.dispatchEvent(new CustomEvent("democrat:session-back",{detail:{leftSession:true,sessionId:leftId}}));
+  }catch(error){
+    alert(error?.message||"Die Sitzung konnte nicht verlassen werden.");
+  }
+}
 function back(){
   closeDebate();
   root.hidden=true;root.innerHTML="";
