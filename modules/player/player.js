@@ -38,6 +38,8 @@ export async function open(){
         <div class="player-opinion-ring"><strong>${pct(p.public_opinion)}</strong><span>Volkesmeinung</span></div>
       </div>
       <div class="player-stat-grid">
+        <article><span>Erfahrungspunkte</span><strong>${Number(p.xp||0).toLocaleString("de-DE")} XP</strong><small>${Number(p.xp_to_next_level||0)>0?Number(p.xp_to_next_level).toLocaleString("de-DE")+" XP bis Level "+(level+1):"Maximales Level erreicht"}</small></article>
+
         <article><span>Eigenes Geld</span><strong>${money(p.money)}</strong><small>Summe deiner aktiven Sitzungen</small></article>
         <article><span>Sitzungen</span><strong>${Number(p.sessions_participated||0)}</strong><small>Teilnahmen insgesamt</small></article>
         <article><span>Gewonnen</span><strong>${Number(p.sessions_won||0)}</strong><small>persönlich</small></article>
@@ -53,7 +55,7 @@ export async function open(){
       </div>
       <div class="player-level-box">
         <h3>Politischer Aufstieg</h3>
-        <p>Level ${level}. Für die nächste Stufe zählt eine weitere abgeschlossene Sitzung.</p>
+        <p>Level ${level}. Dein Level steigt durch deine persönlichen Entscheidungen und die dafür erhaltenen Erfahrungspunkte.</p>
       </div>
     </section>`;
   overlay.querySelector("[data-close]")?.addEventListener("click",close);
