@@ -24,6 +24,7 @@ let debateOpen = false;
 let debateMessages = [];
 let debatePollTimer = null;
 let countdownTimer = null;
+let countdownTransitioning = false;
 let loadError = null;
 
 const UI = {
@@ -311,6 +312,11 @@ function renderRankings(){
   return '<section class="ranking-panel"><div class="ranking-heading"><div><div class="session-label">Rangliste</div><h3>'+title+'</h3></div></div>'+tabs+list+'</section>';
 }
 function renderGameHud(){const x=gt(),g=gameState||{},w=walletState||{};const money=Number(w.money??g.money??0);const symbol=w.currency_symbol||"€";return '<div class="game-hud"><div class="hud-card"><span>'+x.playerPoints+'</span><strong>'+pct(g.player_opinion_points)+'/100</strong><small>'+(g.player_eliminated?x.eliminated:'')+'</small></div><div class="hud-card"><span>'+x.factionPoints+'</span><strong>'+pct(g.faction_opinion_points)+'/100</strong><small>'+(g.faction_eliminated?x.eliminated:'')+'</small></div><div class="hud-card"><span>'+t().hudMoney+'</span><strong>'+money.toLocaleString(undefined)+' '+symbol+'</strong><small>'+Number(w.salary_per_minute||0).toLocaleString(undefined)+' '+symbol+' / Min.</small></div></div>';}
+function getStatementDeadline(){
+  if(gameState?.statement_deadline)return gameState.statement_deadline;
+  if(gameState?.statement_opened_at)return new Date(new Date(gameState.statement_opened_at).getTime()+10*60*1000).toISOString();
+  return null;
+}
 function formatStatementCountdown(deadline){
   const serverNow=gameState?.server_now?new Date(gameState.server_now).getTime():Date.now();
   const clockOffset=serverNow-Date.now();
@@ -329,7 +335,7 @@ function renderPresidentStatement(){
   }else{
     body='<div class="president-label">'+x.president+' · '+(g.statement_number?"Aussage "+g.statement_number:"")+'</div>'+
       (g.statement_text?'<h2>'+esc(g.statement_text)+'</h2>':"")+
-      (g.statement_status==="open"&&g.statement_deadline?'<div class="statement-countdown"><span>Abstimmung endet in</span><strong id="statement-countdown">'+formatStatementCountdown(g.statement_deadline)+'</strong></div>':"")+
+      (g.statement_status==="open"&&g.session_status==="active"&&getStatementDeadline()?'<div class="statement-countdown"><span id="statement-countdown-label">'+(countdownTransitioning?"Entscheidung wird ausgewertet …":"Nächste Entscheidung in")+'</span><strong id="statement-countdown">'+formatStatementCountdown(getStatementDeadline())+'</strong></div>':"")+
       (resolved?'<div class="statement-resolved">'+(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie)+'</div>':"");
   }
   return '<section class="president-statement">'+body+'</section>';
@@ -531,18 +537,30 @@ async function factionAction(kind,id){
   await load();
 }
 async function handleStatementCountdown(){
-  if(!gameState||gameState.statement_status!=="open"||gameState.session_status!=="active"||!gameState.statement_deadline)return;
+  if(!gameState||gameState.statement_status!=="open"||gameState.session_status!=="active")return;
+  const deadline=getStatementDeadline();
+  if(!deadline)return;
   const el=root.querySelector("#statement-countdown");
+  const label=root.querySelector("#statement-countdown-label");
   const serverNow=gameState.server_now?new Date(gameState.server_now).getTime():Date.now();
   const clockOffset=serverNow-Date.now();
-  const remaining=Math.max(0,new Date(gameState.statement_deadline).getTime()-(Date.now()+clockOffset));
-  if(el)el.textContent=remaining<=0?"Entscheidung wird ausgewertet …":formatStatementCountdown(gameState.statement_deadline);
-  if(remaining<=0&&advanceTimer===null){
-    advanceTimer=window.setTimeout(async()=>{
-      advanceTimer=null;
-      try{await supabase.rpc("advance_session_statement",{p_session_id:currentSessionId});}finally{await load();}
-    },50);
+  const remaining=Math.max(0,new Date(deadline).getTime()-(Date.now()+clockOffset));
+  if(remaining<=0){
+    if(el)el.textContent="00:00";
+    if(label)label.textContent="Entscheidung wird ausgewertet …";
+    countdownTransitioning=true;
+    if(advanceTimer===null){
+      advanceTimer=window.setTimeout(async()=>{
+        advanceTimer=null;
+        try{await supabase.rpc("advance_session_statement",{p_session_id:currentSessionId});}
+        finally{countdownTransitioning=false;await load();}
+      },250);
+    }
+    return;
   }
+  countdownTransitioning=false;
+  if(el)el.textContent=formatStatementCountdown(deadline);
+  if(label)label.textContent="Nächste Entscheidung in";
 }
 function startStatementCountdown(){
   if(countdownTimer)window.clearInterval(countdownTimer);
