@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../auth/auth-config-v2.js?v=20261001-5";
-import * as sessionModule from "../session/session.js?v=20261001-40";
+import * as sessionModule from "../session/session.js?v=20261001-41";
 import * as playerModule from "../player/player.js?v=20261001-6";
 import * as partyModule from "../party/party.js?v=20261001-3";
 
