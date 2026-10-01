@@ -24,6 +24,9 @@ create table if not exists game.session_speech_arguments (
 );
 create index if not exists idx_session_speech_arguments_statement on game.session_speech_arguments(statement_id,created_at);
 
+alter table game.session_bot_votes drop constraint if exists session_bot_votes_influence_method_check;
+alter table game.session_bot_votes add constraint session_bot_votes_influence_method_check check(influence_method in ('automatic','moral','bribe','speech'));
+
 alter table game.session_bot_persuasion enable row level security;
 alter table game.session_speech_arguments enable row level security;
 revoke all on table game.session_bot_persuasion from anon,authenticated;
