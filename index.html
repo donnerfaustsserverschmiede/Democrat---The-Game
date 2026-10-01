@@ -14,9 +14,9 @@
   <link rel="stylesheet" href="./modules/splash/splash.css?v=20261001-6">
   <link rel="stylesheet" href="./modules/legal/legal.css?v=20260930-3">
   <link rel="stylesheet" href="./modules/auth/auth.css?v=20261001-4">
-  <link rel="stylesheet" href="./modules/overview/overview.css?v=20261001-32">
-  <link rel="stylesheet" href="./modules/session/session.css?v=20261001-30">
-  <link rel="stylesheet" href="./modules/country/country.css?v=20260930-1">
+  <link rel="stylesheet" href="./modules/overview/overview.css?v=20261001-33">
+  <link rel="stylesheet" href="./modules/session/session.css?v=20261001-31">
+  <link rel="stylesheet" href="./modules/country/country.css?v=20261001-2">
 </head>
 <body>
   <main id="app">
@@ -26,7 +26,7 @@
           <div class="publisher-mark">Donnerfaust Interactive</div>
         </div>
         <div class="game-splash" hidden>
-          <img class="game-logo splash-logo" src="./assets/democrat-logo.svg?v=20261001-7" alt="Democrat – The Game">
+          <img class="game-logo splash-logo" src="./assets/democrat-logo.svg?v=20261001-8" alt="Democrat – The Game">
         </div>
       </div>
     </section>
@@ -39,6 +39,7 @@
 
   <script type="module">
     const splash = document.querySelector("#splash-app");
+    document.documentElement.classList.add("democrat-booting");
     const sequence = splash?.querySelector(".splash-sequence");
     const publisher = splash?.querySelector(".publisher-splash");
     const game = splash?.querySelector(".game-splash");
@@ -71,6 +72,7 @@
         splash?.remove();
       } catch (error) {
         console.error("[Democrat] Boot error:", error);
+        document.documentElement.classList.remove("democrat-booting");
         const text = document.createElement("div");
         text.className = "splash-error";
         text.innerHTML = "<strong>Democrat – The Game</strong><span>Das Spiel konnte nicht geladen werden.</span><button type=\"button\">Neu laden</button>";
