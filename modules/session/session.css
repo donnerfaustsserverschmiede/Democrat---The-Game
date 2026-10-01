@@ -267,3 +267,83 @@
   .mailbox-event-head{align-items:flex-start;flex-direction:column;gap:3px}
   .session-overlay-content,.mailbox-list{padding:12px}
 }
+
+/* Edge controls stay attached to the viewport while the session scrolls. */
+.session-edge-button{
+  position:fixed !important;
+  top:50vh !important;
+  bottom:auto !important;
+  z-index:5000 !important;
+  transform:translateY(-50%) !important;
+  pointer-events:auto;
+}
+.session-faction-edge{
+  left:0 !important;
+  right:auto !important;
+  border-left:0 !important;
+}
+.session-mailbox-edge{
+  right:0 !important;
+  left:auto !important;
+  border-right:0 !important;
+}
+.faction-management{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+}
+.faction-management-section{
+  padding:16px 0;
+}
+.faction-management-section + .faction-management-section{
+  margin-top:8px;
+  padding-top:22px;
+  border-top:1px solid rgba(255,255,255,.1);
+}
+.faction-section-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.faction-section-heading h3{
+  margin:4px 0 0;
+  font-size:17px;
+}
+.faction-section-heading>strong{
+  color:#e5c76b;
+  font-size:14px;
+  white-space:nowrap;
+}
+.faction-section-hint{
+  margin:7px 0 13px;
+  color:#8f9bae;
+  font-size:12px;
+  line-height:1.45;
+}
+.management-member-info{
+  min-width:0;
+}
+.management-member-info strong{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.management-member-info span{
+  display:block;
+  margin-top:4px;
+  color:#aeb8c8;
+  font-size:12px;
+}
+.faction-general-section .faction-color-management{
+  margin-top:12px;
+}
+@media(max-width:650px){
+  .session-edge-button{
+    min-width:34px !important;
+    padding:9px 6px !important;
+  }
+  .faction-section-heading h3{font-size:15px}
+  .management-member-info{width:100%}
+}
