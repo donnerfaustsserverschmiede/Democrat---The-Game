@@ -385,10 +385,36 @@ function renderSessionMajority(){
 async function castVote(choice){
   if(choice==="debate"){openDebate();return;}
   if(!gameState||gameState.statement_status!=="open"||gameState.session_status!=="active"||gameState.my_choice||gameState.player_eliminated||gameState.faction_eliminated)return;
-  const bs=[...root.querySelectorAll(".decision-button")];bs.forEach(b=>b.disabled=true);
-  const {error}=await supabase.rpc("cast_session_vote",{p_session_id:currentSessionId,p_choice:choice});
-  if(error){bs.forEach(b=>b.disabled=false);const box=root.querySelector("#vote-error");if(box){box.hidden=false;box.textContent=error.message?.includes("player_eliminated")?gt().eliminatedText:error.message?.includes("faction_eliminated")?gt().factionPoints+" · "+gt().eliminated:t().voteError;}return;}
-  await load();
+  const statementId=gameState.statement_id;
+  const bs=[...root.querySelectorAll(".decision-button")];
+  bs.forEach(b=>{b.disabled=true;b.classList.add("is-saving");});
+  const {data,error}=await supabase.rpc("cast_session_vote",{p_session_id:currentSessionId,p_choice:choice});
+  if(error){
+    bs.forEach(b=>{b.disabled=false;b.classList.remove("is-saving");});
+    const box=root.querySelector("#vote-error");
+    if(box){
+      box.hidden=false;
+      box.textContent=error.message?.includes("player_eliminated")
+        ?gt().eliminatedText
+        :error.message?.includes("faction_eliminated")
+          ?gt().factionPoints+" · "+gt().eliminated
+          :error.message?.includes("no_active_statement")
+            ?"Für diese Entscheidung ist derzeit keine Abstimmung geöffnet."
+            :error.message?.includes("session_ended")
+              ?t().sessionEnded
+              :(error.message||t().voteError);
+    }
+    return;
+  }
+  // Die Abstimmung wird sofort als abgeschlossen markiert. Dadurch kann der
+  // Spieler nicht ein zweites Mal abstimmen, auch wenn der anschließende
+  // Hintergrund-Refresh kurz verzögert ist.
+  gameState={...gameState,my_choice:data?.[0]?.choice||choice};
+  render();
+  startStatementCountdown();
+  // Danach den Serverzustand nachladen: Punkte, Mehrheitsstand und Mailbox.
+  await refreshSessionSilently();
+  await refreshMailbox();
 }
 function openDebate(){
   if(!currentSessionId||debateOpen)return;
