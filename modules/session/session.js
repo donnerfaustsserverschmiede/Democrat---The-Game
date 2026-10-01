@@ -389,7 +389,7 @@ function getStatementDeadline(){
   const id=gameState?.statement_id||null;
   if(id && countdownStatementId===id && countdownDeadline)return countdownDeadline;
   let deadline=gameState?.statement_deadline||null;
-  if(!deadline && gameState?.statement_opened_at) deadline=new Date(new Date(gameState.statement_opened_at).getTime()+10*60*1000).toISOString();
+  if(!deadline && gameState?.statement_opened_at) deadline=new Date(new Date(gameState.statement_opened_at).getTime()+60*60*1000).toISOString();
   if(id && deadline){countdownStatementId=id;countdownDeadline=deadline;}
   return deadline;
 }
@@ -475,7 +475,7 @@ function renderPresidentStatement(){
       '<div class="statement-meta"><span>'+esc(decisionType)+'</span><span>'+esc(c.political_area||"Politik")+'</span><span>'+esc(decisionStage)+'</span></div>'+
       (g.statement_text?'<h2>'+esc(g.statement_text)+'</h2>':"")+
       (c.context_text?'<p class="statement-context">'+esc(c.context_text)+'</p>':"")+
-      (g.statement_status==="open"&&g.session_status==="active"&&getStatementDeadline()?'<div class="statement-countdown"><span id="statement-countdown-label">'+(countdownTransitioning?"Entscheidung wird ausgewertet …":"Nächste Entscheidung in")+'</span><strong id="statement-countdown">'+formatStatementCountdown(getStatementDeadline())+'</strong></div>':"")+
+      (g.statement_status==="open"&&g.session_status==="active"&&getStatementDeadline()?'<div class="statement-countdown"><span id="statement-countdown-label">'+(countdownTransitioning?"Entscheidung wird ausgewertet …":"Thema endet in")+'</span><strong id="statement-countdown">'+formatStatementCountdown(getStatementDeadline())+'</strong></div>':"")+
       (renderPlayerStatement())+(resolved?'<div class="statement-resolved">'+(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie)+'</div>'+
         (publicOpinionDelta?'<div class="statement-consequence public-opinion-consequence"><span>Öffentliche Meinung</span><strong>'+publicOpinionDelta+'</strong><small>Deine Abstimmung verändert deine öffentliche Meinung.</small></div>':""):"");
   }
@@ -971,7 +971,7 @@ async function handleStatementCountdown(){
   }
   countdownTransitioning=false;
   if(el)el.textContent=formatStatementCountdown(deadline);
-  if(label)label.textContent="Nächste Entscheidung in";
+  if(label)label.textContent="Thema endet in";
 }
 function handleSpeechCountdown(){
   const el=root.querySelector("#speech-countdown");
