@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../auth/auth-config-v2.js?v=20261001-5";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../auth/auth-config-v2.js?v=20261001-6";
 
 const root = document.querySelector("#session-app");
 let supabase = null;
@@ -338,15 +338,27 @@ function renderPresidentStatement(){
     const kind=g.winner_type==="faction"?gt().winnerFaction:g.winner_type==="player"?gt().winnerPlayer:"";
     body='<div class="session-ended-banner">'+gt().sessionEnded+'</div>'+(g.winner_name?'<div class="winner-card"><strong>'+gt().winner+' · '+esc(kind)+'</strong><span>'+esc(g.winner_name)+'</span></div>':'<div class="winner-card"><span>'+gt().noWinner+'</span></div>');
   }else{
-    const typeLabels={gesetzesvorlage:"Gesetzesvorlage",haushaltsentscheidung:"Haushaltsentscheidung",verwaltungsentscheidung:"Verwaltungsentscheidung",parlamentarische_entscheidung:"Parlamentarische Entscheidung",parliamentary_decision:"Parlamentarische Entscheidung"};
+    const typeLabels={
+      gesetzesvorlage:"Gesetzesvorlage",
+      ausschussberatung:"Ausschussberatung",
+      haushaltsentscheidung:"Haushaltsentscheidung",
+      verwaltungsentscheidung:"Verwaltungsentscheidung",
+      parlamentarische_entscheidung:"Parlamentarische Entscheidung",
+      parliamentary_decision:"Parlamentarische Entscheidung"
+    };
     const decisionType=typeLabels[c.decision_type]||"Parlamentarische Entscheidung";
     const decisionStage=c.decision_stage||"Einzelentscheidung";
+    const impact=Math.abs(Number(c.citizen_impact||0));
+    const choice=g.my_choice;
+    const positive=(Number(c.citizen_impact||0)>0&&choice==="approve")||(Number(c.citizen_impact||0)<0&&choice==="reject");
+    const publicOpinionDelta=impact?((positive?"+":"-")+impact):"";
     body='<div class="president-label">'+x.president+' · Tagesordnungspunkt '+(g.statement_number||"")+'</div>'+
       '<div class="statement-meta"><span>'+esc(decisionType)+'</span><span>'+esc(c.political_area||"Politik")+'</span><span>'+esc(decisionStage)+'</span></div>'+
       (g.statement_text?'<h2>'+esc(g.statement_text)+'</h2>':"")+
       (c.context_text?'<p class="statement-context">'+esc(c.context_text)+'</p>':"")+
       (g.statement_status==="open"&&g.session_status==="active"&&getStatementDeadline()?'<div class="statement-countdown"><span id="statement-countdown-label">'+(countdownTransitioning?"Entscheidung wird ausgewertet …":"Nächste Entscheidung in")+'</span><strong id="statement-countdown">'+formatStatementCountdown(getStatementDeadline())+'</strong></div>':"")+
-      (resolved?'<div class="statement-resolved">'+(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie)+'</div>'+(c.consequence_text?'<p class="statement-consequence">'+esc(c.consequence_text)+'</p>':""):"");
+      (resolved?'<div class="statement-resolved">'+(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie)+'</div>'+
+        (publicOpinionDelta?'<div class="statement-consequence public-opinion-consequence"><span>Öffentliche Meinung</span><strong>'+publicOpinionDelta+'</strong><small>Deine Abstimmung verändert deine öffentliche Meinung.</small></div>':""):"");
   }
   return '<section class="president-statement">'+body+'</section>';
 }
