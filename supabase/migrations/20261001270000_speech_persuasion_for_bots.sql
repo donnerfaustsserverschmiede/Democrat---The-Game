@@ -294,6 +294,45 @@ begin
     on conflict(statement_id,bot_id) do nothing;
   end if;
 
+  -- If all 60 seats have now voted, resolve the topic immediately.
+  -- Otherwise the topic remains open so later speeches can still influence
+  -- bots whose scheduled vote has not happened yet.
+  declare
+    v_total_votes integer;
+    v_yes_votes integer;
+    v_no_votes integer;
+  begin
+    select count(*) into v_total_votes
+    from (
+      select sv.user_id::text
+      from game.session_votes sv
+      where sv.statement_id=p_statement_id
+      union all
+      select bv.bot_id::text
+      from game.session_bot_votes bv
+      where bv.statement_id=p_statement_id
+    ) all_votes;
+
+    if v_total_votes>=60 then
+      select count(*) filter(where sv.choice='approve')::int,
+             count(*) filter(where sv.choice='reject')::int
+      into v_yes_votes,v_no_votes
+      from (
+        select choice from game.session_votes where statement_id=p_statement_id
+        union all
+        select choice from game.session_bot_votes where statement_id=p_statement_id
+      ) sv;
+
+      update game.session_statements
+      set status='resolved',
+          outcome=case when v_yes_votes>v_no_votes then 'approved'
+                       when v_no_votes>v_yes_votes then 'rejected'
+                       else 'tie' end,
+          resolved_at=now()
+      where id=p_statement_id and status='open';
+    end if;
+  end;
+
   -- A faction bot follows the current human faction majority.
   update game.session_bot_votes bv
   set choice=case
@@ -329,6 +368,7 @@ begin
     and fc.yes_count+fc.no_count>0;
 end
 $function$
+
 
 revoke execute on function game.ensure_session_bot_votes(uuid,uuid,boolean) from public,anon,authenticated;
 grant execute on function game.ensure_session_bot_votes(uuid,uuid,boolean) to authenticated;
