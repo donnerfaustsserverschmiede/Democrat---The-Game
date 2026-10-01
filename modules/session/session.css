@@ -422,3 +422,12 @@
 
 .decision-bar .decision-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row;align-items:stretch;justify-items:stretch;width:100%}
 .decision-bar .decision-button{display:flex;align-items:center;justify-content:center;width:100%;min-width:0;box-sizing:border-box}
+
+.session-finalize-status{
+  margin:10px auto 0;
+  max-width:520px;
+  text-align:center;
+  color:rgba(229,199,107,.9);
+  font-size:.9rem;
+  line-height:1.45;
+}
