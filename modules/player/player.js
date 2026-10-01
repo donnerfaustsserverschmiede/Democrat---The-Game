@@ -29,16 +29,16 @@ export async function open(){
     return;
   }
 
-  const level=Number(p.level||1);
+  const level=Number(p.level||0);
   overlay.innerHTML=`
     <section class="overview-panel player-panel">
       <button class="overview-panel-close" data-close type="button">×</button>
       <div class="player-heading">
-        <div><span class="player-kicker">POLITISCHES PROFIL</span><h2>${esc(p.profile_name)}</h2><span class="player-level">Level ${level}</span></div>
+        <div><span class="player-kicker">POLITISCHES PROFIL</span><h2>${esc(p.profile_name)}</h2><span class="player-level">Punkte ${Number(p.points||0)}</span></div>
         <div class="player-opinion-ring"><strong>${pct(p.public_opinion)}</strong><span>Volkesmeinung</span></div>
       </div>
       <div class="player-stat-grid">
-        <article><span>Erfahrungspunkte</span><strong>${Number(p.xp||0).toLocaleString("de-DE")} XP</strong><small>${Number(p.xp_to_next_level||0)>0?Number(p.xp_to_next_level).toLocaleString("de-DE")+" XP bis Level "+(level+1):"Maximales Level erreicht"}</small></article>
+        <article><span>Persönliche Punkte</span><strong>${Number(p.points||0).toLocaleString("de-DE")}</strong><small>Diese Punkte sind dein persönlicher Fortschritt</small></article>
 
         <article><span>Eigenes Geld</span><strong>${money(p.money)}</strong><small>Summe deiner aktiven Sitzungen</small></article>
         <article><span>Sitzungen</span><strong>${Number(p.sessions_participated||0)}</strong><small>Teilnahmen insgesamt</small></article>
@@ -55,7 +55,7 @@ export async function open(){
       </div>
       <div class="player-level-box">
         <h3>Politischer Aufstieg</h3>
-        <p>Level ${level}. Dein Level steigt durch deine persönlichen Entscheidungen und die dafür erhaltenen Erfahrungspunkte.</p>
+        <p>Jede Entscheidung bringt dir dauerhaft <strong>1 bis 3 persönliche Punkte</strong> auf dein Spielerkonto.</p><p class="overview-panel-muted">Diese Punkte bilden zugleich deinen persönlichen XP-Fortschritt.</p>
       </div>
     </section>`;
   overlay.querySelector("[data-close]")?.addEventListener("click",close);
