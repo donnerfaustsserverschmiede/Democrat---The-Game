@@ -177,3 +177,93 @@
 .public-opinion-consequence span{color:#b9c3d1;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
 .public-opinion-consequence strong{font-size:20px;color:#e5c76b;font-variant-numeric:tabular-nums}
 .public-opinion-consequence small{width:100%;color:#8793a5;font-size:11px}
+
+
+/* Session redesign: fixed HUD, spacious chamber, edge menus */
+.session-shell{min-height:100vh;background:#050912}
+.session-header{
+  position:fixed;top:0;left:0;right:0;z-index:900;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+  gap:14px;padding:10px max(14px,calc((100vw - 1180px)/2));
+  background:rgba(5,9,16,.96);border-bottom:1px solid rgba(229,199,107,.2);
+  backdrop-filter:blur(18px);box-sizing:border-box
+}
+.session-header-main{display:flex;align-items:center;gap:11px;min-width:0}
+.session-header-main .session-logo{width:34px;height:34px;flex:0 0 auto}
+.session-header-main h1{margin:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.session-header-main .session-chamber{margin-top:2px;font-size:10px;color:#8995a7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.session-header .game-hud{position:static;grid-column:1 / -1;grid-row:2;margin:0;padding:0;border:0;background:none;backdrop-filter:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.session-header .hud-card{padding:8px 11px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.035)}
+.session-header .hud-card span{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:#8793a5}
+.session-header .hud-card strong{display:block;margin-top:2px;font-size:16px;color:#f2f5f9;font-variant-numeric:tabular-nums}
+.session-header .hud-card small{font-size:8px}
+.session-main{max-width:1180px;margin:0 auto;padding:150px 20px 145px;box-sizing:border-box}
+.session-live{position:relative}
+.session-live .president-statement{margin:0 auto 14px;max-width:980px}
+.session-live .faction-vote-panel{max-width:980px;margin-left:auto;margin-right:auto}
+.session-live .chamber-wrap{margin:20px auto 0;max-width:1080px}
+.session-live .hemicycle-map{height:min(56vw,560px);min-height:400px}
+.session-live .chamber-title{font-size:12px;margin-bottom:8px}
+.session-live .chamber-legend{margin-bottom:5px}
+.session-edge-button{
+  position:fixed;z-index:850;top:50%;transform:translateY(-50%);
+  min-width:38px;min-height:92px;padding:10px 7px;
+  border:1px solid rgba(229,199,107,.3);background:rgba(8,14,25,.92);
+  color:#e5c76b;font:inherit;font-weight:800;font-size:11px;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);backdrop-filter:blur(12px);
+  cursor:pointer
+}
+.session-faction-edge{left:0;border-radius:0 12px 12px 0;writing-mode:vertical-rl}
+.session-mailbox-edge{right:0;border-radius:12px 0 0 12px;writing-mode:vertical-rl}
+.mailbox-badge{display:inline-flex;align-items:center;justify-content:center;margin-top:5px;min-width:17px;height:17px;padding:0 3px;border-radius:99px;background:#e5c76b;color:#07101c;font-size:9px;writing-mode:horizontal-tb}
+.session-overlay{
+  position:fixed;inset:0;z-index:3000;display:flex;
+  align-items:stretch;justify-content:center;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  background:rgba(2,6,12,.94);backdrop-filter:blur(12px)
+}
+.session-overlay-window{width:min(980px,100%);height:100%;display:flex;flex-direction:column;background:#0a101c;color:#f4f7fb}
+.session-overlay-header{
+  display:flex;align-items:center;justify-content:space-between;gap:15px;
+  padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.1);background:#0e1624
+}
+.session-overlay-header h2{margin:3px 0 0;font-size:20px}
+.overlay-close{
+  width:44px;height:44px;border:0;border-radius:50%;
+  background:rgba(255,255,255,.08);color:#fff;font-size:29px;cursor:pointer
+}
+.session-overlay-content,.mailbox-list{flex:1;min-height:0;overflow:auto;padding:18px}
+.mailbox-list{display:flex;flex-direction:column;gap:8px}
+.mailbox-event{
+  display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;
+  padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:rgba(255,255,255,.035)
+}
+.mailbox-event-icon{
+  width:30px;height:30px;display:flex;align-items:center;justify-content:center;
+  border-radius:9px;background:rgba(229,199,107,.1);color:#e5c76b;font-weight:900
+}
+.mailbox-event-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.mailbox-event-head strong{font-size:13px}
+.mailbox-event-head time{font-size:10px;color:#718096;white-space:nowrap}
+.mailbox-event-body p{margin:5px 0 0;color:#aeb8c8;font-size:12px;line-height:1.45}
+.faction-menu-window{width:min(760px,100%)}
+.faction-menu-window .session-overlay-content{padding-bottom:35px}
+.faction-menu-window .faction-actions,
+.faction-menu-window .faction-management{margin-top:0}
+.faction-menu-window .faction-actions+.faction-management{margin-top:20px}
+.faction-menu-window .session-danger{width:100%;margin-top:18px}
+.faction-menu-window .faction-switch{margin-top:18px}
+.decision-bar{padding-left:max(14px,calc((100vw - 1180px)/2 + 20px));padding-right:max(14px,calc((100vw - 1180px)/2 + 20px))}
+@media(max-width:650px){
+  .session-header{padding:8px 10px}
+  .session-header-main .session-logo{width:29px;height:29px}
+  .session-header-main h1{font-size:12px}
+  .session-header .game-hud{gap:5px}
+  .session-header .hud-card{padding:7px 8px}
+  .session-header .hud-card strong{font-size:14px}
+  .session-main{padding:128px 10px 132px}
+  .session-live .hemicycle-map{height:390px;min-height:330px}
+  .session-edge-button{min-width:34px;min-height:82px;font-size:10px}
+  .mailbox-event-head{align-items:flex-start;flex-direction:column;gap:3px}
+  .session-overlay-content,.mailbox-list{padding:12px}
+}
