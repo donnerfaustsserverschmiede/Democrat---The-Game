@@ -152,6 +152,7 @@ function scheduleSessionFinalization(){
           .replace("{points}",String(result.points_earned||0))
           .replace("{total}",String(result.total_points||0));
       }
+      closeSpeechPeers();stopSpeechLocalStream();if(speechChannel&&supabase){supabase.removeChannel(speechChannel);speechChannel=null;}
       if(gamePollTimer)window.clearInterval(gamePollTimer);
       if(statementPollTimer)window.clearInterval(statementPollTimer);
       if(advanceTimer)window.clearTimeout(advanceTimer);
@@ -1170,6 +1171,7 @@ async function leaveCurrentSession(){
   const confirmed=window.confirm("Möchtest du diese Sitzung wirklich vollständig verlassen? Dein Sitzungsplatz wird frei und die Sitzung wird aus „Meine Sitzungen“ entfernt.");
   if(!confirmed)return;
   try{
+    closeSpeechPeers();stopSpeechLocalStream();if(speechChannel&&supabase){supabase.removeChannel(speechChannel);speechChannel=null;}
     const {error}=await supabase.rpc("leave_session",{p_session_id:currentSessionId});
     if(error)throw error;
     closeDebate();
