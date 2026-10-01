@@ -375,12 +375,23 @@ function openBotDialog(botId){const bot=seats.find(s=>String(s.bot_id||"")===Str
 function renderFactionVote(){const x=t(),g=gameState||{},yes=Number(g.faction_approve_votes||0),no=Number(g.faction_reject_votes||0),inter=Number(g.faction_interject_votes||0),d=yes+no,yp=d?Math.round(yes/d*100):0,np=d?100-yp:0;const result=g.statement_status==="resolved"?(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie):"";return '<div class="faction-vote-panel"><div class="faction-vote-head"><span>'+x.factionVote+'</span><strong>'+d+'/'+(g.faction_member_count||0)+'</strong></div><div class="faction-vote-bar"><i style="width:'+yp+'%"></i><b style="width:'+np+'%"></b></div><div class="faction-vote-numbers"><span>'+x.approve+': '+yp+'%</span><span>'+x.reject+': '+np+'%</span>'+(inter?'<span>'+x.interject+': '+inter+'</span>':'')+'</div>'+(result?'<div class="faction-result">'+result+'</div>':(d<Number(g.faction_member_count||0)?'<div class="faction-waiting">'+x.waiting+'</div>':''))+'</div>';}
 function renderSessionMajority(){
   const x=t(),g=gameState||{};
-  const yes=Number(g.approve_votes||0),no=Number(g.reject_votes||0),d=yes+no;
-  const yp=d?Math.round(yes/d*100):0,np=d?100-yp:0;
+  const TOTAL_SEATS=60;
+  const yes=Math.max(0,Number(g.approve_votes||0));
+  const no=Math.max(0,Number(g.reject_votes||0));
+  const counted=Math.min(TOTAL_SEATS,yes+no);
+  const pending=Math.max(0,TOTAL_SEATS-counted);
+  const yp=Number((yes/TOTAL_SEATS*100).toFixed(2));
+  const np=Number((no/TOTAL_SEATS*100).toFixed(2));
+  const pp=Number((pending/TOTAL_SEATS*100).toFixed(2));
   const result=g.statement_status==="resolved"
     ?(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie)
     :"";
-  return '<div class="faction-vote-panel session-majority-panel"><div class="faction-vote-head"><span>'+x.sessionMajority+'</span><strong>'+d+' Stimmen</strong></div><div class="faction-vote-bar"><i style="width:'+yp+'%"></i><b style="width:'+np+'%"></b></div><div class="faction-vote-numbers"><span>'+x.approve+': '+yp+'%</span><span>'+x.reject+': '+np+'%</span></div>'+(result?'<div class="faction-result">'+result+'</div>':'')+'</div>';
+  return '<div class="faction-vote-panel session-majority-panel">'+
+    '<div class="faction-vote-head"><span>'+x.sessionMajority+'</span><strong>'+counted+'/'+TOTAL_SEATS+' Stimmen</strong></div>'+
+    '<div class="faction-vote-bar session-majority-bar"><i style="width:'+yp+'%"></i><b style="width:'+np+'%"></b><em style="width:'+pp+'%"></em></div>'+
+    '<div class="faction-vote-numbers"><span>'+x.approve+': '+yp.toFixed(2)+'%</span><span>'+x.reject+': '+np.toFixed(2)+'%</span>'+(pending?'<span>Offen: '+pp.toFixed(2)+'%</span>':'')+'</div>'+
+    (result?'<div class="faction-result">'+result+'</div>':'')+
+    '</div>';
 }
 async function castVote(choice){
   if(choice==="debate"){openDebate();return;}
