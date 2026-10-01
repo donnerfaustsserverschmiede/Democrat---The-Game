@@ -1,0 +1,18 @@
+-- Live speaking / voice system
+-- Replaces the former written Statement/Wortmeldung workflow.
+-- Deployed in Supabase migration:
+-- replace_statement_with_live_speech_and_interjections_20261001
+-- plus the follow-up ambiguity, overlap and Realtime authorization fixes.
+--
+-- The active implementation uses:
+--   game.session_speech_slots
+--   game.session_speech_requests
+--   game.session_speech_interjections
+-- and public RPCs:
+--   request_session_speech
+--   get_session_speech_state
+--   request_session_speech_interjection
+--   respond_session_speech_interjection
+--   claim_next_speech_slot
+--
+-- Debate chat remains unchanged.
