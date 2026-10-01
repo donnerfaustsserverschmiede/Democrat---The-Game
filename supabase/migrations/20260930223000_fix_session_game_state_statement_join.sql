@@ -40,8 +40,8 @@ begin
  left join game.session_votes myv on myv.statement_id=s.id and myv.user_id=v_uid
  left join identity.profiles wp on wp.user_id=sess.winner_user_id
  left join game.session_factions wf on wf.id=sess.winner_faction_id
- left join lateral (select count(*) filter(where choice='approve')::integer approve_votes,count(*) filter(where choice='reject')::integer reject_votes,count(*) filter(where choice='interject')::integer interject_votes from game.session_votes v where v.statement_id=s.id) vc on true
- left join lateral (select count(*) filter(where choice='approve')::integer approve_votes,count(*) filter(where choice='reject')::integer reject_votes,count(*) filter(where choice='interject')::integer interject_votes from game.session_votes v where v.statement_id=s.id and v.faction_id=v_faction) fvc on true
+ left join lateral (select count(*) filter(where v.choice='approve')::integer approve_votes,count(*) filter(where v.choice='reject')::integer reject_votes,count(*) filter(where v.choice='interject')::integer interject_votes from game.session_votes v where v.statement_id=s.id) vc on true
+ left join lateral (select count(*) filter(where v.choice='approve')::integer approve_votes,count(*) filter(where v.choice='reject')::integer reject_votes,count(*) filter(where v.choice='interject')::integer interject_votes from game.session_votes v where v.statement_id=s.id and v.faction_id=v_faction) fvc on true
  left join lateral (select count(*)::integer member_count from game.session_members sm where sm.session_id=p_session_id and sm.faction_id=v_faction and sm.eliminated_at is null) fmc on true
  left join lateral (select count(*)::integer voted_count from game.session_votes v where v.statement_id=s.id and v.faction_id=v_faction) fvcnt on true
  where m.session_id=p_session_id and m.user_id=v_uid;
