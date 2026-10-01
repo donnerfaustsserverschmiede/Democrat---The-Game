@@ -7,8 +7,7 @@
   background: #070b13;
 }
 
-/* Full-screen real chamber photograph. The image is intentionally blurred
-   and darkened so the game UI remains readable and no insignia dominates. */
+/* Full-screen chamber background; keep the interface itself crisp. */
 #overview-app::before {
   content: "";
   position: fixed;
@@ -19,7 +18,7 @@
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-  filter: blur(7px) brightness(.62) saturate(.72);
+  filter: brightness(.62) saturate(.72);
   transform: scale(1.035);
 }
 
@@ -50,7 +49,7 @@
   padding: 18px 28px;
   border-bottom: 1px solid rgba(255,255,255,.10);
   background: rgba(7,11,19,.72);
-  backdrop-filter: blur(14px);
+  
   position: sticky;
   top: 0;
   z-index: 5;
@@ -138,7 +137,7 @@
   border: 1px solid rgba(255,255,255,.11);
   border-radius: 16px;
   background: rgba(10,17,29,.80);
-  backdrop-filter: blur(12px);
+  
   box-shadow: 0 12px 35px rgba(0,0,0,.28);
 }
 
@@ -187,7 +186,7 @@
   border-radius: 16px;
   color: #aeb8c8;
   background: rgba(17,24,39,.65);
-  backdrop-filter: blur(10px);
+  
 }
 
 .overview-error {
@@ -228,7 +227,7 @@
   background:rgba(8,13,22,.88);
   color:#f4f6fb;
   box-shadow:0 12px 30px rgba(0,0,0,.38);
-  backdrop-filter:blur(12px);
+
   font:inherit;
   font-weight:800;
   cursor:pointer;
@@ -242,7 +241,7 @@
   place-items:center;
   padding:24px;
   background:rgba(2,5,10,.66);
-  backdrop-filter:blur(8px);
+
 }
 .overview-panel{
   position:relative;
