@@ -1071,23 +1071,28 @@ function render(){
             <div id="session-action-error" class="session-action-error" hidden></div>
           </div>
         </section>`}
-      ${assigned && gameState?.statement_status==="open" && !gameState?.player_eliminated && gameState?.session_status!=="ended" ? `<div class="decision-bar"><div class="decision-title">${x.decision}</div><div class="decision-buttons"><button class="decision-button approve" type="button" data-vote="approve" ${gameState?.my_choice?"disabled":""}>${x.approve}</button><button class="decision-button interject" type="button" data-vote="debate" ${gameState?.my_choice?"disabled":""}>${x.interject}</button><button class="decision-button reject" type="button" data-vote="reject" ${gameState?.my_choice?"disabled":""}>${x.reject}</button></div></div>` : ""}
+      ${assigned && gameState?.statement_status==="open" && !gameState?.player_eliminated && gameState?.session_status!=="ended" ? `<div class="decision-bar"><div class="decision-title">${x.decision}</div><div class="decision-buttons"><button class="decision-button approve" type="button" data-vote="approve" ${gameState?.my_choice?"disabled":""}>${x.approve}</button><button class="decision-button interject" type="button" data-vote="debate" ${gameState?.my_choice?"disabled":""}>${x.interject}</button><button class="decision-button reject" type="button" data-vote="reject" ${gameState?.my_choice?"disabled":""}>${x.reject}</button><button class="decision-button statement-request" type="button" data-interjection ${(!speechState?.speaker_user_id || String(speechState.speaker_user_id)===String(currentUser?.id) || speechState.my_interjection_used)?"disabled":""}>${speechState?.my_interjection_used?"✓ Zwischenruf genutzt":"✋ Zwischenruf"}</button></div></div>` : ""}
     </main>
   </div>`;
   root.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>back()));
-  root.querySelector("[data-faction-menu]")?.addEventListener("click",()=>{factionMenuOpen=true;render();});
-  root.querySelector("[data-faction-close]")?.addEventListener("click",()=>{factionMenuOpen=false;switchingFaction=false;render();});
-  root.querySelector("[data-mailbox]")?.addEventListener("click",async()=>{mailboxOpen=true;mailboxLoading=true;render();await refreshMailbox();});
-  root.querySelector("[data-mailbox-close]")?.addEventListener("click",()=>{mailboxOpen=false;render();});
+  root.onclick=async(event)=>{
+    const target=event.target?.closest?.("[data-faction-menu],[data-faction-close],[data-mailbox],[data-mailbox-close],[data-speech-request],[data-interjection],[data-interjection-accept],[data-interjection-reject],[data-voice-toggle]");
+    if(!target||!root.contains(target))return;
+    if(target.matches("[data-faction-menu]")){event.preventDefault();factionMenuOpen=true;render();return;}
+    if(target.matches("[data-faction-close]")){event.preventDefault();factionMenuOpen=false;switchingFaction=false;render();return;}
+    if(target.matches("[data-mailbox]")){event.preventDefault();mailboxOpen=true;mailboxLoading=true;render();await refreshMailbox();return;}
+    if(target.matches("[data-mailbox-close]")){event.preventDefault();mailboxOpen=false;render();return;}
+    if(target.matches("[data-speech-request]")){event.preventDefault();await requestSpeech();return;}
+    if(target.matches("[data-interjection]")&&!target.disabled){event.preventDefault();await requestInterjection();return;}
+    if(target.matches("[data-interjection-accept]")){event.preventDefault();await respondInterjection(target.dataset.interjectionAccept,true);return;}
+    if(target.matches("[data-interjection-reject]")){event.preventDefault();await respondInterjection(target.dataset.interjectionReject,false);return;}
+    if(target.matches("[data-voice-toggle]")){event.preventDefault();await toggleVoice();return;}
+  };
   root.querySelector("[data-switch]")?.addEventListener("click",()=>{switchingFaction=true;render();});
   root.querySelector("[data-cancel-switch]")?.addEventListener("click",()=>{switchingFaction=false;selectedFactionId=null;render();});
   root.querySelector("[data-read]")?.addEventListener("click",confirmRead);
   root.querySelectorAll("[data-vote]").forEach(b=>b.addEventListener("click",()=>castVote(b.dataset.vote)));
-  root.querySelector("[data-speech-request]")?.addEventListener("click",requestSpeech);
-  root.querySelector("[data-interjection]")?.addEventListener("click",requestInterjection);
-  root.querySelector("[data-interjection-accept]")?.addEventListener("click",()=>respondInterjection(root.querySelector("[data-interjection-accept]").dataset.interjectionAccept,true));
-  root.querySelector("[data-interjection-reject]")?.addEventListener("click",()=>respondInterjection(root.querySelector("[data-interjection-reject]").dataset.interjectionReject,false));
-  root.querySelector("[data-voice-toggle]")?.addEventListener("click",toggleVoice);
+
   root.querySelector("[data-leave-session]")?.addEventListener("click",leaveCurrentSession);
   root.querySelectorAll("[data-ranking-mode]").forEach(b=>b.addEventListener("click",()=>{rankingMode=b.dataset.rankingMode==="player"?"player":"faction";render();startStatementCountdown();}));
   root.querySelectorAll("[data-bot-id]").forEach(b=>b.addEventListener("click",()=>openBotDialog(b.dataset.botId)));
