@@ -240,6 +240,7 @@
   background:rgba(11,18,32,.94);color:#f7e7a6;box-shadow:0 14px 35px rgba(0,0,0,.45);font:inherit;font-weight:850;cursor:pointer
 }
 .overview-overlay{
+  
   position:fixed;
   inset:0;
   z-index:30;
@@ -249,6 +250,7 @@
   background:rgba(2,5,10,.66);
 
 }
+.overview-overlay[hidden]{display:none !important}
 .overview-panel{
   position:relative;
   width:min(520px,100%);
