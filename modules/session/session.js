@@ -852,7 +852,7 @@ async function chooseExisting(){
   const err=root.querySelector("#session-action-error");
   const {error}=await supabase.rpc("choose_session_faction",{p_session_id:currentSessionId,p_faction_id:selectedFactionId,p_faction_name:null,p_side:null,p_color_code:null});
   if(error){err.textContent=mapFactionError(error);err.hidden=false;return;}
-  if(selectedFactionColor){
+  if(selectedFactionColor && selectedFactionId){
     const colorResult=await supabase.rpc("set_session_faction_color",{p_session_id:currentSessionId,p_color_code:selectedFactionColor});
     if(colorResult.error){err.textContent=mapFactionError(colorResult.error);err.hidden=false;return;}
   }
