@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#05080d">
   <title>Democrat – The Game</title>
-  <link rel="icon" type="image/svg+xml" href="./assets/democrat-icon.svg?v=20261001-3">
-  <link rel="manifest" href="./manifest.webmanifest?v=20261001-3">
+  <link rel="icon" type="image/svg+xml" href="./assets/democrat-icon.svg?v=20261001-4">
+  <link rel="manifest" href="./manifest.webmanifest?v=20261001-4">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="./assets/democrat-icon.svg?v=20261001-3">
+  <link rel="apple-touch-icon" href="./assets/democrat-icon.svg?v=20261001-4">
   <link rel="stylesheet" href="./modules/splash/splash.css?v=20261001-3">
   <link rel="stylesheet" href="./modules/legal/legal.css?v=20260930-3">
   <link rel="stylesheet" href="./modules/auth/auth.css?v=20260930-3">
@@ -27,12 +27,7 @@
           <div class="publisher-sub">INTERACTIVE</div>
         </div>
         <div class="game-splash" hidden>
-          <img class="game-logo splash-logo" src="./assets/democrat-logo.svg?v=20261001-3" alt="Democrat – The Game">
-        </div>
-        <div class="splash-error" hidden>
-          <strong>Democrat – The Game</strong>
-          <span>Das Spiel konnte nicht geladen werden.</span>
-          <button type="button" data-reload>Neu laden</button>
+          <img class="game-logo splash-logo" src="./assets/democrat-logo.svg?v=20261001-4" alt="Democrat – The Game">
         </div>
       </div>
     </section>
@@ -48,24 +43,8 @@
     const sequence = splash?.querySelector(".splash-sequence");
     const publisher = splash?.querySelector(".publisher-splash");
     const game = splash?.querySelector(".game-splash");
-    const errorBox = splash?.querySelector(".splash-error");
 
     const wait = (ms) => new Promise(resolve => window.setTimeout(resolve, ms));
-
-    function showBootError(error) {
-      console.error("[Democrat] Boot error:", error);
-      if (publisher) publisher.hidden = true;
-      if (game) game.hidden = true;
-      if (errorBox) {
-        errorBox.hidden = false;
-        const details = document.createElement("small");
-        details.textContent = error?.message || String(error);
-        details.style.cssText = "max-width:min(90vw,560px);color:#7f8da3;word-break:break-word";
-        errorBox.appendChild(details);
-      }
-    }
-
-    splash?.querySelector("[data-reload]")?.addEventListener("click", () => window.location.reload());
 
     async function boot() {
       try {
@@ -82,9 +61,7 @@
 
         await wait(1400);
 
-        // Start the actual application directly from the document boot.
-        // This removes the splash module as a single point of failure.
-        await import("./modules/legal/legal.js?v=20261001-3");
+        await import("./modules/legal/legal.js?v=20261001-4");
 
         const legal = document.querySelector("#legal-app");
         const auth = document.querySelector("#auth-app");
@@ -99,16 +76,11 @@
         await wait(500);
         splash?.remove();
       } catch (error) {
-        showBootError(error);
+        // Fehler nur in der Entwicklerkonsole protokollieren.
+        // Keine sichtbare Fehlermeldung über dem Spiel anzeigen.
+        console.error("[Democrat] Boot error:", error);
       }
     }
-
-    window.addEventListener("error", event => {
-      if (event.error) showBootError(event.error);
-    });
-    window.addEventListener("unhandledrejection", event => {
-      if (event.reason) showBootError(event.reason);
-    });
 
     boot();
   </script>
