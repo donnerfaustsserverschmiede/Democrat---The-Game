@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../auth/auth-config-v2.js?v=20260930-3";
 import * as sessionModule from "../session/session.js?v=20261001-30";
+import { upgradeGuestAccountFromSettings } from "../auth/auth.js?v=20261001-3";
 
 const root = document.querySelector("#overview-app");
 const sessionRoot = document.querySelector("#session-app");
@@ -50,9 +51,90 @@ function renderShell(profileName="Spieler") {
         </div>
         <section id="session-list" class="overview-list" aria-live="polite"></section>
       </main>
+      <nav class="overview-bottom-nav" aria-label="Hauptmenü">
+        <button class="overview-corner-button" data-action="party" type="button">♟ <span>Party</span></button>
+        <button class="overview-corner-button" data-action="settings" type="button">⚙ <span>Einstellungen</span></button>
+      </nav>
+      <div id="overview-overlay" class="overview-overlay" hidden></div>
     </div>`;
   root.querySelectorAll("[data-tab]").forEach(button=>button.addEventListener("click",async()=>{activeTab=button.dataset.tab;renderShell(profileName);await loadSessions();}));
   root.querySelector("[data-action='refresh']").addEventListener("click",loadSessions);
+  root.querySelector("[data-action='party']").addEventListener("click",openPartyPanel);
+  root.querySelector("[data-action='settings']").addEventListener("click",openSettingsPanel);
+}
+
+function closeOverviewOverlay(){
+  const overlay=root.querySelector("#overview-overlay");
+  if(overlay){ overlay.hidden=true; overlay.innerHTML=""; }
+}
+
+function openPartyPanel(){
+  const overlay=root.querySelector("#overview-overlay");
+  if(!overlay)return;
+  overlay.hidden=false;
+  overlay.innerHTML=`<section class="overview-panel">
+    <button class="overview-panel-close" data-close type="button">×</button>
+    <h2>Party</h2>
+    <p>Hier findest du später deine Parteiverwaltung und Einladungen.</p>
+    <p class="overview-panel-muted">Die Party-Funktion wird noch erweitert.</p>
+  </section>`;
+  overlay.querySelector("[data-close]").addEventListener("click",closeOverviewOverlay);
+}
+
+function openSettingsPanel(){
+  const overlay=root.querySelector("#overview-overlay");
+  if(!overlay)return;
+  const isGuest=Boolean(currentUser?.is_anonymous);
+  const name=profileName || currentUser?.user_metadata?.profile_name || "Spieler";
+  overlay.hidden=false;
+  overlay.innerHTML=`<section class="overview-panel">
+    <button class="overview-panel-close" data-close type="button">×</button>
+    <h2>Einstellungen</h2>
+    <p class="overview-panel-muted">Spieler: <strong>${escapeHtml(name)}</strong></p>
+    ${isGuest ? `<div class="overview-settings-box">
+      <h3>Gastkonto sichern</h3>
+      <p>Verknüpfe eine E-Mail-Adresse und ein Passwort mit deinem bestehenden Gastkonto. Dein Spieler und dein kompletter Spielstand bleiben dabei erhalten.</p>
+      <form id="guest-upgrade-form" class="overview-settings-form">
+        <label>E-Mail<input name="email" type="email" autocomplete="email" required></label>
+        <label>Passwort<input name="password" type="password" minlength="8" autocomplete="new-password" required></label>
+        <label>Passwort bestätigen<input name="passwordConfirm" type="password" minlength="8" autocomplete="new-password" required></label>
+        <div id="guest-upgrade-message" class="overview-settings-message" hidden></div>
+        <button class="overview-settings-save" type="submit">Gastkonto in Account umwandeln</button>
+      </form>
+    </div>` : `<div class="overview-settings-box">
+      <h3>Konto</h3><p>Dein Konto ist mit einer E-Mail-Adresse gesichert.</p>
+      <p class="overview-panel-muted">${escapeHtml(currentUser?.email || "")}</p>
+    </div>`}
+  </section>`;
+  overlay.querySelector("[data-close]").addEventListener("click",closeOverviewOverlay);
+  const form=overlay.querySelector("#guest-upgrade-form");
+  if(!form)return;
+  form.addEventListener("submit",async(event)=>{
+    event.preventDefault();
+    const data=new FormData(form);
+    const email=String(data.get("email")||"").trim();
+    const password=String(data.get("password")||"");
+    const confirm=String(data.get("passwordConfirm")||"");
+    const message=overlay.querySelector("#guest-upgrade-message");
+    const button=form.querySelector("button[type=submit]");
+    if(password!==confirm){ message.hidden=false; message.textContent="Die Passwörter stimmen nicht überein."; return; }
+    button.disabled=true; button.textContent="Wird gespeichert …"; message.hidden=true;
+    try{
+      const user=await upgradeGuestAccountFromSettings({email,password});
+      currentUser=user;
+      profileName=user.user_metadata?.profile_name||profileName;
+      message.hidden=false;
+      message.className="overview-settings-message success";
+      message.textContent="Dein Gastkonto wurde gesichert. Dein bestehender Spielstand bleibt erhalten.";
+      button.remove();
+    }catch(error){
+      console.error("[Democrat] Guest account upgrade error:",error);
+      message.hidden=false;
+      message.className="overview-settings-message error";
+      message.textContent=String(error?.message||"Das Konto konnte nicht gesichert werden.");
+      button.disabled=false; button.textContent="Gastkonto in Account umwandeln";
+    }
+  });
 }
 
 async function updateSessionPresence() {
@@ -188,4 +270,4 @@ window.addEventListener("democrat:session-back",()=>{root.hidden=false;renderShe
 
 export function unmount(){if(presenceTimer)clearInterval(presenceTimer);presenceTimer=null;presenceSessionIds=[];if(!root)return;root.hidden=true;root.innerHTML="";if(sessionRoot)sessionRoot.hidden=true;currentUser=null;currentPrefs=null;profileName="Spieler";}
 
-// cache-version: 20261001-24
+// cache-version: 20261001-31
