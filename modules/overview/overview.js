@@ -1,6 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "../auth/auth-config-v2.js?v=20261001-5";
 import * as sessionModule from "../session/session.js?v=20261001-34";
+import * as playerModule from "../player/player.js?v=20261001-1";
+import * as partyModule from "../party/party.js?v=20261001-1";
 
 const root = document.querySelector("#overview-app");
 const sessionRoot = document.querySelector("#session-app");
@@ -52,36 +54,21 @@ function renderShell(profileName="Spieler") {
       </main>
       <nav class="overview-bottom-nav" aria-label="Hauptmenü">
         <button class="overview-corner-button" data-action="party" type="button">♟ <span>Partei</span></button>
+        <button class="overview-profile-button" data-action="profile" type="button">♙ <span>Profil</span></button>
         <button class="overview-corner-button" data-action="settings" type="button">⚙ <span>Einstellungen</span></button>
       </nav>
       <div id="overview-overlay" class="overview-overlay" hidden></div>
     </div>`;
   root.querySelectorAll("[data-tab]").forEach(button=>button.addEventListener("click",async()=>{activeTab=button.dataset.tab;renderShell(profileName);await loadSessions();}));
   root.querySelector("[data-action='refresh']").addEventListener("click",loadSessions);
-  root.querySelector("[data-action='party']").addEventListener("click",openPartyPanel);
+  root.querySelector("[data-action='party']").addEventListener("click",()=>partyModule.open());
+  root.querySelector("[data-action='profile']").addEventListener("click",()=>playerModule.open());
   root.querySelector("[data-action='settings']").addEventListener("click",openSettingsPanel);
 }
 
 function closeOverviewOverlay(){
   const overlay=root.querySelector("#overview-overlay");
   if(overlay){ overlay.hidden=true; overlay.innerHTML=""; }
-}
-
-function openPartyPanel(){
-  const overlay=root.querySelector("#overview-overlay");
-  if(!overlay)return;
-  overlay.hidden=false;
-  overlay.innerHTML=`<section class="overview-panel">
-    <button class="overview-panel-close" data-close type="button">×</button>
-    <h2>Partei</h2>
-    <p>Hier wird das Parteiensystem verwaltet.</p>
-    <div class="overview-settings-box">
-      <h3>Parteiensystem</h3>
-      <p>Parteien gründen, verwalten, Mitglieder organisieren und die politische Ausrichtung der Partei festlegen.</p>
-      <p class="overview-panel-muted">Die einzelnen Funktionen bauen wir hier als eigenes Partei-Menü ein.</p>
-    </div>
-  </section>`;
-  overlay.querySelector("[data-close]").addEventListener("click",closeOverviewOverlay);
 }
 
 function openSettingsPanel(){
@@ -273,6 +260,9 @@ export async function mount(user,prefs=null) {
   if(!prefs?.country_code){root.hidden=false;root.innerHTML=`<div class="overview-main"><div class="overview-error">Bitte zuerst ein Land auswählen.</div></div>`;return;}
   currentPrefs=prefs;
   profileName=user.user_metadata?.profile_name||user.email||"Spieler";
+  const overlay=root.querySelector("#overview-overlay");
+  playerModule.init({client:supabase,user,target:overlay});
+  partyModule.init({client:supabase,user,target:overlay});
   renderShell(profileName); await loadSessions();
   if (presenceTimer) clearInterval(presenceTimer);
   presenceTimer = setInterval(updateSessionPresence, 20000);
@@ -282,4 +272,4 @@ window.addEventListener("democrat:session-back",()=>{root.hidden=false;renderShe
 
 export function unmount(){if(presenceTimer)clearInterval(presenceTimer);presenceTimer=null;presenceSessionIds=[];if(!root)return;root.hidden=true;root.innerHTML="";if(sessionRoot)sessionRoot.hidden=true;currentUser=null;currentPrefs=null;profileName="Spieler";}
 
-// cache-version: 20261001-34
+// cache-version: 20261001-35
