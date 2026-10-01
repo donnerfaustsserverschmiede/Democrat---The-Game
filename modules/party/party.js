@@ -92,4 +92,12 @@ async function renderOwnParty(party){
  overlay.querySelectorAll("[data-kick]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;try{const {error}=await supabase.rpc("kick_party_member",{p_party_id:party.id,p_member_id:b.dataset.kick});if(error)throw error;await open();}catch(e){b.disabled=false;alert(errorText(e));}}));
  overlay.querySelectorAll("[data-upgrade]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;try{const {error}=await supabase.rpc("purchase_party_upgrade",{p_party_id:party.id,p_upgrade_code:b.dataset.upgrade});if(error)throw error;await open();}catch(e){b.disabled=false;alert(errorText(e));}}));
  overlay.querySelector("[data-leave]")?.addEventListener("click",async b=>{b.currentTarget.disabled=true;try{const {error}=await supabase.rpc("leave_party",{p_party_id:party.id});if(error)throw error;await open();}catch(e){b.currentTarget.disabled=false;alert(errorText(e));}});
+  const rankContent=overlay.querySelector("#party-ranking-content");
+  if(rankContent){
+    async function loadPlayerRanks(){const {data,error}=await supabase.rpc("get_party_player_rankings",{p_party_id:party.id});if(error){rankContent.innerHTML=`<div class="overview-error">${esc(error.message)}</div>`;return;}rankContent.innerHTML=(data||[]).map(x=>`<div class="party-rank-row"><strong>#${x.rank}</strong><span>${esc(x.profile_name)} <small>${x.role==="owner"?"Vorsitzender":x.role==="deputy"?"Stellvertreter":"Mitglied"}</small></span><b>${pct(x.public_opinion)}</b></div>`).join("")||'<div class="overview-panel-muted">Keine Mitglieder.</div>';}
+    async function loadPartyRanks(){const {data,error}=await supabase.rpc("get_party_rankings");if(error){rankContent.innerHTML=`<div class="overview-error">${esc(error.message)}</div>`;return;}rankContent.innerHTML=(data||[]).map(x=>`<div class="party-rank-row"><strong>#${x.rank}</strong><span>${esc(x.party_name)} <small>${esc(x.party_tag)} · ${x.member_count} Mitglieder</small></span><b>${pct(x.party_opinion)}</b></div>`).join("")||'<div class="overview-panel-muted">Keine Parteien.</div>';}
+    await loadPlayerRanks();
+    overlay.querySelectorAll("[data-tab]").forEach(tab=>tab.addEventListener("click",async()=>{overlay.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));tab.classList.add("active");if(tab.dataset.tab==="players")await loadPlayerRanks();else await loadPartyRanks();}));
+  }
+
 }
