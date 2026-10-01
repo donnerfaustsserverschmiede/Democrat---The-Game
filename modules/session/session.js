@@ -28,6 +28,7 @@ let debateMessages = [];
 let debatePollTimer = null;
 let statementPollTimer = null;
 let statementInterjectionState = [];
+let finalizeSessionTimer = null;
 let countdownTimer = null;
 let countdownTransitioning = false;
 let loadError = null;
@@ -37,7 +38,7 @@ let mailboxEvents = [];
 let mailboxLoading = false;
 
 const UI = {
-  "de-DE": { intro:"Einführung", read:"Ich habe die Einführung gelesen – weiter", choose:"Fraktion wählen", existing:"Bestehende Fraktionen", new:"Neue Fraktion", name:"Fraktionsname", namePlaceholder:"Name der Fraktion", position:"Position im Plenum", left:"Links", center:"Mitte", right:"Rechts", members:"Mitglieder", seats:"Sitze", chooseExisting:"Diese Fraktion wählen", create:"Fraktion gründen und Sitz wählen", assigned:"Dein Sitz ist zugewiesen", assignedText:"Du sitzt in einem zusammenhängenden Fraktionsblock.", seat:"Sitz", back:"Zurück zur Sitzungsübersicht", changeFaction:"Fraktion wechseln", cancel:"Abbrechen", loading:"Sitzung wird geladen …", error:"Die Sitzung konnte nicht geladen werden.", full:"Voll", selected:"Ausgewählt", required:"Bitte gib einen Fraktionsnamen ein und wähle eine Position.", factionFull:"Diese Fraktion hat bereits 10 Sitze.", sectorFull:"In diesem Sektor sind keine weiteren Fraktionsblöcke frei.", management:"Fraktionsverwaltung",hudPlayer:"Eigene Meinungspunkte",hudFaction:"Fraktions-Meinungspunkte",hudMoney:"Geld",president:"PRÄSIDENT",decision:"Deine Entscheidung",approve:"Zustimmung",interject:"Debatte",statement:"Statement",statementWaiting:"Wortmeldung vorgemerkt …",statementGranted:"Du erhältst das Wort. Verfasse dein Statement.",statementGrantedNotice:"Spieler {player} erhält das Wort und verfasst ein Statement.",statementPlaceholder:"Deine Gegenrede zum Statement des Präsidenten …",statementSend:"Statement veröffentlichen",statementCooldown:"Du kannst erst wieder in 10 Minuten ein Statement abgeben.",statementBanned:"Deine Wortmeldung ist für 30 Minuten gesperrt.",statementRejected:"Dein Statement wurde wegen eines Regelverstoßes entfernt. Du bist für 30 Minuten gesperrt.",statementExpired:"Die Zeit für deine Wortmeldung ist abgelaufen.",statementEmpty:"Noch kein Statement.",reject:"Ablehnung",voted:"Deine Entscheidung wurde gespeichert",factionVote:"Fraktionsstimme",resultApproved:"Fraktion stimmt zu",resultRejected:"Fraktion lehnt ab",resultTie:"Stimmengleichheit",nextStatement:"Nächste Aussage",voteError:"Entscheidung konnte nicht gespeichert werden.",debateTitle:"Debatte",debatePlaceholder:"Schreibe etwas zur aktuellen Sitzung …",debateSend:"Senden",debateClose:"Debatte schließen",debateEmpty:"Noch keine Beiträge. Starte die Debatte.",moderationRemoved:"Dein Beitrag verstößt gegen die Sitzungsregeln. Du wurdest aus dieser Sitzung entfernt.",waiting:"Warten auf die übrigen Fraktionsmitglieder …",points:"Punkte",eliminated:"AUSGESCHIEDEN",winnerPlayer:"SIEG · SPIELER",winnerFaction:"SIEG · FRAKTION",sessionEnded:"DIE SITZUNG IST BEENDET",leader:"Fraktionsvorsitz", deputy:"Stellvertretender Vorsitz", promote:"Zum Stellvertreter ernennen", removeDeputy:"Stellvertretung aufheben", kick:"Aus Fraktion entfernen", deleteFaction:"Fraktion löschen", deleteConfirm:"Fraktion wirklich löschen? Alle Mitglieder verlieren ihre Fraktionszugehörigkeit.", kickConfirm:"Mitglied wirklich aus der Fraktion entfernen?" , actions:"Fraktionsaktionen",actionHint:"Aktionen können zusätzliche leere Fraktionsplätze sichern. Besetzte Plätze werden niemals verdrängt.",speech:"Fraktionsrede · +1 Sitz · 1.500",committee:"Ausschussarbeit · +2 Sitze · 4.000",publicity:"Öffentlichkeitsarbeit · +3 Sitze · 9.000",actionError:"Aktion konnte nicht ausgeführt werden.",color:"Fraktionsfarbe",chooseColor:"Farbe wählen",saveColor:"Farbe speichern",colorSaved:"Fraktionsfarbe gespeichert.",colorTaken:"Diese Farbe wird bereits von einer anderen Fraktion verwendet.",colorPermission:"Nur Fraktionsvorsitz oder Stellvertretung kann die Fraktionsfarbe ändern.",invalidColor:"Ungültige Fraktionsfarbe.",seatCost1:"1 Sitz · 1.500",seatCost2:"2 Sitze · 4.000",seatCost3:"3 Sitze · 9.000",insufficientFunds:"Dafür reicht dein Geld nicht.",sessionMajority:"Sitzungsmehrheit",botTitle:"Fraktionsloser Bürger",botHint:"Dieser Bürger gehört keiner Fraktion an und kann beeinflusst werden.",botApprove:"Für Zustimmung beeinflussen",botReject:"Für Ablehnung beeinflussen",moral:"Moralisch überzeugen · kostenlos",bribe:"Bestechen · 750",botInfluenceError:"Der Bürger konnte nicht beeinflusst werden."},
+  "de-DE": { intro:"Einführung", read:"Ich habe die Einführung gelesen – weiter", choose:"Fraktion wählen", existing:"Bestehende Fraktionen", new:"Neue Fraktion", name:"Fraktionsname", namePlaceholder:"Name der Fraktion", position:"Position im Plenum", left:"Links", center:"Mitte", right:"Rechts", members:"Mitglieder", seats:"Sitze", chooseExisting:"Diese Fraktion wählen", create:"Fraktion gründen und Sitz wählen", assigned:"Dein Sitz ist zugewiesen", assignedText:"Du sitzt in einem zusammenhängenden Fraktionsblock.", seat:"Sitz", back:"Zurück zur Sitzungsübersicht", changeFaction:"Fraktion wechseln", cancel:"Abbrechen", loading:"Sitzung wird geladen …", error:"Die Sitzung konnte nicht geladen werden.", full:"Voll", selected:"Ausgewählt", required:"Bitte gib einen Fraktionsnamen ein und wähle eine Position.", factionFull:"Diese Fraktion hat bereits 10 Sitze.", sectorFull:"In diesem Sektor sind keine weiteren Fraktionsblöcke frei.", management:"Fraktionsverwaltung",hudPlayer:"Eigene Meinungspunkte",hudFaction:"Fraktions-Meinungspunkte",hudMoney:"Geld",president:"PRÄSIDENT",decision:"Deine Entscheidung",approve:"Zustimmung",interject:"Debatte",statement:"Statement",statementWaiting:"Wortmeldung vorgemerkt …",statementGranted:"Du erhältst das Wort. Verfasse dein Statement.",statementGrantedNotice:"Spieler {player} erhält das Wort und verfasst ein Statement.",statementPlaceholder:"Deine Gegenrede zum Statement des Präsidenten …",statementSend:"Statement veröffentlichen",statementCooldown:"Du kannst erst wieder in 10 Minuten ein Statement abgeben.",statementBanned:"Deine Wortmeldung ist für 30 Minuten gesperrt.",statementRejected:"Dein Statement wurde wegen eines Regelverstoßes entfernt. Du bist für 30 Minuten gesperrt.",statementExpired:"Die Zeit für deine Wortmeldung ist abgelaufen.",statementEmpty:"Noch kein Statement.",reject:"Ablehnung",voted:"Deine Entscheidung wurde gespeichert",factionVote:"Fraktionsstimme",resultApproved:"Fraktion stimmt zu",resultRejected:"Fraktion lehnt ab",resultTie:"Stimmengleichheit",nextStatement:"Nächste Aussage",voteError:"Entscheidung konnte nicht gespeichert werden.",debateTitle:"Debatte",debatePlaceholder:"Schreibe etwas zur aktuellen Sitzung …",debateSend:"Senden",debateClose:"Debatte schließen",debateEmpty:"Noch keine Beiträge. Starte die Debatte.",moderationRemoved:"Dein Beitrag verstößt gegen die Sitzungsregeln. Du wurdest aus dieser Sitzung entfernt.",waiting:"Warten auf die übrigen Fraktionsmitglieder …",points:"Punkte",eliminated:"AUSGESCHIEDEN",winnerPlayer:"SIEG · SPIELER",winnerFaction:"SIEG · FRAKTION",sessionEnded:"DIE SITZUNG IST BEENDET",sessionFinalizing:"Punkte werden ausgegeben … Sitzung wird geschlossen.",sessionFinalized:"Sitzung abgeschlossen · +{points} Meinungspunkte · {total} Meinungspunkte insgesamt",leader:"Fraktionsvorsitz", deputy:"Stellvertretender Vorsitz", promote:"Zum Stellvertreter ernennen", removeDeputy:"Stellvertretung aufheben", kick:"Aus Fraktion entfernen", deleteFaction:"Fraktion löschen", deleteConfirm:"Fraktion wirklich löschen? Alle Mitglieder verlieren ihre Fraktionszugehörigkeit.", kickConfirm:"Mitglied wirklich aus der Fraktion entfernen?" , actions:"Fraktionsaktionen",actionHint:"Aktionen können zusätzliche leere Fraktionsplätze sichern. Besetzte Plätze werden niemals verdrängt.",speech:"Fraktionsrede · +1 Sitz · 1.500",committee:"Ausschussarbeit · +2 Sitze · 4.000",publicity:"Öffentlichkeitsarbeit · +3 Sitze · 9.000",actionError:"Aktion konnte nicht ausgeführt werden.",color:"Fraktionsfarbe",chooseColor:"Farbe wählen",saveColor:"Farbe speichern",colorSaved:"Fraktionsfarbe gespeichert.",colorTaken:"Diese Farbe wird bereits von einer anderen Fraktion verwendet.",colorPermission:"Nur Fraktionsvorsitz oder Stellvertretung kann die Fraktionsfarbe ändern.",invalidColor:"Ungültige Fraktionsfarbe.",seatCost1:"1 Sitz · 1.500",seatCost2:"2 Sitze · 4.000",seatCost3:"3 Sitze · 9.000",insufficientFunds:"Dafür reicht dein Geld nicht.",sessionMajority:"Sitzungsmehrheit",botTitle:"Fraktionsloser Bürger",botHint:"Dieser Bürger gehört keiner Fraktion an und kann beeinflusst werden.",botApprove:"Für Zustimmung beeinflussen",botReject:"Für Ablehnung beeinflussen",moral:"Moralisch überzeugen · kostenlos",bribe:"Bestechen · 750",botInfluenceError:"Der Bürger konnte nicht beeinflusst werden."},
   "es-ES": { intro:"Introducción", read:"He leído la introducción – continuar", choose:"Elegir grupo", existing:"Grupos existentes", new:"Nuevo grupo", name:"Nombre del grupo", namePlaceholder:"Nombre del grupo", position:"Posición en la cámara", left:"Izquierda", center:"Centro", right:"Derecha", members:"Miembros", seats:"Escaños", chooseExisting:"Elegir este grupo", create:"Crear grupo y elegir escaño", assigned:"Tu escaño está asignado", assignedText:"Te sientas en un bloque contiguo de tu grupo.", seat:"Escaño", back:"Volver al resumen", changeFaction:"Cambiar de grupo", cancel:"Cancelar", loading:"Cargando sesión …", error:"No se pudo cargar la sesión.", full:"Completo", selected:"Seleccionado", required:"Introduce un nombre y elige una posición.", factionFull:"Este grupo ya tiene 10 escaños.", sectorFull:"No quedan bloques libres en este sector." , actions:"Acciones del grupo",actionHint:"Las acciones pueden asegurar escaños vacíos adicionales. Los jugadores existentes nunca son desplazados.",speech:"Discurso del grupo · +1 escaño",committee:"Trabajo en comisión · +2 escaños",publicity:"Comunicación pública · +3 escaños",actionError:"No se pudo ejecutar la acción."},
   "fr-FR": { intro:"Introduction", read:"J’ai lu l’introduction – continuer", choose:"Choisir un groupe", existing:"Groupes existants", new:"Nouveau groupe", name:"Nom du groupe", namePlaceholder:"Nom du groupe", position:"Position dans l’hémicycle", left:"Gauche", center:"Centre", right:"Droite", members:"Membres", seats:"Sièges", chooseExisting:"Choisir ce groupe", create:"Créer le groupe et choisir un siège", assigned:"Votre siège est attribué", assignedText:"Vous êtes placé dans un bloc contigu de votre groupe.", seat:"Siège", back:"Retour au résumé", changeFaction:"Changer de groupe", cancel:"Annuler", loading:"Chargement de la session …", error:"Impossible de charger la session.", full:"Complet", selected:"Sélectionné", required:"Saisissez un nom et choisissez une position.", factionFull:"Ce groupe compte déjà 10 sièges.", sectorFull:"Aucun bloc libre dans ce secteur." , actions:"Actions du groupe",actionHint:"Les actions peuvent sécuriser des sièges vides supplémentaires. Aucun joueur en place n’est déplacé.",speech:"Discours du groupe · +1 siège",committee:"Travail en commission · +2 sièges",publicity:"Action publique · +3 sièges",actionError:"L’action n’a pas pu être exécutée."},
   "it-IT": { intro:"Introduzione", read:"Ho letto l’introduzione – continua", choose:"Scegli il gruppo", existing:"Gruppi esistenti", new:"Nuovo gruppo", name:"Nome del gruppo", namePlaceholder:"Nome del gruppo", position:"Posizione in aula", left:"Sinistra", center:"Centro", right:"Destra", members:"Membri", seats:"Seggi", chooseExisting:"Scegli questo gruppo", create:"Crea gruppo e scegli il seggio", assigned:"Il tuo seggio è assegnato", assignedText:"Sei inserito in un blocco contiguo del tuo gruppo.", seat:"Seggio", back:"Torna al riepilogo", changeFaction:"Cambia gruppo", cancel:"Annulla", loading:"Caricamento sessione …", error:"Impossibile caricare la sessione.", full:"Completo", selected:"Selezionato", required:"Inserisci un nome e scegli una posizione.", factionFull:"Questo gruppo ha già 10 seggi.", sectorFull:"Non ci sono altri blocchi liberi in questo settore." , actions:"Azioni del gruppo",actionHint:"Le azioni possono assicurare ulteriori seggi liberi. Nessun giocatore già seduto viene spostato.",speech:"Intervento del gruppo · +1 seggio",committee:"Lavoro in commissione · +2 seggi",publicity:"Azione pubblica · +3 seggi",actionError:"Impossibile eseguire l’azione."},
@@ -116,6 +117,7 @@ async function load(){
   try {
     render();
     startStatementCountdown();
+    if(gameState?.session_status==="ended") scheduleSessionFinalization();
   } catch(error) {
     console.error("[Democrat] Session render error:", error);
     const message=error?.stack||error?.message||String(error);
@@ -123,6 +125,38 @@ async function load(){
     const backButton=root.querySelector("[data-back]");
     if(backButton) backButton.addEventListener("click",back);
   }
+}
+
+function scheduleSessionFinalization(){
+  if(finalizeSessionTimer||!supabase||!currentSessionId||gameState?.session_status!=="ended")return;
+  finalizeSessionTimer=window.setTimeout(async()=>{
+    finalizeSessionTimer=null;
+    try{
+      const {data,error}=await supabase.rpc("finalize_ended_session",{p_session_id:currentSessionId});
+      if(error)throw error;
+      const result=data?.[0];
+      const status=root.querySelector("#session-finalize-status");
+      if(status&&result){
+        status.textContent=gt().sessionFinalized
+          .replace("{points}",String(result.points_earned||0))
+          .replace("{total}",String(result.total_points||0));
+      }
+      if(gamePollTimer)window.clearInterval(gamePollTimer);
+      if(statementPollTimer)window.clearInterval(statementPollTimer);
+      if(advanceTimer)window.clearTimeout(advanceTimer);
+      if(countdownTimer)window.clearInterval(countdownTimer);
+      gamePollTimer=null;statementPollTimer=null;advanceTimer=null;countdownTimer=null;
+      window.setTimeout(()=>{
+        const leftId=currentSessionId;
+        root.hidden=true;root.innerHTML="";
+        window.dispatchEvent(new CustomEvent("democrat:session-back",{detail:{sessionCompleted:true,sessionId:leftId}}));
+      },1800);
+    }catch(error){
+      const status=root.querySelector("#session-finalize-status");
+      if(status)status.textContent="Abschluss konnte nicht durchgeführt werden. Bitte Sitzung verlassen.";
+      console.error("[Democrat] Session finalization error:",error);
+    }
+  },1800);
 }
 
 async function refreshSessionSilently(){
@@ -161,6 +195,7 @@ async function refreshSessionSilently(){
     try {
       render();
       startStatementCountdown();
+      if(gameState?.session_status==="ended") scheduleSessionFinalization();
       window.scrollTo(0,scrollY);
     } catch(error) {
       console.error("[Democrat] Background session render error:", error);
@@ -371,7 +406,7 @@ function renderPresidentStatement(){
   let body="";
   if(ended){
     const kind=g.winner_type==="faction"?gt().winnerFaction:g.winner_type==="player"?gt().winnerPlayer:"";
-    body='<div class="session-ended-banner">'+gt().sessionEnded+'</div>'+(g.winner_name?'<div class="winner-card"><strong>'+gt().winner+' · '+esc(kind)+'</strong><span>'+esc(g.winner_name)+'</span></div>':'<div class="winner-card"><span>'+gt().noWinner+'</span></div>');
+    body='<div class="session-ended-banner">'+gt().sessionEnded+'</div><div id="session-finalize-status" class="session-finalize-status">'+gt().sessionFinalizing+'</div>'+(g.winner_name?'<div class="winner-card"><strong>'+gt().winner+' · '+esc(kind)+'</strong><span>'+esc(g.winner_name)+'</span></div>':'<div class="winner-card"><span>'+gt().noWinner+'</span></div>');
   }else{
     const typeLabels={
       gesetzesvorlage:"Gesetzesvorlage",
@@ -950,7 +985,7 @@ async function leaveCurrentSession(){
     if(gamePollTimer)window.clearInterval(gamePollTimer);
     if(advanceTimer)window.clearTimeout(advanceTimer);
     if(countdownTimer)window.clearInterval(countdownTimer);
-    gamePollTimer=null;advanceTimer=null;countdownTimer=null;statementPollTimer=null;
+    gamePollTimer=null;advanceTimer=null;countdownTimer=null;statementPollTimer=null;finalizeSessionTimer=null;
     const leftId=currentSessionId;
     root.hidden=true;root.innerHTML="";
     window.dispatchEvent(new CustomEvent("democrat:session-back",{detail:{leftSession:true,sessionId:leftId}}));
@@ -986,4 +1021,4 @@ export async function mount(user,sessionId,prefs){
   gamePollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")refreshSessionSilently();},3000);
   startStatementPolling();
 }
-export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);if(countdownTimer)window.clearInterval(countdownTimer);closeDebate();gamePollTimer=null;advanceTimer=null;countdownTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
+export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);if(countdownTimer)window.clearInterval(countdownTimer);if(finalizeSessionTimer)window.clearTimeout(finalizeSessionTimer);closeDebate();gamePollTimer=null;advanceTimer=null;countdownTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
