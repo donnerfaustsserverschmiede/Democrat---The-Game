@@ -201,21 +201,16 @@ async function refreshSessionSilently(){
     const draftEnd=draft?.selectionEnd??draftValue.length;
     const hadFocus=document.activeElement===draft;
     try {
-      render();
-      // Background refresh darf ein laufendes Statement nicht zerstören.
-      // Ein bereits begonnener Text bleibt samt Cursorposition erhalten.
-      const restored=document.querySelector("#statement-input");
-      if(restored && statementInterjectionState.some(x=>x.is_mine&&x.status==="granted")){
-        restored.value=draftValue;
-        if(hadFocus){
-          restored.focus({preventScroll:true});
-          try{restored.setSelectionRange(draftStart,draftEnd);}catch(_){}
-        }
+      // Während der Spieler sein Statement schreibt, wird der komplette
+      // Sitzungs-DOM nicht neu aufgebaut. Dadurch kann kein Refresh den
+      // Textbereich ersetzen oder den Entwurf löschen.
+      if(!isEditingStatement()){
+        render();
+        window.scrollTo(0,scrollY);
       }
       // Nur die Darstellung aktualisieren. Der Countdown verwendet die bereits
       // gemerkte Deadline derselben Aussage und wird nicht zurückgesetzt.
       if(gameState?.session_status==="ended") scheduleSessionFinalization();
-      window.scrollTo(0,scrollY);
     } catch(error) {
       console.error("[Democrat] Background session render error:", error);
     }
@@ -657,23 +652,17 @@ async function refreshInterjections(){
     const changed=signature(statementInterjectionState)!==signature(next);
     statementInterjectionState=next;
     if(changed){
-      const draft=document.querySelector("#statement-input");
-      const draftValue=draft?.value||"";
-      const draftStart=draft?.selectionStart??draftValue.length;
-      const draftEnd=draft?.selectionEnd??draftValue.length;
-      const hadFocus=document.activeElement===draft;
-      render();
-      const restored=document.querySelector("#statement-input");
-      if(restored && statementInterjectionState.some(x=>x.is_mine&&x.status==="granted")){
-        restored.value=draftValue;
-        if(hadFocus){
-          restored.focus({preventScroll:true});
-          try{restored.setSelectionRange(draftStart,draftEnd);}catch(_){}
-        }
-      }
+      // Während des Schreibens niemals den Session-DOM neu rendern:
+      // der Entwurf bleibt unangetastet. Der Countdown aktualisiert nur
+      // die vorhandenen Elemente.
+      if(!isEditingStatement()) render();
       startStatementCountdown();
     }
   }catch(_error){}
+}
+function isEditingStatement(){
+  const input=document.querySelector("#statement-input");
+  return !!(input && statementInterjectionState.some(x=>x.is_mine&&x.status==="granted") && (document.activeElement===input || input.value.length>0));
 }
 function startStatementPolling(){
   if(statementPollTimer)window.clearInterval(statementPollTimer);
