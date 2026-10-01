@@ -31,6 +31,9 @@ let statementInterjectionState = [];
 let finalizeSessionTimer = null;
 let countdownTimer = null;
 let countdownTransitioning = false;
+let countdownStatementId = null;
+let countdownDeadline = null;
+let presenceTimer = null;
 let loadError = null;
 let factionMenuOpen = false;
 let mailboxOpen = false;
@@ -194,7 +197,8 @@ async function refreshSessionSilently(){
     const scrollY=window.scrollY;
     try {
       render();
-      startStatementCountdown();
+      // Nur die Darstellung aktualisieren. Der Countdown verwendet die bereits
+      // gemerkte Deadline derselben Aussage und wird nicht zurückgesetzt.
       if(gameState?.session_status==="ended") scheduleSessionFinalization();
       window.scrollTo(0,scrollY);
     } catch(error) {
@@ -370,9 +374,21 @@ function renderRankings(){
 }
 function renderGameHud(){const x=gt(),g=gameState||{},w=walletState||{};const money=Number(w.money??g.money??0);const symbol=w.currency_symbol||"€";return '<div class="game-hud"><div class="hud-card"><span>'+x.playerPoints+'</span><strong>'+pct(g.player_opinion_points)+'/100</strong><small>'+(g.player_eliminated?x.eliminated:'')+'</small></div><div class="hud-card"><span>'+x.factionPoints+'</span><strong>'+pct(g.faction_opinion_points)+'/100</strong><small>'+(g.faction_eliminated?x.eliminated:'')+'</small></div><div class="hud-card"><span>'+t().hudMoney+'</span><strong>'+money.toLocaleString(undefined)+' '+symbol+'</strong><small>'+Number(w.salary_per_minute||0).toLocaleString(undefined)+' '+symbol+' / Min.</small></div></div>';}
 function getStatementDeadline(){
-  if(gameState?.statement_deadline)return gameState.statement_deadline;
-  if(gameState?.statement_opened_at)return new Date(new Date(gameState.statement_opened_at).getTime()+10*60*1000).toISOString();
-  return null;
+  const id=gameState?.statement_id||null;
+  if(id && countdownStatementId===id && countdownDeadline)return countdownDeadline;
+  let deadline=gameState?.statement_deadline||null;
+  if(!deadline && gameState?.statement_opened_at) deadline=new Date(new Date(gameState.statement_opened_at).getTime()+10*60*1000).toISOString();
+  if(id && deadline){countdownStatementId=id;countdownDeadline=deadline;}
+  return deadline;
+}
+async function touchSessionPresence(){
+  if(!supabase||!currentSessionId||document.visibilityState==="hidden")return;
+  try{await supabase.rpc("touch_my_session_presence",{p_session_ids:[currentSessionId]});}catch(_error){}
+}
+function startPresenceHeartbeat(){
+  if(presenceTimer)window.clearInterval(presenceTimer);
+  touchSessionPresence();
+  presenceTimer=window.setInterval(touchSessionPresence,5000);
 }
 function formatStatementCountdown(deadline){
   const serverNow=gameState?.server_now?new Date(gameState.server_now).getTime():Date.now();
@@ -461,6 +477,7 @@ async function castVote(choice){
   const statementId=gameState.statement_id;
   const bs=[...root.querySelectorAll(".decision-button")];
   bs.forEach(b=>{b.disabled=true;b.classList.add("is-saving");});
+  await touchSessionPresence();
   const {data,error}=await supabase.rpc("cast_session_vote",{p_session_id:currentSessionId,p_choice:choice});
   if(error){
     bs.forEach(b=>{b.disabled=false;b.classList.remove("is-saving");});
@@ -484,7 +501,7 @@ async function castVote(choice){
   // Hintergrund-Refresh kurz verzögert ist.
   gameState={...gameState,my_choice:data?.[0]?.choice||choice};
   render();
-  startStatementCountdown();
+  // Der bestehende Timer läuft weiter; er wird niemals durch eine abgegebene Stimme neu gestartet.
   // Danach den Serverzustand nachladen: Punkte, Mehrheitsstand und Mailbox.
   await refreshSessionSilently();
   await refreshMailbox();
@@ -985,7 +1002,7 @@ async function leaveCurrentSession(){
     if(gamePollTimer)window.clearInterval(gamePollTimer);
     if(advanceTimer)window.clearTimeout(advanceTimer);
     if(countdownTimer)window.clearInterval(countdownTimer);
-    gamePollTimer=null;advanceTimer=null;countdownTimer=null;statementPollTimer=null;finalizeSessionTimer=null;
+    gamePollTimer=null;advanceTimer=null;countdownTimer=null;statementPollTimer=null;finalizeSessionTimer=null;presenceTimer=null;countdownStatementId=null;countdownDeadline=null;presenceTimer=null;countdownStatementId=null;countdownDeadline=null;
     const leftId=currentSessionId;
     root.hidden=true;root.innerHTML="";
     window.dispatchEvent(new CustomEvent("democrat:session-back",{detail:{leftSession:true,sessionId:leftId}}));
@@ -1018,7 +1035,8 @@ export async function mount(user,sessionId,prefs){
     if(backButton) backButton.addEventListener("click",back);
     return;
   }
+  startPresenceHeartbeat();
   gamePollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")refreshSessionSilently();},3000);
   startStatementPolling();
 }
-export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);if(countdownTimer)window.clearInterval(countdownTimer);if(statementPollTimer)window.clearInterval(statementPollTimer);if(finalizeSessionTimer)window.clearTimeout(finalizeSessionTimer);closeDebate();gamePollTimer=null;advanceTimer=null;countdownTimer=null;statementPollTimer=null;finalizeSessionTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
+export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);if(countdownTimer)window.clearInterval(countdownTimer);if(statementPollTimer)window.clearInterval(statementPollTimer);if(finalizeSessionTimer)window.clearTimeout(finalizeSessionTimer);if(presenceTimer)window.clearInterval(presenceTimer);closeDebate();gamePollTimer=null;advanceTimer=null;countdownTimer=null;statementPollTimer=null;finalizeSessionTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
