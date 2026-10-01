@@ -10,6 +10,8 @@ let entry = null;
 let factions = [];
 let selectedFactionId = null;
 let selectedFactionColor = null;
+let newFactionName = "";
+let newFactionSide = null;
 let seats = [];
 let switchingFaction = false;
 let factionManagement = [];
@@ -773,7 +775,7 @@ function render(){
           ${selectedFactionId ? `<button class="session-primary faction-confirm" type="button" data-existing>${x.chooseExisting}</button>` : ""}
           <div class="new-faction">
             <h3>${x.new}</h3>
-            <label>${x.name}<input id="faction-name" maxlength="40" placeholder="${x.namePlaceholder}"></label>
+            <label>${x.name}<input id="faction-name" maxlength="40" placeholder="${x.namePlaceholder}" value="${esc(newFactionName)}"></label>
             <fieldset><legend>${x.position}</legend><div class="side-options">${renderSideOptions(x)}</div></fieldset>
             <div class="faction-color-picker"><h3>${x.color} <span>${x.chooseColor}</span></h3><div class="color-options">${["red","blue","green","yellow","purple","orange"].map(color=>{const used=factions.some(f=>f.color_code===color);return "<button type=\"button\" class=\"color-choice faction-"+color+(used?" unavailable":"")+(selectedFactionColor===color?" selected":"")+" \" data-new-faction-color=\""+color+"\" "+(used?"disabled":"")+" aria-label=\""+color+"\"></button>";}).join("")}</div></div>
             <button class="session-primary" type="button" data-create>${x.create}</button>
@@ -795,6 +797,8 @@ function render(){
   root.querySelector("[data-leave-session]")?.addEventListener("click",leaveCurrentSession);
   root.querySelectorAll("[data-ranking-mode]").forEach(b=>b.addEventListener("click",()=>{rankingMode=b.dataset.rankingMode==="player"?"player":"faction";render();startStatementCountdown();}));
   root.querySelectorAll("[data-bot-id]").forEach(b=>b.addEventListener("click",()=>openBotDialog(b.dataset.botId)));
+  root.querySelector("#faction-name")?.addEventListener("input",e=>{newFactionName=e.target.value;});
+  root.querySelectorAll("input[name='side']").forEach(r=>r.addEventListener("change",e=>{newFactionSide=e.target.value;}));
   root.querySelectorAll("[data-faction]").forEach(b=>b.addEventListener("click",()=>{selectedFactionId=b.dataset.faction;selectedFactionColor=null;render();}));
   root.querySelectorAll("[data-faction-color]").forEach(b=>b.addEventListener("click",()=>{selectedFactionColor=b.dataset.factionColor;render();}));
   root.querySelectorAll("[data-new-faction-color]").forEach(b=>b.addEventListener("click",()=>{selectedFactionColor=b.dataset.newFactionColor;render();}));
@@ -856,7 +860,7 @@ async function chooseExisting(){
 }
 
 async function chooseNew(){
-  const x=t(),name=root.querySelector("#faction-name")?.value.trim(),side=root.querySelector("input[name='side']:checked")?.value;
+  const x=t(),name=(root.querySelector("#faction-name")?.value||newFactionName).trim(),side=root.querySelector("input[name='side']:checked")?.value||newFactionSide;
   const err=root.querySelector("#session-action-error");
   if(!name||!side){err.textContent=x.required;err.hidden=false;return;}
   const {data,error}=await supabase.rpc("choose_session_faction",{p_session_id:currentSessionId,p_faction_id:selectedFactionId,p_faction_name:selectedFactionId?null:name,p_side:selectedFactionId?null:side,p_color_code:selectedFactionId?null:(selectedFactionColor||null)});
@@ -865,7 +869,7 @@ async function chooseNew(){
     const colorResult=await supabase.rpc("set_session_faction_color",{p_session_id:currentSessionId,p_color_code:selectedFactionColor});
     if(colorResult.error){err.textContent=mapFactionError(colorResult.error);err.hidden=false;return;}
   }
-  selectedFactionId=null;selectedFactionColor=null;switchingFaction=false;await load();
+  selectedFactionId=null;selectedFactionColor=null;newFactionName="";newFactionSide=null;switchingFaction=false;await load();
 }
 
 async function leaveCurrentSession(){
@@ -901,7 +905,7 @@ export async function mount(user,sessionId,prefs){
    closeDebate();
   root.hidden=false;
   if(!SUPABASE_PUBLISHABLE_KEY||SUPABASE_PUBLISHABLE_KEY.startsWith("REPLACE_"))return;
-  supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};selectedFactionId=null;switchingFaction=false;gameState=null;loadError=null;
+  supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);currentUser=user;currentSessionId=sessionId;currentPrefs=prefs||{};selectedFactionId=null;selectedFactionColor=null;newFactionName="";newFactionSide=null;switchingFaction=false;gameState=null;loadError=null;
   try {
     await load();
   } catch(error) {
