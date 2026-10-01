@@ -164,3 +164,5 @@
 .statement-meta{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 14px}
 .statement-meta span{display:inline-flex;align-items:center;padding:6px 10px;border:1px solid rgba(229,199,107,.25);border-radius:999px;background:rgba(229,199,107,.07);color:#e5c76b;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
 .statement-context{margin:0 auto 18px;max-width:760px;color:#b9c3d1!important;font-size:14px!important;line-height:1.55!important}
+
+.statement-consequence{margin:12px auto 0;max-width:760px;padding:10px 12px;border-left:2px solid #e5c76b;color:#d5dbe5!important;font-size:13px!important;line-height:1.5!important;background:rgba(229,199,107,.04);border-radius:0 8px 8px 0}
