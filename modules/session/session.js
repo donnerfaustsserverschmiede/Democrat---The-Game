@@ -162,7 +162,7 @@ function scheduleSessionFinalization(){
 async function refreshSessionSilently(){
   if(!supabase || !currentSessionId || !entry || !entry.read_confirmed) return;
   try {
-    const [entryResult, gameResult, contextResult, walletResult, factionResult, seatResult, actionResult, rankResult, mailboxResult] = await Promise.all([
+    const [entryResult, gameResult, contextResult, walletResult, factionResult, seatResult, actionResult, rankResult, mailboxResult, interjectionResult] = await Promise.all([
       supabase.rpc("get_session_entry",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_game_state_v2",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_statement_context",{p_session_id:currentSessionId}),
@@ -1021,4 +1021,4 @@ export async function mount(user,sessionId,prefs){
   gamePollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")refreshSessionSilently();},3000);
   startStatementPolling();
 }
-export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);if(countdownTimer)window.clearInterval(countdownTimer);if(finalizeSessionTimer)window.clearTimeout(finalizeSessionTimer);closeDebate();gamePollTimer=null;advanceTimer=null;countdownTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
+export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);if(countdownTimer)window.clearInterval(countdownTimer);if(statementPollTimer)window.clearInterval(statementPollTimer);if(finalizeSessionTimer)window.clearTimeout(finalizeSessionTimer);closeDebate();gamePollTimer=null;advanceTimer=null;countdownTimer=null;statementPollTimer=null;finalizeSessionTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
