@@ -13,3 +13,6 @@
 .player-bars{display:grid;gap:8px;margin-top:14px}.player-bars div{display:flex;justify-content:space-between;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.035)}.player-bars span{color:#cbd3df}.player-bars strong{color:#fff}
 .player-loading{padding:20px;color:#b9c3d1}
 @media(max-width:680px){.player-heading{align-items:flex-start}.player-opinion-ring{min-width:92px;min-height:92px}.player-stat-grid{grid-template-columns:1fr}}
+
+.player-level-progress{height:10px;margin:14px 0 10px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.08)}
+.player-level-progress i{display:block;height:100%;border-radius:inherit;background:#e5c76b;transition:width .25s ease}
