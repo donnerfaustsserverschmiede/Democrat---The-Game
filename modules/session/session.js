@@ -400,14 +400,22 @@ function formatStatementCountdown(deadline){
   return String(minutes).padStart(2,"0")+":"+String(seconds).padStart(2,"0");
 }
 function renderPlayerStatement(){
-  const active=statementInterjectionState.find(x=>x.status==="approved" && x.expires_at && new Date(x.expires_at)>new Date());
-  const granted=statementInterjectionState.find(x=>x.status==="granted");
+  const now=Date.now();
+  const active=statementInterjectionState.find(x=>x.status==="approved" && x.expires_at && new Date(x.expires_at).getTime()>now);
+  const granted=statementInterjectionState.find(x=>x.status==="granted" && x.expires_at && new Date(x.expires_at).getTime()>now);
   const pending=statementInterjectionState.find(x=>x.status==="pending");
   if(granted){
+    const writeDeadline=new Date(new Date(granted.granted_at).getTime()+5*60*1000);
+    const slotDeadline=new Date(granted.granted_at).getTime()+10*60*1000;
     if(granted.is_mine){
-      return '<div class="player-statement player-statement-granted"><div class="player-statement-head"><strong>'+esc(t().statementGranted)+'</strong></div><form id="statement-form"><textarea id="statement-input" maxlength="500" rows="3" placeholder="'+esc(t().statementPlaceholder)+'" required></textarea><button class="session-primary" type="submit">'+esc(t().statementSend)+'</button></form><div id="statement-form-error" class="session-action-error" hidden></div></div>';
+      return '<div class="player-statement player-statement-granted">'+
+        '<div class="player-statement-head"><strong>'+esc(t().statementGranted)+'</strong><time>Schreibzeit <span id="statement-write-countdown">'+formatStatementCountdown(writeDeadline)+'</span></time></div>'+
+        '<p class="player-statement-timing">Du hast 5 Minuten zum Verfassen. Der gesamte Wort-Slot läuft 10 Minuten ab Erteilung des Wortes.</p>'+
+        '<form id="statement-form"><textarea id="statement-input" maxlength="500" rows="3" placeholder="'+esc(t().statementPlaceholder)+'" required></textarea><button class="session-primary" type="submit">'+esc(t().statementSend)+'</button></form><div id="statement-form-error" class="session-action-error" hidden></div>'+
+        '<div class="player-statement-slot">Wort-Slot endet in <strong id="statement-slot-countdown">'+formatStatementCountdown(new Date(slotDeadline))+'</strong></div>'+
+        '</div>';
     }
-    return '<div class="player-statement player-statement-notice"><strong>'+esc(t().statementGrantedNotice.replace('{player}',granted.profile_name||'Spieler'))+'</strong></div>';
+    return '<div class="player-statement player-statement-notice"><strong>'+esc(t().statementGrantedNotice.replace('{player}',granted.profile_name||'Spieler'))+'</strong><div class="player-statement-slot">Wort-Slot endet in <strong id="statement-slot-countdown">'+formatStatementCountdown(new Date(slotDeadline))+'</strong></div></div>';
   }
   if(active){
     return '<div class="player-statement"><div class="player-statement-head"><strong>Gegenrede · '+esc(active.profile_name||'Spieler')+'</strong><time>bis '+new Date(active.expires_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})+'</time></div><div class="player-statement-text">'+esc(active.message)+'</div></div>';
@@ -604,7 +612,22 @@ async function submitStatementForm(event){
   if(!mine||!input?.value.trim())return;
   if(button)button.disabled=true;
   const {data,error}=await supabase.rpc("submit_session_statement",{p_session_id:currentSessionId,p_request_id:mine.id,p_message:input.value.trim()});
-  if(error){if(box){box.hidden=false;box.textContent=error.message||t().statementRejected;} if(button)button.disabled=false; return;}
+  if(error){
+    if(box){
+      box.hidden=false;
+      const msg=error.message||"";
+      box.textContent=msg.includes("statement_write_window_expired")
+        ? t().statementExpired
+        : msg.includes("statement_word_expired")
+          ? t().statementExpired
+          : msg.includes("statement_word_not_granted")
+            ? "Das Wort wurde noch nicht erteilt."
+            : msg||t().statementRejected;
+    }
+    if(button)button.disabled=false;
+    await refreshInterjections();
+    return;
+  }
   if(data?.[0]?.status==="rejected" && box){box.hidden=false;box.textContent=t().statementRejected;}
   await refreshInterjections();
 }
@@ -782,9 +805,25 @@ async function handleStatementCountdown(){
   if(!deadline)return;
   const el=root.querySelector("#statement-countdown");
   const label=root.querySelector("#statement-countdown-label");
+  const writeEl=root.querySelector("#statement-write-countdown");
+  const slotEl=root.querySelector("#statement-slot-countdown");
   const serverNow=gameState.server_now?new Date(gameState.server_now).getTime():Date.now();
   const clockOffset=serverNow-Date.now();
   const remaining=Math.max(0,new Date(deadline).getTime()-(Date.now()+clockOffset));
+  const granted=statementInterjectionState.find(x=>x.status==="granted" && x.granted_at);
+  if(granted){
+    const grantMs=new Date(granted.granted_at).getTime();
+    const writeRemaining=Math.max(0,grantMs+5*60*1000-(Date.now()+clockOffset));
+    const slotRemaining=Math.max(0,grantMs+10*60*1000-(Date.now()+clockOffset));
+    if(writeEl)writeEl.textContent=formatCountdown(writeRemaining/1000);
+    if(slotEl)slotEl.textContent=formatCountdown(slotRemaining/1000);
+    const input=root.querySelector("#statement-input");
+    const send=root.querySelector("#statement-form button");
+    if(writeRemaining<=0){
+      if(input){input.disabled=true;input.placeholder=t().statementExpired;}
+      if(send)send.disabled=true;
+    }
+  }
   if(remaining<=0){
     if(el)el.textContent="00:00";
     if(label)label.textContent="Entscheidung wird ausgewertet …";
