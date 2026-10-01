@@ -528,33 +528,78 @@ async function performFactionAction(code){
   await load();
 }
 function renderFactionManagement(){
-  const x=t(), rows=factionManagement.filter(m=>m.faction_id===entry.faction_id);
-  if(!rows.length)return "";
-  const leaderId=rows[0].leader_user_id, deputyId=rows[0].deputy_user_id, uid=currentUser?.id;
-  if(uid!==leaderId&&uid!==deputyId)return "";
-  let html="<div class=\"faction-management\"><h3>"+x.management+"</h3>";
+  const x=t();
+  const rows=factionManagement.filter(m=>m.faction_id===entry.faction_id);
   const faction=factions.find(f=>f.id===entry.faction_id);
+  if(!rows.length)return "";
+
+  const leaderId=rows[0].leader_user_id;
+  const deputyId=rows[0].deputy_user_id;
+  const uid=currentUser?.id;
+  const isLeader=uid===leaderId;
+  const isDeputy=uid===deputyId;
+  const canManageMembers=isLeader||isDeputy;
+
   const colors=["red","blue","green","yellow","purple","orange"];
   const used=new Set(factions.filter(f=>f.id!==entry.faction_id).map(f=>f.color_code));
-  html+="<div class=\"faction-color-management\"><strong>"+x.color+"</strong><div class=\"color-options\">";
-  colors.forEach(color=>{
-    const selected=faction?.color_code===color;
-    const unavailable=used.has(color);
-    html+="<button type=\"button\" class=\"color-choice faction-"+color+(selected?" selected":"")+(unavailable?" unavailable":"")+"\" data-management-color=\""+color+"\" "+(unavailable?"disabled":"")+" aria-label=\""+color+"\"></button>";
-  });
-  html+="</div><small>"+x.chooseColor+"</small></div>";
+
+  let html=`<div class="faction-management">
+    <section class="faction-management-section faction-members-section">
+      <div class="faction-section-heading">
+        <div><div class="session-label">Mitgliederverwaltung</div><h3>Fraktionsmitglieder</h3></div>
+        <strong>${rows.length}/10</strong>
+      </div>
+      <p class="faction-section-hint">Alle Mitglieder und ihre Positionen in der Fraktion.</p>`;
+
   rows.forEach(m=>{
-    const role=m.user_id===leaderId?x.leader:(m.user_id===deputyId?x.deputy:"Sitz "+m.seat_number);
-    html+="<div class=\"management-member\"><div><strong>"+esc(m.profile_name||"Spieler")+"</strong><span>"+role+"</span></div>";
-    if(m.user_id!==leaderId){
-      html+="<div class=\"management-actions\">";
-      if(m.user_id===deputyId) html+="<button type=\"button\" class=\"session-secondary management-action\" data-remove-deputy>"+x.removeDeputy+"</button>";
-      else html+="<button type=\"button\" class=\"session-secondary management-action\" data-promote=\""+m.user_id+"\">"+x.promote+"</button>";
-      html+="<button type=\"button\" class=\"session-danger management-action\" data-kick=\""+m.user_id+"\">"+x.kick+"</button></div>";
+    const role=m.user_id===leaderId
+      ? x.leader
+      : (m.user_id===deputyId ? x.deputy : "Sitz "+m.seat_number);
+
+    html+=`<div class="management-member">
+      <div class="management-member-info">
+        <strong>${esc(m.profile_name||"Spieler")}</strong>
+        <span>${esc(role)}</span>
+      </div>`;
+
+    if(canManageMembers && m.user_id!==leaderId){
+      html+=`<div class="management-actions">
+        ${m.user_id===deputyId
+          ? `<button type="button" class="session-secondary management-action" data-remove-deputy>${x.removeDeputy}</button>`
+          : `<button type="button" class="session-secondary management-action" data-promote="${m.user_id}">${x.promote}</button>`}
+        <button type="button" class="session-danger management-action" data-kick="${m.user_id}">${x.kick}</button>
+      </div>`;
     }
     html+="</div>";
   });
-  html+="<button type=\"button\" class=\"session-danger management-delete\" data-delete-faction>"+x.deleteFaction+"</button></div>";
+
+  html+=`</section>`;
+
+  if(isLeader||isDeputy){
+    html+=`<section class="faction-management-section faction-general-section">
+      <div class="faction-section-heading">
+        <div><div class="session-label">Allgemeine Verwaltung</div><h3>Fraktion verwalten</h3></div>
+      </div>
+      <p class="faction-section-hint">Einstellungen und grundlegende Verwaltung deiner Fraktion.</p>
+      <div class="faction-color-management">
+        <strong>${x.color}</strong>
+        <div class="color-options">`;
+
+    colors.forEach(color=>{
+      const selected=faction?.color_code===color;
+      const unavailable=used.has(color);
+      html+=`<button type="button" class="color-choice faction-${color}${selected?" selected":""}${unavailable?" unavailable":""}" data-management-color="${color}" ${unavailable?"disabled":""} aria-label="${color}"></button>`;
+    });
+
+    html+=`</div><small>${x.chooseColor}</small></div>`;
+
+    if(isLeader){
+      html+=`<button type="button" class="session-danger management-delete" data-delete-faction>${x.deleteFaction}</button>`;
+    }
+    html+=`</section>`;
+  }
+
+  html+="</div>";
   return html;
 }
 async function factionAction(kind,id){
