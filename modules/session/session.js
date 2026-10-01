@@ -609,7 +609,7 @@ function render(){
           ${renderChamber()}
           ${(!gameState?.player_eliminated && gameState?.session_status!=="ended") ? renderFactionActions() : ""}${renderFactionManagement()}${(!gameState?.player_eliminated && gameState?.session_status!=="ended") ? (switchingFaction ? renderFactionChooser(x) : `<button class="session-primary" type="button" data-switch>${x.changeFaction}</button>`) : ""}
           ${switchingFaction ? `<button class="session-secondary" type="button" data-cancel-switch>${x.cancel}</button>` : ""}
-        
+          <button class="session-danger" type="button" data-leave-session>Sitzung verlassen</button>
           </section>`
       : `
         <section class="session-panel">
