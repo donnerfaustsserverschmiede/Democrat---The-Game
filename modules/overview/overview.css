@@ -211,9 +211,10 @@
   right:0;
   bottom:18px;
   z-index:20;
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-end;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:end;
+  gap:18px;
   padding:0 22px;
   pointer-events:none;
 }
@@ -232,7 +233,12 @@
   font-weight:800;
   cursor:pointer;
 }
-.overview-corner-button:hover{filter:brightness(1.12)}
+.overview-corner-button:hover,.overview-profile-button:hover{filter:brightness(1.12)}
+.overview-corner-button:first-child{justify-self:start}.overview-corner-button:last-child{justify-self:end}
+.overview-profile-button{
+  pointer-events:auto;min-width:118px;min-height:54px;padding:0 18px;border:1px solid rgba(229,199,107,.42);border-radius:16px;
+  background:rgba(11,18,32,.94);color:#f7e7a6;box-shadow:0 14px 35px rgba(0,0,0,.45);font:inherit;font-weight:850;cursor:pointer
+}
 .overview-overlay{
   position:fixed;
   inset:0;
@@ -295,7 +301,8 @@
 .overview-settings-message.error{background:rgba(210,70,70,.12);color:#ffb4b4}
 
 @media (max-width:680px){
-  .overview-bottom-nav{bottom:14px;padding:0 14px}
-  .overview-corner-button{min-width:124px;min-height:48px;padding:0 14px}
+  .overview-bottom-nav{bottom:14px;padding:0 10px;gap:8px}
+  .overview-corner-button{min-width:112px;min-height:48px;padding:0 10px}
+  .overview-profile-button{min-width:92px;min-height:48px;padding:0 10px}
   .overview-panel{padding:26px 20px}
 }
