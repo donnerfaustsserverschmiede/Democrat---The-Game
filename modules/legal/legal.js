@@ -12,7 +12,7 @@ function showAuth() {
     auth.hidden = false;
     const script = document.createElement("script");
     script.type = "module";
-    script.src = "./modules/auth/auth.js?v=20261001-1";
+    script.src = "./modules/auth/auth.js?v=20261001-2";
     document.body.appendChild(script);
   }, 350);
 }
