@@ -340,12 +340,13 @@ function renderPresidentStatement(){
   }else{
     const typeLabels={gesetzesvorlage:"Gesetzesvorlage",haushaltsentscheidung:"Haushaltsentscheidung",verwaltungsentscheidung:"Verwaltungsentscheidung",parlamentarische_entscheidung:"Parlamentarische Entscheidung",parliamentary_decision:"Parlamentarische Entscheidung"};
     const decisionType=typeLabels[c.decision_type]||"Parlamentarische Entscheidung";
+    const decisionStage=c.decision_stage||"Einzelentscheidung";
     body='<div class="president-label">'+x.president+' · Tagesordnungspunkt '+(g.statement_number||"")+'</div>'+
-      '<div class="statement-meta"><span>'+esc(decisionType)+'</span><span>'+esc(c.political_area||"Politik")+'</span></div>'+
+      '<div class="statement-meta"><span>'+esc(decisionType)+'</span><span>'+esc(c.political_area||"Politik")+'</span><span>'+esc(decisionStage)+'</span></div>'+
       (g.statement_text?'<h2>'+esc(g.statement_text)+'</h2>':"")+
       (c.context_text?'<p class="statement-context">'+esc(c.context_text)+'</p>':"")+
       (g.statement_status==="open"&&g.session_status==="active"&&getStatementDeadline()?'<div class="statement-countdown"><span id="statement-countdown-label">'+(countdownTransitioning?"Entscheidung wird ausgewertet …":"Nächste Entscheidung in")+'</span><strong id="statement-countdown">'+formatStatementCountdown(getStatementDeadline())+'</strong></div>':"")+
-      (resolved?'<div class="statement-resolved">'+(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie)+'</div>':"");
+      (resolved?'<div class="statement-resolved">'+(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie)+'</div>'+(c.consequence_text?'<p class="statement-consequence">'+esc(c.consequence_text)+'</p>':""):"");
   }
   return '<section class="president-statement">'+body+'</section>';
 }
