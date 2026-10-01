@@ -35,7 +35,7 @@ export async function open(){
       <button class="overview-panel-close" data-close type="button">×</button>
       <div class="player-heading">
         <div><span class="player-kicker">POLITISCHES PROFIL</span><h2>${esc(p.profile_name)}</h2><span class="player-level">Punkte ${Number(p.points||0)}</span></div>
-        <div class="player-opinion-ring"><strong>${pct(p.public_opinion)}</strong><span>Volkesmeinung</span></div>
+        <div class="player-opinion-ring"><strong>${pct(p.public_opinion)}</strong><span>Öffentliche Meinung</span></div>
       </div>
       <div class="player-stat-grid">
         <article><span>Persönliche Punkte</span><strong>${Number(p.points||0).toLocaleString("de-DE")}</strong><small>Diese Punkte sind dein persönlicher Fortschritt</small></article>
