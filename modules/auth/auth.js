@@ -122,8 +122,13 @@ async function handleGuest(event) {
   const { data, error } = await supabase.auth.signInAnonymously({
     options: { data: { profile_name: profileName } }
   });
-  if (error) {
+  if (error || !data?.user) {
     console.error("[Democrat] Guest login error:", error);
+    const code = String(error?.code || "");
+    const msg = String(error?.message || "");
+    if (code === "anonymous_provider_disabled" || /anonymous.*disabled|anonymous.*not.*enabled/i.test(msg)) {
+      return renderGuest("Der Gastmodus ist auf dem Auth-Server noch nicht aktiviert.");
+    }
     return renderGuest("Der Gastmodus konnte nicht gestartet werden. Bitte versuche es erneut.");
   }
 
@@ -131,7 +136,7 @@ async function handleGuest(event) {
   if (profileError) {
     console.error("[Democrat] Guest profile error:", profileError);
     await supabase.auth.signOut();
-    return renderGuest("Der Benutzername konnte nicht gespeichert werden.");
+    return renderGuest("Der Gast wurde angemeldet, aber der Benutzername konnte nicht gespeichert werden.");
   }
 
   await mountCountrySelection(data.user);
