@@ -21,11 +21,24 @@ The game is a browser/PWA application backed by Supabase. The current playable f
 - `modules/legal/` — legal consent and documents
 - `modules/auth/` — authentication and guest accounts
 - `modules/country/` — country selection
-- `modules/overview/` — session overview, party/settings entry points
+- `modules/overview/` — session overview, party/profile/settings entry points
+- `modules/player/` — politician profile and public-opinion statistics
+- `modules/party/` — persistent party dashboard, members and party upgrades
 - `modules/session/` — live parliamentary session
-- `modules/party/` — reserved for the persistent party UI
+
 - Supabase `game` schema — sessions, seats, bots, factions, statements and votes
 - Supabase `parties` schema — persistent parties, members, treasury and upgrades
+
+## Player and party system
+
+- **Profile:** Level, public opinion, money across active sessions, session participation, personal wins, faction wins and decision balance.
+- **Public opinion:** calculated from the player's actual votes and the citizen impact of decisions in completed sessions.
+- **Level:** starts at Level 1 and increases by one for each completed session, up to Level 50. A player may create a party from Level 10.
+- **Party membership:** from Level 1 a player can join an existing party. Once inside a party, the player sees the own-party dashboard instead of the party directory.
+- **Party treasury:** 500 € daily base income per member, credited server-side when the party dashboard is accessed.
+- **Party opinion:** average public opinion of all members, modified by party upgrades.
+- **Roles:** chairman and deputy may remove members; only the chairman may appoint the deputy.
+- **Party actions:** member capacity, public image, campaign network and election influence can be upgraded with party treasury funds.
 
 ## Architecture rule
 
