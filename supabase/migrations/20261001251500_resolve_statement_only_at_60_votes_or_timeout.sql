@@ -1,0 +1,6 @@
+-- A statement is resolved only when all 60 seats have voted,
+-- or when the full 10-minute statement window expires.
+-- Online/offline presence must never resolve a statement early.
+--
+-- The deployed definitions are kept as the source of truth in Supabase.
+-- This migration marker documents the rule change.
