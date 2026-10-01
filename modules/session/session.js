@@ -412,19 +412,22 @@ function formatStatementCountdown(deadline){
   return String(minutes).padStart(2,"0")+":"+String(seconds).padStart(2,"0");
 }
 function renderPlayerStatement(){
-  const s=speechState;
-  if(!s)return '<div class="speech-panel"><div class="speech-empty">'+t().speechNoSpeaker+'</div></div>';
-  const activeId=s.active_voice_user_id||s.speaker_user_id;
-  const mine=String(activeId||"")===String(currentUser?.id||"");
+  const s=speechState||{};
+  const activeId=s.active_voice_user_id||s.speaker_user_id||null;
+  const hasSpeaker=Boolean(s.speaker_user_id);
+  const mine=Boolean(activeId)&&String(activeId)===String(currentUser?.id||"");
   const speakerName=s.active_voice_user_id&&String(s.active_voice_user_id)!==String(s.speaker_user_id)
     ? "Zwischenruf"
     : (s.speaker_name||"Spieler");
   const remaining=s.paused_until
     ? Math.max(0,new Date(s.paused_until).getTime()-Date.now())
-    : Math.max(0,new Date(s.slot_expires_at).getTime()-Date.now());
+    : Math.max(0,new Date(s.slot_expires_at||0).getTime()-Date.now());
+  const micOn=Boolean(speechLocalStream?.getAudioTracks().some(track=>track.enabled));
+  const requestDisabled=Boolean(s.my_pending_request)||mine;
+  const micDisabled=!mine;
   let html='<div class="speech-panel">';
-  if(s.speaker_user_id){
-    html+='<div class="speech-head"><strong>🎙 '+(mine?esc(t().voiceSpeaking):'Rede von '+esc(speakerName))+'</strong><time id="speech-countdown">'+formatCountdown(remaining/1000)+'</time></div>';
+  if(hasSpeaker){
+    html+='<div class="speech-head"><strong>🎙 '+(mine?esc(t().voiceSpeaking):'Rede von '+esc(speakerName))+'</strong><time id="speech-countdown">'+formatCooldown(Math.ceil(remaining/1000))+'</time></div>';
     if(s.paused_until && new Date(s.paused_until).getTime()>Date.now()){
       html+='<div class="speech-interjection-active">✋ '+esc(t().interjectionActive)+'</div>';
     }
@@ -434,13 +437,15 @@ function renderPlayerStatement(){
   if(s.incoming_interjection_id&&s.incoming_interjection_status==="pending"){
     html+='<div class="speech-interjection-request"><strong>'+esc(t().interjectionIncoming.replace("{player}",s.incoming_interjection_name||"Spieler"))+'</strong><div class="speech-interjection-actions"><button type="button" class="session-primary" data-interjection-accept="'+s.incoming_interjection_id+'">'+esc(t().interjectionAccept)+'</button><button type="button" class="session-secondary" data-interjection-reject="'+s.incoming_interjection_id+'">'+esc(t().interjectionReject)+'</button></div></div>';
   }
-  if(mine){
-    html+='<button type="button" class="session-primary speech-voice-button" data-voice-toggle>'+ (speechLocalStream&&speechLocalStream.getAudioTracks().some(x=>x.enabled)?'🔇 '+esc(t().voiceMute):'🎙 '+esc(t().voiceEnable))+'</button>';
-  }else if(s.speaker_user_id){
-    html+='<button type="button" class="session-secondary speech-interjection-button" data-interjection '+(s.my_interjection_used?'disabled':'')+'>'+ (s.my_interjection_used?'✓ Zwischenruf genutzt':'✋ '+esc(t().interjection))+'</button>';
-  }else{
-    html+='<button type="button" class="session-primary speech-request-button" data-speech-request '+(s.my_pending_request?'disabled':'')+'>'+ (s.my_pending_request?'✓ '+esc(t().statementWaiting):'🙋 '+esc(t().statement))+'</button>';
-  }
+  const requestLabel=mine
+    ? '✓ '+esc(t().voiceSpeaking)
+    : s.my_pending_request
+      ? '✓ '+esc(t().statementWaiting)
+      : '🙋 '+esc(t().statement);
+  html+='<div class="speech-controls">';
+  html+='<button type="button" class="session-primary speech-request-button" data-speech-request '+(requestDisabled?'disabled':'')+'>'+requestLabel+'</button>';
+  html+='<button type="button" class="session-primary speech-voice-button" data-voice-toggle '+(micDisabled?'disabled':'')+'>'+ (micOn?'🔇 '+esc(t().voiceMute):'🎙 '+esc(t().voiceEnable))+'</button>';
+  html+='</div>';
   if(s.my_pending_request) html+='<div class="speech-queue-hint">'+esc(t().statementWaiting)+' · '+Number(s.queue_count||0)+' in der Warteschlange</div>';
   html+='<audio id="session-voice-audio" autoplay playsinline></audio></div>';
   return html;
@@ -726,6 +731,7 @@ async function handleVoiceSignal(payload){
   if(!payload||payload.target&&String(payload.target)!==String(currentUser?.id))return;
   if(!speechState||payload.slot_id&&String(payload.slot_id)!==String(speechState.slot_id))return;
   if(payload.kind==="offer"){
+    if(!speechState?.active_voice_user_id||String(payload.from)!==String(speechState.active_voice_user_id))return;
     const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
     speechPeers.set(String(payload.from),pc);
     pc.onicecandidate=e=>{if(e.candidate)sendVoice({kind:"ice",slot_id:payload.slot_id,from:currentUser.id,target:payload.from,candidate:e.candidate});};
@@ -765,15 +771,27 @@ async function setupSpeechChannel(){
 }
 async function syncSpeechVoice(){
   await setupSpeechChannel();
-  if(!speechState){closeSpeechPeers();stopSpeechLocalStream();return;}
-  const activeId=speechState.active_voice_user_id||speechState.speaker_user_id;
-  const mine=String(activeId||"")===String(currentUser?.id||"");
-  if(!mine){
+  const activeId=speechState?.active_voice_user_id||speechState?.speaker_user_id||null;
+  const normalizedActiveId=activeId?String(activeId):null;
+
+  if(speechActiveVoiceUserId!==normalizedActiveId){
     closeSpeechPeers();
+    speechActiveVoiceUserId=normalizedActiveId;
+  }
+
+  if(!normalizedActiveId){
     stopSpeechLocalStream();
-    await speechChannel?.send({type:"broadcast",event:"voice-signal",payload:{kind:"reset",slot_id:speechState.slot_id}});
     return;
   }
+
+  const mine=normalizedActiveId===String(currentUser?.id||"");
+  if(!mine){
+    // Als Zuhörer bleibt die eingehende WebRTC-Verbindung bestehen.
+    // Nur das eigene Mikrofon wird sicher abgeschaltet.
+    stopSpeechLocalStream();
+    return;
+  }
+
   if(speechLocalStream)await ensureSpeakerPeers();
 }
 function closeDebate(){
@@ -961,7 +979,7 @@ function handleSpeechCountdown(){
   const activeUntil=speechState.paused_until&&new Date(speechState.paused_until).getTime()>Date.now()
     ?new Date(speechState.paused_until).getTime()
     :new Date(speechState.slot_expires_at).getTime();
-  el.textContent=formatCountdown(Math.max(0,activeUntil-Date.now())/1000);
+  el.textContent=formatCooldown(Math.ceil(Math.max(0,activeUntil-Date.now())/1000));
 }
 function startStatementCountdown(){
   if(countdownTimer)window.clearInterval(countdownTimer);
