@@ -170,3 +170,5 @@
 .session-top-actions{display:flex;justify-content:flex-end;gap:10px;padding:10px 14px 0}
 .session-danger{border:1px solid rgba(220,80,80,.45);background:rgba(120,25,25,.18);color:#f0b0b0;border-radius:10px;padding:8px 13px;font-weight:700;cursor:pointer}
 .session-danger:hover{background:rgba(150,30,30,.28)}
+
+.session-danger{display:block;width:100%;margin:14px 0 0;padding:11px 16px;border:1px solid rgba(180,70,70,.5);border-radius:10px;background:rgba(110,35,35,.18);color:#e8b4b4;font-weight:700;cursor:pointer}.session-danger:hover{background:rgba(130,40,40,.3)}
