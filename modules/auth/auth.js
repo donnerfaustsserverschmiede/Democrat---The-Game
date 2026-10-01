@@ -119,6 +119,12 @@ async function handleGuest(event) {
     return renderGuest("Der Benutzername muss zwischen 2 und 32 Zeichen lang sein.");
   }
 
+  const { data: existingSession } = await supabase.auth.getSession();
+  if (existingSession?.session?.user?.is_anonymous) {
+    await mountCountrySelection(existingSession.session.user);
+    return;
+  }
+
   const { data, error } = await supabase.auth.signInAnonymously({
     options: { data: { profile_name: profileName } }
   });
@@ -140,6 +146,35 @@ async function handleGuest(event) {
   }
 
   await mountCountrySelection(data.user);
+}
+
+async function upgradeGuestAccount({ email, password }) {
+  if (!supabase) throw new Error("auth_not_configured");
+  const { data: sessionData } = await supabase.auth.getSession();
+  const current = sessionData?.session?.user;
+  if (!current) throw new Error("not_authenticated");
+  if (!current.is_anonymous) throw new Error("not_guest");
+
+  const profileName = String(current.user_metadata?.profile_name || "").trim();
+  const { data, error } = await supabase.auth.updateUser({
+    email: String(email || "").trim(),
+    password: String(password || ""),
+    data: { profile_name: profileName }
+  });
+  if (error) throw error;
+
+  if (profileName) {
+    const { error: profileError } = await supabase.rpc("sync_profile_name", {
+      p_profile_name: profileName
+    });
+    if (profileError) throw profileError;
+  }
+
+  return data?.user || current;
+}
+
+export async function upgradeGuestAccountFromSettings(credentials) {
+  return upgradeGuestAccount(credentials);
 }
 
 async function mountCountrySelection(user) {
