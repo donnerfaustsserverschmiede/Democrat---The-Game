@@ -172,3 +172,8 @@
 .session-danger:hover{background:rgba(150,30,30,.28)}
 
 .session-danger{display:block;width:100%;margin:14px 0 0;padding:11px 16px;border:1px solid rgba(180,70,70,.5);border-radius:10px;background:rgba(110,35,35,.18);color:#e8b4b4;font-weight:700;cursor:pointer}.session-danger:hover{background:rgba(130,40,40,.3)}
+
+.public-opinion-consequence{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:14px auto 0;max-width:760px;padding:13px 15px;border:1px solid rgba(229,199,107,.22);border-radius:12px;background:rgba(229,199,107,.06)}
+.public-opinion-consequence span{color:#b9c3d1;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.public-opinion-consequence strong{font-size:20px;color:#e5c76b;font-variant-numeric:tabular-nums}
+.public-opinion-consequence small{width:100%;color:#8793a5;font-size:11px}
