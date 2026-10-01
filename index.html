@@ -39,7 +39,6 @@
 
   <script type="module">
     const splash = document.querySelector("#splash-app");
-    document.documentElement.classList.add("democrat-booting");
     const sequence = splash?.querySelector(".splash-sequence");
     const publisher = splash?.querySelector(".publisher-splash");
     const game = splash?.querySelector(".game-splash");
@@ -72,7 +71,6 @@
         splash?.remove();
       } catch (error) {
         console.error("[Democrat] Boot error:", error);
-        document.documentElement.classList.remove("democrat-booting");
         const text = document.createElement("div");
         text.className = "splash-error";
         text.innerHTML = "<strong>Democrat – The Game</strong><span>Das Spiel konnte nicht geladen werden.</span><button type=\"button\">Neu laden</button>";
