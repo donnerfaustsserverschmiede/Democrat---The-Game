@@ -30,8 +30,6 @@ export async function open(){
   }
 
   const level=Number(p.level||1);
-  const completed=Math.max(0,Number(p.sessions_participated||0)-Number(p.sessions_participated||0)+0);
-  const progress=Math.min(100,((Number(p.sessions_participated||0)%1)*100));
   overlay.innerHTML=`
     <section class="overview-panel player-panel">
       <button class="overview-panel-close" data-close type="button">×</button>
