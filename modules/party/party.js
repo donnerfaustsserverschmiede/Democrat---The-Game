@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-let supabase=null,currentUser=null,overlay=null;
+let supabase=null,currentUser=null,overlay=null,chatTimer=null;
 
 const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 const money=v=>new Intl.NumberFormat("de-DE").format(Number(v||0))+" €";
@@ -14,7 +14,7 @@ const upgradeLabels={
 };
 
 export function init({client,user,target}){supabase=client;currentUser=user;overlay=target;}
-function close(){if(overlay){overlay.hidden=true;overlay.innerHTML="";}}
+function close(){if(chatTimer){clearInterval(chatTimer);chatTimer=null;}if(overlay){overlay.hidden=true;overlay.innerHTML="";}}
 function errorText(e){
  const m=String(e?.message||e||"");
  const map={party_level_required:"Du erreichst Level 10 erst nach weiteren abgeschlossenen Sitzungen.",already_in_party:"Du bist bereits Mitglied einer Partei.",party_full:"Diese Partei ist voll.",insufficient_party_treasury:"Die Parteikasse reicht dafür noch nicht aus.",upgrade_maxed:"Diese Verbesserung ist bereits auf dem Höchstlevel.",only_owner_can_appoint_deputy:"Nur der Vorsitzende kann einen Stellvertreter ernennen."};
@@ -88,6 +88,14 @@ async function renderOwnParty(party){
    <div class="party-ranking-tabs"><button class="party-tab active" data-tab="players" type="button">Parteispieler</button><button class="party-tab" data-tab="parties" type="button">Parteien</button></div>
    <div id="party-ranking-content" class="party-ranking-content">Rangliste wird geladen …</div>
   </section>
+  <section class="party-section party-chat-section">
+   <div class="party-section-head"><div><h3>Parteichat</h3><span>Nur für Mitglieder dieser Partei sichtbar</span></div><span class="party-chat-private">🔒 Intern</span></div>
+   <div id="party-chat-messages" class="party-chat-messages"><div class="overview-panel-muted">Chat wird geladen …</div></div>
+   <form id="party-chat-form" class="party-chat-form">
+    <input name="message" maxlength="1000" autocomplete="off" placeholder="Nachricht an deine Partei …" required>
+    <button type="submit">Senden</button>
+   </form>
+  </section>
   <section class="party-section"><div class="party-section-head"><h3>Parteiaktionen</h3><span>Ausbauten aus der Parteikasse</span></div><div class="party-upgrades">${upgrades.map(u=>`
    <article class="party-upgrade"><div><strong>${esc(u.display_name)}</strong><span>${esc(u.description)}</span><small>Stufe ${u.level}/${u.max_level} · Nächste Kosten: ${u.next_cost?money(u.next_cost):"MAX"}</small></div><button data-upgrade="${u.code}" type="button" ${!canManage||!u.next_cost?"disabled":""}>Ausbauen</button></article>`).join("")}</div>
   </section>
@@ -108,6 +116,37 @@ async function renderOwnParty(party){
  const rankContent=overlay.querySelector("#party-ranking-content");
  async function loadPlayerRanks(){const {data,error}=await supabase.rpc("get_party_player_rankings",{p_party_id:party.id});if(error){rankContent.innerHTML=`<div class="overview-error">${esc(error.message)}</div>`;return;}rankContent.innerHTML=(data||[]).map(x=>`<div class="party-rank-row"><strong>#${x.rank}</strong><span>${esc(x.profile_name)} <small>${x.role==="owner"?"Vorsitzender":x.role==="deputy"?"Stellvertreter":"Mitglied"}</small></span><b>${pct(x.public_opinion)}</b></div>`).join("")||'<div class="overview-panel-muted">Keine Mitglieder.</div>';}
  async function loadPartyRanks(){const {data,error}=await supabase.rpc("get_party_rankings");if(error){rankContent.innerHTML=`<div class="overview-error">${esc(error.message)}</div>`;return;}rankContent.innerHTML=(data||[]).map(x=>`<div class="party-rank-row"><strong>#${x.rank}</strong><span>${esc(x.party_name)} <small>${esc(x.party_tag)} · ${x.member_count} Mitglieder</small></span><b>${pct(x.party_opinion)}</b></div>`).join("")||'<div class="overview-panel-muted">Keine Parteien.</div>';}
+ async function loadChat(){
+   const box=overlay.querySelector("#party-chat-messages");
+   if(!box)return;
+   const {data,error}=await supabase.rpc("get_party_chat",{p_party_id:party.id});
+   if(error){box.innerHTML=`<div class="overview-error">${esc(errorText(error))}</div>`;return;}
+   const rows=[...(data||[])].reverse();
+   if(!rows.length){box.innerHTML='<div class="overview-panel-muted">Noch keine Nachrichten. Starte die interne Parteidiskussion.</div>';return;}
+   box.innerHTML=rows.map(x=>{
+     const own=x.user_id===currentUser?.id;
+     const time=new Date(x.created_at).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+     return `<article class="party-chat-message ${own?"own":""}"><div><strong>${esc(x.profile_name)}</strong><time>${time}</time></div><p>${esc(x.message)}</p></article>`;
+   }).join("");
+   box.scrollTop=box.scrollHeight;
+ }
+ await loadChat();
+ if(chatTimer)clearInterval(chatTimer);
+ chatTimer=setInterval(loadChat,4000);
+ overlay.querySelector("#party-chat-form")?.addEventListener("submit",async ev=>{
+   ev.preventDefault();
+   const form=ev.currentTarget,input=form?.querySelector("input[name='message']"),btn=form?.querySelector("button");
+   if(!input||!btn)return;
+   const message=input.value.trim();if(!message)return;
+   btn.disabled=true;
+   try{
+     const {error}=await supabase.rpc("send_party_chat",{p_party_id:party.id,p_message:message});
+     if(error)throw error;
+     input.value="";
+     await loadChat();
+   }catch(e){alert(errorText(e));}
+   finally{btn.disabled=false;input.focus();}
+ });
  await loadPlayerRanks();
  overlay.querySelectorAll("[data-tab]").forEach(tab=>tab.addEventListener("click",async()=>{overlay.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));tab.classList.add("active");if(tab.dataset.tab==="players")await loadPlayerRanks();else await loadPartyRanks();}));
  overlay.querySelectorAll("[data-deputy]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;try{const {error}=await supabase.rpc("change_party_role",{p_party_id:party.id,p_member_id:b.dataset.deputy,p_role:"deputy"});if(error)throw error;await open();}catch(e){b.disabled=false;alert(errorText(e));}}));
