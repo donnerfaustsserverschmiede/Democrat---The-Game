@@ -47,6 +47,10 @@ let speechLocalStream = null;
 let speechRemoteAudio = null;
 let speechVoiceSignature = "";
 let speechActiveVoiceUserId = null;
+let speechRecognition = null;
+let speechRecognitionRunning = false;
+let speechRecognitionShouldRun = false;
+let speechRecognitionResultIndex = 0;
 
 const UI = {
   "de-DE": { intro:"Einführung", read:"Ich habe die Einführung gelesen – weiter", choose:"Fraktion wählen", existing:"Bestehende Fraktionen", new:"Neue Fraktion", name:"Fraktionsname", namePlaceholder:"Name der Fraktion", position:"Position im Plenum", left:"Links", center:"Mitte", right:"Rechts", members:"Mitglieder", seats:"Sitze", chooseExisting:"Diese Fraktion wählen", create:"Fraktion gründen und Sitz wählen", assigned:"Dein Sitz ist zugewiesen", assignedText:"Du sitzt in einem zusammenhängenden Fraktionsblock.", seat:"Sitz", back:"Zurück zur Sitzungsübersicht", changeFaction:"Fraktion wechseln", cancel:"Abbrechen", loading:"Sitzung wird geladen …", error:"Die Sitzung konnte nicht geladen werden.", full:"Voll", selected:"Ausgewählt", required:"Bitte gib einen Fraktionsnamen ein und wähle eine Position.", factionFull:"Diese Fraktion hat bereits 10 Sitze.", sectorFull:"In diesem Sektor sind keine weiteren Fraktionsblöcke frei.", management:"Fraktionsverwaltung",hudPlayer:"Eigene Meinungspunkte",hudFaction:"Fraktions-Meinungspunkte",hudMoney:"Geld",president:"PRÄSIDENT",decision:"Deine Entscheidung",approve:"Zustimmung",interject:"Debatte",statement:"Wortmeldung",statementWaiting:"Wortmeldung vorgemerkt …",statementGranted:"Du hast das Wort.",statementGrantedNotice:"Spieler {player} hat das Wort.",statementPlaceholder:"",statementSend:"",statementCooldown:"",statementBanned:"",statementRejected:"",statementExpired:"",statementEmpty:"",voice:"Voice",voiceEnable:"Mikrofon aktivieren",voiceMute:"Mikrofon stummschalten",voiceSpeaking:"Du hast das Wort",voiceWaiting:"Wortmeldung läuft",interjection:"Zwischenruf",interjectionSent:"Zwischenruf angefragt.",interjectionAccept:"Annehmen",interjectionReject:"Ablehnen",interjectionIncoming:"Spieler {player} hat eine Zwischenfrage.",interjectionActive:"Zwischenfrage · 2 Minuten",speechQueue:"Warteschlange",speechNoSpeaker:"Derzeit spricht niemand.",speechTime:"Redezeit",speechMicError:"Mikrofon konnte nicht aktiviert werden.",reject:"Ablehnung",voted:"Deine Entscheidung wurde gespeichert",factionVote:"Fraktionsstimme",resultApproved:"Fraktion stimmt zu",resultRejected:"Fraktion lehnt ab",resultTie:"Stimmengleichheit",nextStatement:"Nächste Aussage",voteError:"Entscheidung konnte nicht gespeichert werden.",debateTitle:"Debatte",debatePlaceholder:"Schreibe etwas zur aktuellen Sitzung …",debateSend:"Senden",debateClose:"Debatte schließen",debateEmpty:"Noch keine Beiträge. Starte die Debatte.",moderationRemoved:"Dein Beitrag verstößt gegen die Sitzungsregeln. Du wurdest aus dieser Sitzung entfernt.",waiting:"Warten auf die übrigen Fraktionsmitglieder …",points:"Punkte",eliminated:"AUSGESCHIEDEN",winnerPlayer:"SIEG · SPIELER",winnerFaction:"SIEG · FRAKTION",sessionEnded:"DIE SITZUNG IST BEENDET",sessionFinalizing:"Punkte werden ausgegeben … Sitzung wird geschlossen.",sessionFinalized:"Sitzung abgeschlossen · +{points} Meinungspunkte · {total} Meinungspunkte insgesamt",leader:"Fraktionsvorsitz", deputy:"Stellvertretender Vorsitz", promote:"Zum Stellvertreter ernennen", removeDeputy:"Stellvertretung aufheben", kick:"Aus Fraktion entfernen", deleteFaction:"Fraktion löschen", deleteConfirm:"Fraktion wirklich löschen? Alle Mitglieder verlieren ihre Fraktionszugehörigkeit.", kickConfirm:"Mitglied wirklich aus der Fraktion entfernen?" , actions:"Fraktionsaktionen",actionHint:"Aktionen können zusätzliche leere Fraktionsplätze sichern. Besetzte Plätze werden niemals verdrängt.",speech:"Fraktionsrede · +1 Sitz · 1.500",committee:"Ausschussarbeit · +2 Sitze · 4.000",publicity:"Öffentlichkeitsarbeit · +3 Sitze · 9.000",actionError:"Aktion konnte nicht ausgeführt werden.",color:"Fraktionsfarbe",chooseColor:"Farbe wählen",saveColor:"Farbe speichern",colorSaved:"Fraktionsfarbe gespeichert.",colorTaken:"Diese Farbe wird bereits von einer anderen Fraktion verwendet.",colorPermission:"Nur Fraktionsvorsitz oder Stellvertretung kann die Fraktionsfarbe ändern.",invalidColor:"Ungültige Fraktionsfarbe.",seatCost1:"1 Sitz · 1.500",seatCost2:"2 Sitze · 4.000",seatCost3:"3 Sitze · 9.000",insufficientFunds:"Dafür reicht dein Geld nicht.",sessionMajority:"Sitzungsmehrheit",botTitle:"Fraktionsloser Bürger",botHint:"Dieser Bürger gehört keiner Fraktion an und kann beeinflusst werden.",botApprove:"Für Zustimmung beeinflussen",botReject:"Für Ablehnung beeinflussen",moral:"Moralisch überzeugen · kostenlos",bribe:"Bestechen · 750",botInfluenceError:"Der Bürger konnte nicht beeinflusst werden."},
@@ -666,6 +670,64 @@ async function respondInterjection(id,accept){
   }
   await refreshSpeechState(true);
 }
+function speechRecognitionLanguage(){
+  const locale=currentPrefs?.locale||"de-DE";
+  if(locale.startsWith("de"))return "de-DE";
+  if(locale.startsWith("es"))return "es-ES";
+  if(locale.startsWith("fr"))return "fr-FR";
+  return "en-US";
+}
+function stopSpeechRecognition(){
+  speechRecognitionShouldRun=false;
+  if(speechRecognition){
+    try{speechRecognition.stop();}catch(_){}
+  }
+  speechRecognitionRunning=false;
+}
+function startSpeechRecognition(){
+  const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Recognition||!speechState?.slot_id)return;
+  if(speechRecognitionRunning)return;
+  if(!speechRecognition){
+    speechRecognition=new Recognition();
+    speechRecognition.continuous=true;
+    speechRecognition.interimResults=false;
+    speechRecognition.maxAlternatives=1;
+    speechRecognition.onstart=()=>{speechRecognitionRunning=true;};
+    speechRecognition.onresult=async(event)=>{
+      for(let i=Math.max(0,event.resultIndex||0);i<event.results.length;i++){
+        const result=event.results[i];
+        if(!result.isFinal)continue;
+        const text=result[0]?.transcript?.trim()||"";
+        if(!text)continue;
+        try{
+          await supabase.rpc("record_session_speech_argument",{
+            p_session_id:currentSessionId,
+            p_slot_id:speechState?.slot_id,
+            p_text:text
+          });
+        }catch(_){}
+      }
+    };
+    speechRecognition.onerror=(event)=>{
+      speechRecognitionRunning=false;
+      if(event?.error==="not-allowed"||event?.error==="service-not-allowed"){
+        speechRecognitionShouldRun=false;
+        return;
+      }
+      if(speechRecognitionShouldRun)window.setTimeout(startSpeechRecognition,500);
+    };
+    speechRecognition.onend=()=>{
+      speechRecognitionRunning=false;
+      if(speechRecognitionShouldRun)window.setTimeout(startSpeechRecognition,250);
+    };
+  }
+  speechRecognition.lang=speechRecognitionLanguage();
+  speechRecognitionShouldRun=true;
+  try{
+    speechRecognition.start();
+  }catch(_){}
+}
 async function toggleVoice(){
   if(!speechState||!currentUser)return;
   const activeId=speechState.active_voice_user_id||speechState.speaker_user_id;
@@ -673,6 +735,8 @@ async function toggleVoice(){
   if(speechLocalStream){
     const enabled=speechLocalStream.getAudioTracks().some(track=>track.enabled);
     speechLocalStream.getAudioTracks().forEach(track=>track.enabled=!enabled);
+    if(enabled) stopSpeechRecognition();
+    else startSpeechRecognition();
     render();
     return;
   }
@@ -681,6 +745,7 @@ async function toggleVoice(){
       echoCancellation:true,noiseSuppression:true,autoGainControl:true
     }});
     speechLocalStream.getAudioTracks().forEach(track=>track.enabled=true);
+    startSpeechRecognition();
     await syncSpeechVoice();
     render();
   }catch(error){
@@ -696,6 +761,7 @@ function closeSpeechPeers(){
   speechRemoteAudio=null;
 }
 function stopSpeechLocalStream(){
+  stopSpeechRecognition();
   if(speechLocalStream){speechLocalStream.getTracks().forEach(track=>track.stop());speechLocalStream=null;}
 }
 async function sendVoice(payload){
