@@ -11,9 +11,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="./assets/democrat-icon.svg?v=20261001-7">
-  <link rel="stylesheet" href="./modules/splash/splash.css?v=20261001-5">
+  <link rel="stylesheet" href="./modules/splash/splash.css?v=20261001-6">
   <link rel="stylesheet" href="./modules/legal/legal.css?v=20260930-3">
-  <link rel="stylesheet" href="./modules/auth/auth.css?v=20260930-3">
+  <link rel="stylesheet" href="./modules/auth/auth.css?v=20261001-4">
   <link rel="stylesheet" href="./modules/overview/overview.css?v=20261001-32">
   <link rel="stylesheet" href="./modules/session/session.css?v=20261001-30">
   <link rel="stylesheet" href="./modules/country/country.css?v=20260930-1">
@@ -57,7 +57,7 @@
         }
 
         await wait(1800);
-        await import("./modules/legal/legal.js?v=20261001-7");
+        await import("./modules/legal/legal.js?v=20261001-8");
 
         const legal = document.querySelector("#legal-app");
         const auth = document.querySelector("#auth-app");
@@ -65,11 +65,9 @@
         const session = document.querySelector("#session-app");
 
         if (!(legal && !legal.hidden) && !(auth && !auth.hidden) && !(overview && !overview.hidden) && !(session && !session.hidden)) {
-          await wait(1000);
+          await wait(300);
         }
 
-        sequence?.classList.add("splash-fade-out");
-        await wait(500);
         splash?.remove();
       } catch (error) {
         console.error("[Democrat] Boot error:", error);
