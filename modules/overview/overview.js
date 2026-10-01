@@ -51,7 +51,7 @@ function renderShell(profileName="Spieler") {
         <section id="session-list" class="overview-list" aria-live="polite"></section>
       </main>
       <nav class="overview-bottom-nav" aria-label="Hauptmenü">
-        <button class="overview-corner-button" data-action="party" type="button">♟ <span>Party</span></button>
+        <button class="overview-corner-button" data-action="party" type="button">♟ <span>Partei</span></button>
         <button class="overview-corner-button" data-action="settings" type="button">⚙ <span>Einstellungen</span></button>
       </nav>
       <div id="overview-overlay" class="overview-overlay" hidden></div>
@@ -73,9 +73,13 @@ function openPartyPanel(){
   overlay.hidden=false;
   overlay.innerHTML=`<section class="overview-panel">
     <button class="overview-panel-close" data-close type="button">×</button>
-    <h2>Party</h2>
-    <p>Hier findest du später deine Parteiverwaltung und Einladungen.</p>
-    <p class="overview-panel-muted">Die Party-Funktion wird noch erweitert.</p>
+    <h2>Partei</h2>
+    <p>Hier wird das Parteiensystem verwaltet.</p>
+    <div class="overview-settings-box">
+      <h3>Parteiensystem</h3>
+      <p>Parteien gründen, verwalten, Mitglieder organisieren und die politische Ausrichtung der Partei festlegen.</p>
+      <p class="overview-panel-muted">Die einzelnen Funktionen bauen wir hier als eigenes Partei-Menü ein.</p>
+    </div>
   </section>`;
   overlay.querySelector("[data-close]").addEventListener("click",closeOverviewOverlay);
 }
@@ -278,4 +282,4 @@ window.addEventListener("democrat:session-back",()=>{root.hidden=false;renderShe
 
 export function unmount(){if(presenceTimer)clearInterval(presenceTimer);presenceTimer=null;presenceSessionIds=[];if(!root)return;root.hidden=true;root.innerHTML="";if(sessionRoot)sessionRoot.hidden=true;currentUser=null;currentPrefs=null;profileName="Spieler";}
 
-// cache-version: 20261001-32
+// cache-version: 20261001-33
