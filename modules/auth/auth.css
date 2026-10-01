@@ -26,8 +26,8 @@ body::before {
     linear-gradient(180deg, rgba(191,166,113,.30) 0 10%, transparent 23%),
     repeating-linear-gradient(90deg, transparent 0 7%, rgba(130,145,164,.12) 7.2% 7.8%, transparent 8% 15%),
     linear-gradient(180deg, #293241 0%, #121a28 38%, #070b13 100%);
-  filter: blur(12px);
-  transform: scale(1.06);
+  filter: none;
+  transform: none;
 }
 
 body::after {
@@ -89,8 +89,8 @@ body::after {
 .auth-card {
   position: relative;
   z-index: 2;
-  backdrop-filter: blur(18px);
-  background: rgba(17,24,39,.88);
+  backdrop-filter: none;
+  background: rgba(17,24,39,.96);
 }
 
 .auth-shell {
