@@ -40,9 +40,16 @@ let mailboxOpen = false;
 let mailboxEvents = [];
 let mailboxLoading = false;
 let statementDraftDirty = false;
+let speechState = null;
+let speechChannel = null;
+let speechPeers = new Map();
+let speechLocalStream = null;
+let speechRemoteAudio = null;
+let speechVoiceSignature = "";
+let speechActiveVoiceUserId = null;
 
 const UI = {
-  "de-DE": { intro:"Einführung", read:"Ich habe die Einführung gelesen – weiter", choose:"Fraktion wählen", existing:"Bestehende Fraktionen", new:"Neue Fraktion", name:"Fraktionsname", namePlaceholder:"Name der Fraktion", position:"Position im Plenum", left:"Links", center:"Mitte", right:"Rechts", members:"Mitglieder", seats:"Sitze", chooseExisting:"Diese Fraktion wählen", create:"Fraktion gründen und Sitz wählen", assigned:"Dein Sitz ist zugewiesen", assignedText:"Du sitzt in einem zusammenhängenden Fraktionsblock.", seat:"Sitz", back:"Zurück zur Sitzungsübersicht", changeFaction:"Fraktion wechseln", cancel:"Abbrechen", loading:"Sitzung wird geladen …", error:"Die Sitzung konnte nicht geladen werden.", full:"Voll", selected:"Ausgewählt", required:"Bitte gib einen Fraktionsnamen ein und wähle eine Position.", factionFull:"Diese Fraktion hat bereits 10 Sitze.", sectorFull:"In diesem Sektor sind keine weiteren Fraktionsblöcke frei.", management:"Fraktionsverwaltung",hudPlayer:"Eigene Meinungspunkte",hudFaction:"Fraktions-Meinungspunkte",hudMoney:"Geld",president:"PRÄSIDENT",decision:"Deine Entscheidung",approve:"Zustimmung",interject:"Debatte",statement:"Statement",statementWaiting:"Wortmeldung vorgemerkt …",statementGranted:"Du erhältst das Wort. Verfasse dein Statement.",statementGrantedNotice:"Spieler {player} erhält das Wort und verfasst ein Statement.",statementPlaceholder:"Deine Gegenrede zum Statement des Präsidenten …",statementSend:"Statement veröffentlichen",statementCooldown:"Du kannst erst wieder in 10 Minuten ein Statement abgeben.",statementBanned:"Deine Wortmeldung ist für 30 Minuten gesperrt.",statementRejected:"Dein Statement wurde wegen eines Regelverstoßes entfernt. Du bist für 30 Minuten gesperrt.",statementExpired:"Die Zeit für deine Wortmeldung ist abgelaufen.",statementEmpty:"Noch kein Statement.",reject:"Ablehnung",voted:"Deine Entscheidung wurde gespeichert",factionVote:"Fraktionsstimme",resultApproved:"Fraktion stimmt zu",resultRejected:"Fraktion lehnt ab",resultTie:"Stimmengleichheit",nextStatement:"Nächste Aussage",voteError:"Entscheidung konnte nicht gespeichert werden.",debateTitle:"Debatte",debatePlaceholder:"Schreibe etwas zur aktuellen Sitzung …",debateSend:"Senden",debateClose:"Debatte schließen",debateEmpty:"Noch keine Beiträge. Starte die Debatte.",moderationRemoved:"Dein Beitrag verstößt gegen die Sitzungsregeln. Du wurdest aus dieser Sitzung entfernt.",waiting:"Warten auf die übrigen Fraktionsmitglieder …",points:"Punkte",eliminated:"AUSGESCHIEDEN",winnerPlayer:"SIEG · SPIELER",winnerFaction:"SIEG · FRAKTION",sessionEnded:"DIE SITZUNG IST BEENDET",sessionFinalizing:"Punkte werden ausgegeben … Sitzung wird geschlossen.",sessionFinalized:"Sitzung abgeschlossen · +{points} Meinungspunkte · {total} Meinungspunkte insgesamt",leader:"Fraktionsvorsitz", deputy:"Stellvertretender Vorsitz", promote:"Zum Stellvertreter ernennen", removeDeputy:"Stellvertretung aufheben", kick:"Aus Fraktion entfernen", deleteFaction:"Fraktion löschen", deleteConfirm:"Fraktion wirklich löschen? Alle Mitglieder verlieren ihre Fraktionszugehörigkeit.", kickConfirm:"Mitglied wirklich aus der Fraktion entfernen?" , actions:"Fraktionsaktionen",actionHint:"Aktionen können zusätzliche leere Fraktionsplätze sichern. Besetzte Plätze werden niemals verdrängt.",speech:"Fraktionsrede · +1 Sitz · 1.500",committee:"Ausschussarbeit · +2 Sitze · 4.000",publicity:"Öffentlichkeitsarbeit · +3 Sitze · 9.000",actionError:"Aktion konnte nicht ausgeführt werden.",color:"Fraktionsfarbe",chooseColor:"Farbe wählen",saveColor:"Farbe speichern",colorSaved:"Fraktionsfarbe gespeichert.",colorTaken:"Diese Farbe wird bereits von einer anderen Fraktion verwendet.",colorPermission:"Nur Fraktionsvorsitz oder Stellvertretung kann die Fraktionsfarbe ändern.",invalidColor:"Ungültige Fraktionsfarbe.",seatCost1:"1 Sitz · 1.500",seatCost2:"2 Sitze · 4.000",seatCost3:"3 Sitze · 9.000",insufficientFunds:"Dafür reicht dein Geld nicht.",sessionMajority:"Sitzungsmehrheit",botTitle:"Fraktionsloser Bürger",botHint:"Dieser Bürger gehört keiner Fraktion an und kann beeinflusst werden.",botApprove:"Für Zustimmung beeinflussen",botReject:"Für Ablehnung beeinflussen",moral:"Moralisch überzeugen · kostenlos",bribe:"Bestechen · 750",botInfluenceError:"Der Bürger konnte nicht beeinflusst werden."},
+  "de-DE": { intro:"Einführung", read:"Ich habe die Einführung gelesen – weiter", choose:"Fraktion wählen", existing:"Bestehende Fraktionen", new:"Neue Fraktion", name:"Fraktionsname", namePlaceholder:"Name der Fraktion", position:"Position im Plenum", left:"Links", center:"Mitte", right:"Rechts", members:"Mitglieder", seats:"Sitze", chooseExisting:"Diese Fraktion wählen", create:"Fraktion gründen und Sitz wählen", assigned:"Dein Sitz ist zugewiesen", assignedText:"Du sitzt in einem zusammenhängenden Fraktionsblock.", seat:"Sitz", back:"Zurück zur Sitzungsübersicht", changeFaction:"Fraktion wechseln", cancel:"Abbrechen", loading:"Sitzung wird geladen …", error:"Die Sitzung konnte nicht geladen werden.", full:"Voll", selected:"Ausgewählt", required:"Bitte gib einen Fraktionsnamen ein und wähle eine Position.", factionFull:"Diese Fraktion hat bereits 10 Sitze.", sectorFull:"In diesem Sektor sind keine weiteren Fraktionsblöcke frei.", management:"Fraktionsverwaltung",hudPlayer:"Eigene Meinungspunkte",hudFaction:"Fraktions-Meinungspunkte",hudMoney:"Geld",president:"PRÄSIDENT",decision:"Deine Entscheidung",approve:"Zustimmung",interject:"Debatte",statement:"Wortmeldung",statementWaiting:"Wortmeldung vorgemerkt …",statementGranted:"Du hast das Wort.",statementGrantedNotice:"Spieler {player} hat das Wort.",statementPlaceholder:"",statementSend:"",statementCooldown:"",statementBanned:"",statementRejected:"",statementExpired:"",statementEmpty:"",voice:"Voice",voiceEnable:"Mikrofon aktivieren",voiceMute:"Mikrofon stummschalten",voiceSpeaking:"Du hast das Wort",voiceWaiting:"Wortmeldung läuft",interjection:"Zwischenruf",interjectionSent:"Zwischenruf angefragt.",interjectionAccept:"Annehmen",interjectionReject:"Ablehnen",interjectionIncoming:"Spieler {player} hat eine Zwischenfrage.",interjectionActive:"Zwischenfrage · 2 Minuten",speechQueue:"Warteschlange",speechNoSpeaker:"Derzeit spricht niemand.",speechTime:"Redezeit",speechMicError:"Mikrofon konnte nicht aktiviert werden.",reject:"Ablehnung",voted:"Deine Entscheidung wurde gespeichert",factionVote:"Fraktionsstimme",resultApproved:"Fraktion stimmt zu",resultRejected:"Fraktion lehnt ab",resultTie:"Stimmengleichheit",nextStatement:"Nächste Aussage",voteError:"Entscheidung konnte nicht gespeichert werden.",debateTitle:"Debatte",debatePlaceholder:"Schreibe etwas zur aktuellen Sitzung …",debateSend:"Senden",debateClose:"Debatte schließen",debateEmpty:"Noch keine Beiträge. Starte die Debatte.",moderationRemoved:"Dein Beitrag verstößt gegen die Sitzungsregeln. Du wurdest aus dieser Sitzung entfernt.",waiting:"Warten auf die übrigen Fraktionsmitglieder …",points:"Punkte",eliminated:"AUSGESCHIEDEN",winnerPlayer:"SIEG · SPIELER",winnerFaction:"SIEG · FRAKTION",sessionEnded:"DIE SITZUNG IST BEENDET",sessionFinalizing:"Punkte werden ausgegeben … Sitzung wird geschlossen.",sessionFinalized:"Sitzung abgeschlossen · +{points} Meinungspunkte · {total} Meinungspunkte insgesamt",leader:"Fraktionsvorsitz", deputy:"Stellvertretender Vorsitz", promote:"Zum Stellvertreter ernennen", removeDeputy:"Stellvertretung aufheben", kick:"Aus Fraktion entfernen", deleteFaction:"Fraktion löschen", deleteConfirm:"Fraktion wirklich löschen? Alle Mitglieder verlieren ihre Fraktionszugehörigkeit.", kickConfirm:"Mitglied wirklich aus der Fraktion entfernen?" , actions:"Fraktionsaktionen",actionHint:"Aktionen können zusätzliche leere Fraktionsplätze sichern. Besetzte Plätze werden niemals verdrängt.",speech:"Fraktionsrede · +1 Sitz · 1.500",committee:"Ausschussarbeit · +2 Sitze · 4.000",publicity:"Öffentlichkeitsarbeit · +3 Sitze · 9.000",actionError:"Aktion konnte nicht ausgeführt werden.",color:"Fraktionsfarbe",chooseColor:"Farbe wählen",saveColor:"Farbe speichern",colorSaved:"Fraktionsfarbe gespeichert.",colorTaken:"Diese Farbe wird bereits von einer anderen Fraktion verwendet.",colorPermission:"Nur Fraktionsvorsitz oder Stellvertretung kann die Fraktionsfarbe ändern.",invalidColor:"Ungültige Fraktionsfarbe.",seatCost1:"1 Sitz · 1.500",seatCost2:"2 Sitze · 4.000",seatCost3:"3 Sitze · 9.000",insufficientFunds:"Dafür reicht dein Geld nicht.",sessionMajority:"Sitzungsmehrheit",botTitle:"Fraktionsloser Bürger",botHint:"Dieser Bürger gehört keiner Fraktion an und kann beeinflusst werden.",botApprove:"Für Zustimmung beeinflussen",botReject:"Für Ablehnung beeinflussen",moral:"Moralisch überzeugen · kostenlos",bribe:"Bestechen · 750",botInfluenceError:"Der Bürger konnte nicht beeinflusst werden."},
   "es-ES": { intro:"Introducción", read:"He leído la introducción – continuar", choose:"Elegir grupo", existing:"Grupos existentes", new:"Nuevo grupo", name:"Nombre del grupo", namePlaceholder:"Nombre del grupo", position:"Posición en la cámara", left:"Izquierda", center:"Centro", right:"Derecha", members:"Miembros", seats:"Escaños", chooseExisting:"Elegir este grupo", create:"Crear grupo y elegir escaño", assigned:"Tu escaño está asignado", assignedText:"Te sientas en un bloque contiguo de tu grupo.", seat:"Escaño", back:"Volver al resumen", changeFaction:"Cambiar de grupo", cancel:"Cancelar", loading:"Cargando sesión …", error:"No se pudo cargar la sesión.", full:"Completo", selected:"Seleccionado", required:"Introduce un nombre y elige una posición.", factionFull:"Este grupo ya tiene 10 escaños.", sectorFull:"No quedan bloques libres en este sector." , actions:"Acciones del grupo",actionHint:"Las acciones pueden asegurar escaños vacíos adicionales. Los jugadores existentes nunca son desplazados.",speech:"Discurso del grupo · +1 escaño",committee:"Trabajo en comisión · +2 escaños",publicity:"Comunicación pública · +3 escaños",actionError:"No se pudo ejecutar la acción."},
   "fr-FR": { intro:"Introduction", read:"J’ai lu l’introduction – continuer", choose:"Choisir un groupe", existing:"Groupes existants", new:"Nouveau groupe", name:"Nom du groupe", namePlaceholder:"Nom du groupe", position:"Position dans l’hémicycle", left:"Gauche", center:"Centre", right:"Droite", members:"Membres", seats:"Sièges", chooseExisting:"Choisir ce groupe", create:"Créer le groupe et choisir un siège", assigned:"Votre siège est attribué", assignedText:"Vous êtes placé dans un bloc contigu de votre groupe.", seat:"Siège", back:"Retour au résumé", changeFaction:"Changer de groupe", cancel:"Annuler", loading:"Chargement de la session …", error:"Impossible de charger la session.", full:"Complet", selected:"Sélectionné", required:"Saisissez un nom et choisissez une position.", factionFull:"Ce groupe compte déjà 10 sièges.", sectorFull:"Aucun bloc libre dans ce secteur." , actions:"Actions du groupe",actionHint:"Les actions peuvent sécuriser des sièges vides supplémentaires. Aucun joueur en place n’est déplacé.",speech:"Discours du groupe · +1 siège",committee:"Travail en commission · +2 sièges",publicity:"Action publique · +3 sièges",actionError:"L’action n’a pas pu être exécutée."},
   "it-IT": { intro:"Introduzione", read:"Ho letto l’introduzione – continua", choose:"Scegli il gruppo", existing:"Gruppi esistenti", new:"Nuovo gruppo", name:"Nome del gruppo", namePlaceholder:"Nome del gruppo", position:"Posizione in aula", left:"Sinistra", center:"Centro", right:"Destra", members:"Membri", seats:"Seggi", chooseExisting:"Scegli questo gruppo", create:"Crea gruppo e scegli il seggio", assigned:"Il tuo seggio è assegnato", assignedText:"Sei inserito in un blocco contiguo del tuo gruppo.", seat:"Seggio", back:"Torna al riepilogo", changeFaction:"Cambia gruppo", cancel:"Annulla", loading:"Caricamento sessione …", error:"Impossibile caricare la sessione.", full:"Completo", selected:"Selezionato", required:"Inserisci un nome e scegli una posizione.", factionFull:"Questo gruppo ha già 10 seggi.", sectorFull:"Non ci sono altri blocchi liberi in questo settore." , actions:"Azioni del gruppo",actionHint:"Le azioni possono assicurare ulteriori seggi liberi. Nessun giocatore già seduto viene spostato.",speech:"Intervento del gruppo · +1 seggio",committee:"Lavoro in commissione · +2 seggi",publicity:"Azione pubblica · +3 seggi",actionError:"Impossibile eseguire l’azione."},
@@ -176,7 +183,7 @@ async function refreshSessionSilently(){
       supabase.rpc("get_session_faction_actions",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_rankings",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_mailbox",{p_session_id:currentSessionId,p_limit:200}),
-      supabase.rpc("get_session_interjection_state",{p_session_id:currentSessionId}),
+      supabase.rpc("get_session_speech_state",{p_session_id:currentSessionId}),
     ]);
 
     if(entryResult.error || gameResult.error) return;
@@ -191,24 +198,17 @@ async function refreshSessionSilently(){
     if(walletResult && !walletResult.error) walletState=walletResult.data?.[0]||walletState;
     if(rankResult && !rankResult.error) rankings=rankResult.data||[];
     if(mailboxResult && !mailboxResult.error) mailboxEvents=mailboxResult.data||[];
-    if(interjectionResult && !interjectionResult.error) statementInterjectionState=interjectionResult.data||[];
+    if(interjectionResult && !interjectionResult.error) speechState=interjectionResult.data?.[0]||null;
     factions=factionResult.error ? factions : (factionResult.data||[]);
     seats=seatResult.error ? seats : (seatResult.data||[]);
     factionActionStatus=actionResult.error ? factionActionStatus : (actionResult.data||[]);
     const scrollY=window.scrollY;
-    const draft=document.querySelector("#statement-input");
-    const draftValue=draft?.value||"";
-    const draftStart=draft?.selectionStart??draftValue.length;
-    const draftEnd=draft?.selectionEnd??draftValue.length;
-    const hadFocus=document.activeElement===draft;
-    try {
+        try {
       // Während der Spieler sein Statement schreibt, wird der komplette
       // Sitzungs-DOM nicht neu aufgebaut. Dadurch kann kein Refresh den
       // Textbereich ersetzen oder den Entwurf löschen.
-      if(!isEditingStatement()){
-        render();
-        window.scrollTo(0,scrollY);
-      }
+      render();
+      window.scrollTo(0,scrollY);
       // Nur die Darstellung aktualisieren. Der Countdown verwendet die bereits
       // gemerkte Deadline derselben Aussage und wird nicht zurückgesetzt.
       if(gameState?.session_status==="ended") scheduleSessionFinalization();
@@ -411,30 +411,38 @@ function formatStatementCountdown(deadline){
   return String(minutes).padStart(2,"0")+":"+String(seconds).padStart(2,"0");
 }
 function renderPlayerStatement(){
-  const now=Date.now();
-  const active=statementInterjectionState.find(x=>x.status==="approved" && x.expires_at && new Date(x.expires_at).getTime()>now);
-  const granted=statementInterjectionState.find(x=>x.status==="granted" && x.expires_at && new Date(x.expires_at).getTime()>now);
-  const pending=statementInterjectionState.find(x=>x.status==="pending");
-  if(granted){
-    const writeDeadline=new Date(new Date(granted.granted_at).getTime()+5*60*1000);
-    const slotDeadline=new Date(granted.granted_at).getTime()+10*60*1000;
-    if(granted.is_mine){
-      return '<div class="player-statement player-statement-granted">'+
-        '<div class="player-statement-head"><strong>'+esc(t().statementGranted)+'</strong><time>Schreibzeit <span id="statement-write-countdown">'+formatStatementCountdown(writeDeadline)+'</span></time></div>'+
-        '<p class="player-statement-timing">Du hast 5 Minuten zum Verfassen. Der gesamte Wort-Slot läuft 10 Minuten ab Erteilung des Wortes.</p>'+
-        '<form id="statement-form"><textarea id="statement-input" maxlength="500" rows="3" placeholder="'+esc(t().statementPlaceholder)+'" required></textarea><button class="session-primary" type="submit">'+esc(t().statementSend)+'</button></form><div id="statement-form-error" class="session-action-error" hidden></div>'+
-        '<div class="player-statement-slot">Wort-Slot endet in <strong id="statement-slot-countdown">'+formatStatementCountdown(new Date(slotDeadline))+'</strong></div>'+
-        '</div>';
+  const s=speechState;
+  if(!s)return '<div class="speech-panel"><div class="speech-empty">'+t().speechNoSpeaker+'</div></div>';
+  const activeId=s.active_voice_user_id||s.speaker_user_id;
+  const mine=String(activeId||"")===String(currentUser?.id||"");
+  const speakerName=s.active_voice_user_id&&String(s.active_voice_user_id)!==String(s.speaker_user_id)
+    ? "Zwischenruf"
+    : (s.speaker_name||"Spieler");
+  const remaining=s.paused_until
+    ? Math.max(0,new Date(s.paused_until).getTime()-Date.now())
+    : Math.max(0,new Date(s.slot_expires_at).getTime()-Date.now());
+  let html='<div class="speech-panel">';
+  if(s.speaker_user_id){
+    html+='<div class="speech-head"><strong>🎙 '+(mine?esc(t().voiceSpeaking):'Rede von '+esc(speakerName))+'</strong><time id="speech-countdown">'+formatCountdown(remaining/1000)+'</time></div>';
+    if(s.paused_until && new Date(s.paused_until).getTime()>Date.now()){
+      html+='<div class="speech-interjection-active">✋ '+esc(t().interjectionActive)+'</div>';
     }
-    return '<div class="player-statement player-statement-notice"><strong>'+esc(t().statementGrantedNotice.replace('{player}',granted.profile_name||'Spieler'))+'</strong><div class="player-statement-slot">Wort-Slot endet in <strong id="statement-slot-countdown">'+formatStatementCountdown(new Date(slotDeadline))+'</strong></div></div>';
+  }else{
+    html+='<div class="speech-head"><strong>'+esc(t().speechNoSpeaker)+'</strong><span>'+esc(t().speechQueue)+'</span></div>';
   }
-  if(active){
-    return '<div class="player-statement"><div class="player-statement-head"><strong>Gegenrede · '+esc(active.profile_name||'Spieler')+'</strong><time>bis '+new Date(active.expires_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})+'</time></div><div class="player-statement-text">'+esc(active.message)+'</div></div>';
+  if(s.incoming_interjection_id&&s.incoming_interjection_status==="pending"){
+    html+='<div class="speech-interjection-request"><strong>'+esc(t().interjectionIncoming.replace("{player}",s.incoming_interjection_name||"Spieler"))+'</strong><div class="speech-interjection-actions"><button type="button" class="session-primary" data-interjection-accept="'+s.incoming_interjection_id+'">'+esc(t().interjectionAccept)+'</button><button type="button" class="session-secondary" data-interjection-reject="'+s.incoming_interjection_id+'">'+esc(t().interjectionReject)+'</button></div></div>';
   }
-  if(pending){
-    return '<div class="player-statement player-statement-pending"><strong>'+esc(t().statementWaiting)+'</strong></div>';
+  if(mine){
+    html+='<button type="button" class="session-primary speech-voice-button" data-voice-toggle>'+ (speechLocalStream&&speechLocalStream.getAudioTracks().some(x=>x.enabled)?'🔇 '+esc(t().voiceMute):'🎙 '+esc(t().voiceEnable))+'</button>';
+  }else if(s.speaker_user_id){
+    html+='<button type="button" class="session-secondary speech-interjection-button" data-interjection '+(s.my_interjection_used?'disabled':'')+'>'+ (s.my_interjection_used?'✓ Zwischenruf genutzt':'✋ '+esc(t().interjection))+'</button>';
+  }else{
+    html+='<button type="button" class="session-primary speech-request-button" data-speech-request '+(s.my_pending_request?'disabled':'')+'>'+ (s.my_pending_request?'✓ '+esc(t().statementWaiting):'🙋 '+esc(t().statement))+'</button>';
   }
-  return '';
+  if(s.my_pending_request) html+='<div class="speech-queue-hint">'+esc(t().statementWaiting)+' · '+Number(s.queue_count||0)+' in der Warteschlange</div>';
+  html+='<audio id="session-voice-audio" autoplay playsinline></audio></div>';
+  return html;
 }
 function renderPresidentStatement(){
   const x=t(),g=gameState||{},c=statementContext||{},resolved=g.statement_status==="resolved",ended=g.session_status==="ended";
@@ -595,7 +603,7 @@ async function sendDebateMessage(event){
     if(button)button.disabled=false;
   }
 }
-async function requestStatement(){
+async function OLD_requestStatement(){
   if(!supabase||!currentSessionId)return;
   const button=root.querySelector("[data-statement-request]");
   if(button)button.disabled=true;
@@ -616,7 +624,7 @@ async function requestStatement(){
   const mine=statementInterjectionState.find(x=>x.is_mine && ["pending","granted"].includes(x.status));
   if(button && !mine)button.disabled=false;
 }
-async function submitStatementForm(event){
+async function OLD_submitStatementForm(event){
   event.preventDefault();
   const input=root.querySelector("#statement-input"); const button=root.querySelector("#statement-form button"); const box=root.querySelector("#statement-form-error");
   const mine=statementInterjectionState.find(x=>x.is_mine&&x.status==="granted");
@@ -643,33 +651,177 @@ async function submitStatementForm(event){
   statementDraftDirty=false;
   await refreshInterjections();
 }
-async function refreshInterjections(){
+async function refreshSpeechState(shouldRender=true){
   if(!supabase||!currentSessionId||!entry?.read_confirmed)return;
   try{
-    await supabase.rpc("claim_session_statement_speaker",{p_session_id:currentSessionId});
-    const {data,error}=await supabase.rpc("get_session_interjection_state",{p_session_id:currentSessionId});
+    const {data,error}=await supabase.rpc("get_session_speech_state",{p_session_id:currentSessionId});
     if(error)return;
-    const next=data||[];
-    const signature=rows=>JSON.stringify((rows||[]).map(x=>[x.id,x.status,x.message,x.expires_at,x.is_mine]));
-    const changed=signature(statementInterjectionState)!==signature(next);
-    statementInterjectionState=next;
-    if(changed){
-      // Während des Schreibens niemals den Session-DOM neu rendern:
-      // der Entwurf bleibt unangetastet. Der Countdown aktualisiert nur
-      // die vorhandenen Elemente.
-      if(!isEditingStatement()) render();
-      startStatementCountdown();
-    }
-  }catch(_error){}
-}
-function isEditingStatement(){
-  const input=document.querySelector("#statement-input");
-  return !!(input && statementInterjectionState.some(x=>x.is_mine&&x.status==="granted") &&
-    (statementDraftDirty || document.activeElement===input || input.value.length>0));
+    const next=data?.[0]||null;
+    const signature=JSON.stringify(next ? [
+      next.slot_id,next.speaker_user_id,next.slot_expires_at,next.paused_until,
+      next.my_pending_request,next.my_interjection_used,next.incoming_interjection_id,
+      next.incoming_interjection_status,next.incoming_interjection_expires_at,next.queue_count,
+      next.active_voice_user_id
+    ] : null);
+    const changed=signature!==speechVoiceSignature;
+    speechState=next;
+    speechVoiceSignature=signature;
+    if(changed&&shouldRender) render();
+    await syncSpeechVoice();
+  }catch(error){
+    console.warn("[Democrat] Speech state refresh failed:",error);
+  }
 }
 function startStatementPolling(){
   if(statementPollTimer)window.clearInterval(statementPollTimer);
-  statementPollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")refreshInterjections();},2000);
+  statementPollTimer=window.setInterval(()=>{
+    if(document.visibilityState!=="hidden") refreshSpeechState(true);
+  },1500);
+}
+async function requestSpeech(){
+  if(!supabase||!currentSessionId)return;
+  const button=root.querySelector("[data-speech-request]");
+  if(button)button.disabled=true;
+  const {error}=await supabase.rpc("request_session_speech",{p_session_id:currentSessionId});
+  if(error){
+    const box=root.querySelector("#vote-error");
+    if(box){box.hidden=false;box.textContent=error.message||"Wortmeldung konnte nicht vorgemerkt werden.";}
+  }
+  await refreshSpeechState(true);
+}
+async function requestInterjection(){
+  if(!supabase||!currentSessionId)return;
+  const button=root.querySelector("[data-interjection]");
+  if(button)button.disabled=true;
+  const {error}=await supabase.rpc("request_session_speech_interjection",{p_session_id:currentSessionId});
+  if(error){
+    const box=root.querySelector("#vote-error");
+    if(box){box.hidden=false;box.textContent=error.message||"Zwischenruf konnte nicht angefragt werden.";}
+  }
+  await refreshSpeechState(true);
+}
+async function respondInterjection(id,accept){
+  const {error}=await supabase.rpc("respond_session_speech_interjection",{p_interjection_id:id,p_accept:accept});
+  if(error){
+    const box=root.querySelector("#vote-error");
+    if(box){box.hidden=false;box.textContent=error.message||"Zwischenruf konnte nicht verarbeitet werden.";}
+  }
+  await refreshSpeechState(true);
+}
+async function toggleVoice(){
+  if(!speechState||!currentUser)return;
+  const activeId=speechState.active_voice_user_id||speechState.speaker_user_id;
+  if(String(activeId)!==String(currentUser.id))return;
+  if(speechLocalStream){
+    const enabled=speechLocalStream.getAudioTracks().some(track=>track.enabled);
+    speechLocalStream.getAudioTracks().forEach(track=>track.enabled=!enabled);
+    render();
+    return;
+  }
+  try{
+    speechLocalStream=await navigator.mediaDevices.getUserMedia({audio:{
+      echoCancellation:true,noiseSuppression:true,autoGainControl:true
+    }});
+    speechLocalStream.getAudioTracks().forEach(track=>track.enabled=true);
+    await syncSpeechVoice();
+    render();
+  }catch(error){
+    const box=root.querySelector("#vote-error");
+    if(box){box.hidden=false;box.textContent=t().speechMicError;}
+    console.warn("[Democrat] Voice microphone error:",error);
+  }
+}
+function closeSpeechPeers(){
+  for(const pc of speechPeers.values())try{pc.close();}catch(_){}
+  speechPeers.clear();
+  if(speechRemoteAudio){speechRemoteAudio.srcObject=null;speechRemoteAudio.remove();}
+  speechRemoteAudio=null;
+}
+function stopSpeechLocalStream(){
+  if(speechLocalStream){speechLocalStream.getTracks().forEach(track=>track.stop());speechLocalStream=null;}
+}
+async function sendVoice(payload){
+  if(!speechChannel)return;
+  try{await speechChannel.send({type:"broadcast",event:"voice-signal",payload});}catch(_){}
+}
+function onlineVoiceUsers(){
+  if(!speechChannel)return [];
+  const state=speechChannel.presenceState?.()||{};
+  const ids=[];
+  Object.values(state).flat().forEach(meta=>{
+    const id=meta?.user_id||meta?.userId;
+    if(id&&String(id)!==String(currentUser?.id)&&!ids.includes(String(id)))ids.push(String(id));
+  });
+  return ids;
+}
+async function createSpeakerPeer(targetId){
+  if(!speechLocalStream||!speechState?.slot_id)return;
+  if(speechPeers.has(targetId))return;
+  const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+  speechPeers.set(targetId,pc);
+  speechLocalStream.getTracks().forEach(track=>pc.addTrack(track,speechLocalStream));
+  pc.onicecandidate=e=>{if(e.candidate)sendVoice({kind:"ice",slot_id:speechState.slot_id,from:currentUser.id,target:targetId,candidate:e.candidate});};
+  const offer=await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  await sendVoice({kind:"offer",slot_id:speechState.slot_id,from:currentUser.id,target:targetId,description:pc.localDescription});
+}
+async function ensureSpeakerPeers(){
+  if(!speechState||!speechState.active_voice_user_id||String(speechState.active_voice_user_id)!==String(currentUser?.id)||!speechLocalStream)return;
+  for(const id of onlineVoiceUsers()) await createSpeakerPeer(id);
+}
+async function handleVoiceSignal(payload){
+  if(!payload||payload.target&&String(payload.target)!==String(currentUser?.id))return;
+  if(!speechState||payload.slot_id&&String(payload.slot_id)!==String(speechState.slot_id))return;
+  if(payload.kind==="offer"){
+    const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+    speechPeers.set(String(payload.from),pc);
+    pc.onicecandidate=e=>{if(e.candidate)sendVoice({kind:"ice",slot_id:payload.slot_id,from:currentUser.id,target:payload.from,candidate:e.candidate});};
+    pc.ontrack=e=>{
+      if(!speechRemoteAudio){speechRemoteAudio=document.createElement("audio");speechRemoteAudio.autoplay=true;speechRemoteAudio.playsInline=true;speechRemoteAudio.style.display="none";document.body.appendChild(speechRemoteAudio);}
+      speechRemoteAudio.srcObject=e.streams[0];
+      speechRemoteAudio.play().catch(()=>{});
+    };
+    await pc.setRemoteDescription(payload.description);
+    const answer=await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    await sendVoice({kind:"answer",slot_id:payload.slot_id,from:currentUser.id,target:payload.from,description:pc.localDescription});
+  }else if(payload.kind==="answer"){
+    const pc=speechPeers.get(String(payload.from));
+    if(pc)await pc.setRemoteDescription(payload.description).catch(()=>{});
+  }else if(payload.kind==="ice"){
+    const pc=speechPeers.get(String(payload.from));
+    if(pc)await pc.addIceCandidate(payload.candidate).catch(()=>{});
+  }else if(payload.kind==="reset"){
+    closeSpeechPeers();
+  }
+}
+async function setupSpeechChannel(){
+  if(!supabase||!currentSessionId||speechChannel)return;
+  speechChannel=supabase.channel("session-voice:"+currentSessionId,{config:{presence:{key:String(currentUser.id)},broadcast:{ack:false,self:false}}});
+  speechChannel.on("broadcast",{event:"voice-signal"},({payload})=>handleVoiceSignal(payload));
+  speechChannel.on("presence",{event:"sync"},()=>{ensureSpeakerPeers();});
+  speechChannel.on("presence",{event:"join"},({newPresences})=>{
+    if(speechState?.active_voice_user_id&&String(speechState.active_voice_user_id)===String(currentUser?.id))ensureSpeakerPeers();
+  });
+  speechChannel.on("presence",{event:"leave"},({leftPresences})=>{
+    (leftPresences||[]).forEach(p=>{const id=p?.user_id||p?.userId;if(id){const pc=speechPeers.get(String(id));if(pc){pc.close();speechPeers.delete(String(id));}}});
+  });
+  speechChannel.subscribe(async status=>{
+    if(status==="SUBSCRIBED")await speechChannel.track({user_id:currentUser.id,profile_name:currentUser.profile_name||"Spieler"});
+  });
+}
+async function syncSpeechVoice(){
+  await setupSpeechChannel();
+  if(!speechState){closeSpeechPeers();stopSpeechLocalStream();return;}
+  const activeId=speechState.active_voice_user_id||speechState.speaker_user_id;
+  const mine=String(activeId||"")===String(currentUser?.id||"");
+  if(!mine){
+    closeSpeechPeers();
+    stopSpeechLocalStream();
+    await speechChannel?.send({type:"broadcast",event:"voice-signal",payload:{kind:"reset",slot_id:speechState.slot_id}});
+    return;
+  }
+  if(speechLocalStream)await ensureSpeakerPeers();
 }
 function closeDebate(){
   debateOpen=false;
@@ -971,7 +1123,7 @@ function render(){
             <div id="session-action-error" class="session-action-error" hidden></div>
           </div>
         </section>`}
-      ${assigned && gameState?.statement_status==="open" && !gameState?.player_eliminated && gameState?.session_status!=="ended" ? `<div class="decision-bar"><div class="decision-title">${x.decision}</div><div class="decision-buttons"><button class="decision-button approve" type="button" data-vote="approve" ${gameState?.my_choice?"disabled":""}>${x.approve}</button><button class="decision-button interject" type="button" data-vote="debate" ${gameState?.my_choice?"disabled":""}>${x.interject}</button><button class="decision-button statement-request" type="button" data-statement-request ${gameState?.statement_status!=="open"||gameState?.session_status!=="active"||gameState?.player_eliminated||statementInterjectionState.some(x=>x.is_mine&&["pending","granted"].includes(x.status))?"disabled":""}>${x.statement||"Statement"}</button><button class="decision-button reject" type="button" data-vote="reject" ${gameState?.my_choice?"disabled":""}>${x.reject}</button></div></div>` : ""}
+      ${assigned && gameState?.statement_status==="open" && !gameState?.player_eliminated && gameState?.session_status!=="ended" ? `<div class="decision-bar"><div class="decision-title">${x.decision}</div><div class="decision-buttons"><button class="decision-button approve" type="button" data-vote="approve" ${gameState?.my_choice?"disabled":""}>${x.approve}</button><button class="decision-button interject" type="button" data-vote="debate" ${gameState?.my_choice?"disabled":""}>${x.interject}</button><button class="decision-button reject" type="button" data-vote="reject" ${gameState?.my_choice?"disabled":""}>${x.reject}</button></div></div>` : ""}
     </main>
   </div>`;
   root.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>back()));
@@ -983,9 +1135,11 @@ function render(){
   root.querySelector("[data-cancel-switch]")?.addEventListener("click",()=>{switchingFaction=false;selectedFactionId=null;render();});
   root.querySelector("[data-read]")?.addEventListener("click",confirmRead);
   root.querySelectorAll("[data-vote]").forEach(b=>b.addEventListener("click",()=>castVote(b.dataset.vote)));
-  root.querySelector("[data-statement-request]")?.addEventListener("click",requestStatement);
-  root.querySelector("#statement-form")?.addEventListener("submit",submitStatementForm);
-  root.querySelector("#statement-input")?.addEventListener("input",()=>{statementDraftDirty=true;});
+  root.querySelector("[data-speech-request]")?.addEventListener("click",requestSpeech);
+  root.querySelector("[data-interjection]")?.addEventListener("click",requestInterjection);
+  root.querySelector("[data-interjection-accept]")?.addEventListener("click",()=>respondInterjection(root.querySelector("[data-interjection-accept]").dataset.interjectionAccept,true));
+  root.querySelector("[data-interjection-reject]")?.addEventListener("click",()=>respondInterjection(root.querySelector("[data-interjection-reject]").dataset.interjectionReject,false));
+  root.querySelector("[data-voice-toggle]")?.addEventListener("click",toggleVoice);
   root.querySelector("[data-leave-session]")?.addEventListener("click",leaveCurrentSession);
   root.querySelectorAll("[data-ranking-mode]").forEach(b=>b.addEventListener("click",()=>{rankingMode=b.dataset.rankingMode==="player"?"player":"faction";render();startStatementCountdown();}));
   root.querySelectorAll("[data-bot-id]").forEach(b=>b.addEventListener("click",()=>openBotDialog(b.dataset.botId)));
@@ -1085,6 +1239,9 @@ async function leaveCurrentSession(){
 }
 function back(){
   closeDebate();
+  closeSpeechPeers();
+  stopSpeechLocalStream();
+  if(speechChannel&&supabase){supabase.removeChannel(speechChannel);speechChannel=null;}
   factionMenuOpen=false;
   mailboxOpen=false;
   root.hidden=true;root.innerHTML="";
@@ -1111,5 +1268,6 @@ export async function mount(user,sessionId,prefs){
   startPresenceHeartbeat();
   gamePollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")refreshSessionSilently();},3000);
   startStatementPolling();
+  refreshSpeechState(true);
 }
-export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);if(countdownTimer)window.clearInterval(countdownTimer);if(statementPollTimer)window.clearInterval(statementPollTimer);if(finalizeSessionTimer)window.clearTimeout(finalizeSessionTimer);if(presenceTimer)window.clearInterval(presenceTimer);closeDebate();gamePollTimer=null;advanceTimer=null;countdownTimer=null;statementPollTimer=null;finalizeSessionTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;statementDraftDirty=false;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
+export function unmount(){closeSpeechPeers();stopSpeechLocalStream();if(speechChannel&&supabase){supabase.removeChannel(speechChannel);speechChannel=null;}if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);if(countdownTimer)window.clearInterval(countdownTimer);if(statementPollTimer)window.clearInterval(statementPollTimer);if(finalizeSessionTimer)window.clearTimeout(finalizeSessionTimer);if(presenceTimer)window.clearInterval(presenceTimer);closeDebate();gamePollTimer=null;advanceTimer=null;countdownTimer=null;statementPollTimer=null;finalizeSessionTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;statementDraftDirty=false;speechState=null;speechVoiceSignature="";speechActiveVoiceUserId=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
