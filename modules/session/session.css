@@ -458,3 +458,9 @@
 .speech-interjection-actions{display:flex;gap:8px}
 .speech-interjection-actions button{flex:1;min-height:44px}
 .speech-queue-hint{margin-top:8px;color:#8f9bae;font-size:11px;text-align:center}
+
+
+.speech-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.speech-controls button{margin:0}
+.speech-controls button:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.45)}
+@media(max-width:520px){.speech-controls{grid-template-columns:1fr}}
