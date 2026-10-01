@@ -124,7 +124,7 @@ begin
  select count(*)::int into v_session_eligible
  from game.session_members m
  left join game.session_votes sv on sv.statement_id=v_statement.id and sv.user_id=m.user_id
- where m.session_id=p_session_id and (m.eliminated_at is null or sv.id is not null);
+ where m.session_id=p_session_id and (m.eliminated_at is null or sv.user_id is not null);
 
  select count(*)::int into v_session_voted
  from game.session_votes sv_vote where sv_vote.statement_id=v_statement.id;
