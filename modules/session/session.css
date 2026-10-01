@@ -431,3 +431,30 @@
   font-size:.9rem;
   line-height:1.45;
 }
+
+/* Live voice speaking / interjection */
+.speech-panel{
+  margin:14px 0 0;
+  padding:14px 16px;
+  border:1px solid rgba(229,199,107,.28);
+  border-radius:14px;
+  background:linear-gradient(135deg,rgba(229,199,107,.06),rgba(255,255,255,.025));
+}
+.speech-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.speech-head strong{font-size:14px}
+.speech-head time{font-variant-numeric:tabular-nums;color:#e5c76b;font-weight:900}
+.speech-empty{color:#8f9bae;font-size:13px}
+.speech-voice-button,.speech-request-button,.speech-interjection-button{width:100%;min-height:48px}
+.speech-interjection-active{
+  margin:8px 0 10px;padding:9px 11px;border-radius:10px;
+  background:rgba(59,130,246,.09);border:1px solid rgba(59,130,246,.25);
+  color:#dce8ff;font-size:12px;font-weight:800
+}
+.speech-interjection-request{
+  margin:10px 0;padding:12px;border-radius:12px;
+  border:1px solid rgba(229,199,107,.35);background:rgba(229,199,107,.07)
+}
+.speech-interjection-request strong{display:block;margin-bottom:9px}
+.speech-interjection-actions{display:flex;gap:8px}
+.speech-interjection-actions button{flex:1;min-height:44px}
+.speech-queue-hint{margin-top:8px;color:#8f9bae;font-size:11px;text-align:center}
