@@ -347,3 +347,14 @@
   .faction-section-heading h3{font-size:15px}
   .management-member-info{width:100%}
 }
+
+.session-majority-bar em{
+  display:block;
+  height:100%;
+  float:left;
+  background:rgba(255,255,255,.12);
+}
+.session-majority-bar i,
+.session-majority-bar b,
+.session-majority-bar em{transition:width .25s ease}
+.session-majority-panel .faction-vote-numbers span:last-child{color:#7f8a9b}
