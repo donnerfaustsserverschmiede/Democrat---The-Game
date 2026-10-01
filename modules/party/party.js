@@ -135,7 +135,7 @@ async function renderOwnParty(party){
  chatTimer=setInterval(loadChat,4000);
  overlay.querySelector("#party-chat-form")?.addEventListener("submit",async ev=>{
    ev.preventDefault();
-   const form=ev.currentTarget,input=form?.querySelector("input[name='message']"),btn=form?.querySelector("button");
+   const form=ev.currentTarget; const input=form.querySelector("input[name='message']"),btn=form.querySelector("button");
    if(!input||!btn)return;
    const message=input.value.trim();if(!message)return;
    btn.disabled=true;
