@@ -536,7 +536,7 @@ async function handleStatementCountdown(){
   const serverNow=gameState.server_now?new Date(gameState.server_now).getTime():Date.now();
   const clockOffset=serverNow-Date.now();
   const remaining=Math.max(0,new Date(gameState.statement_deadline).getTime()-(Date.now()+clockOffset));
-  if(el)el.textContent=formatStatementCountdown(gameState.statement_deadline);
+  if(el)el.textContent=remaining<=0?"Entscheidung wird ausgewertet …":formatStatementCountdown(gameState.statement_deadline);
   if(remaining<=0&&advanceTimer===null){
     advanceTimer=window.setTimeout(async()=>{
       advanceTimer=null;
