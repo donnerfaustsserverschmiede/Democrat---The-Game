@@ -26,6 +26,8 @@ let advanceTimer = null;
 let debateOpen = false;
 let debateMessages = [];
 let debatePollTimer = null;
+let statementPollTimer = null;
+let statementInterjectionState = [];
 let countdownTimer = null;
 let countdownTransitioning = false;
 let loadError = null;
@@ -35,7 +37,7 @@ let mailboxEvents = [];
 let mailboxLoading = false;
 
 const UI = {
-  "de-DE": { intro:"Einführung", read:"Ich habe die Einführung gelesen – weiter", choose:"Fraktion wählen", existing:"Bestehende Fraktionen", new:"Neue Fraktion", name:"Fraktionsname", namePlaceholder:"Name der Fraktion", position:"Position im Plenum", left:"Links", center:"Mitte", right:"Rechts", members:"Mitglieder", seats:"Sitze", chooseExisting:"Diese Fraktion wählen", create:"Fraktion gründen und Sitz wählen", assigned:"Dein Sitz ist zugewiesen", assignedText:"Du sitzt in einem zusammenhängenden Fraktionsblock.", seat:"Sitz", back:"Zurück zur Sitzungsübersicht", changeFaction:"Fraktion wechseln", cancel:"Abbrechen", loading:"Sitzung wird geladen …", error:"Die Sitzung konnte nicht geladen werden.", full:"Voll", selected:"Ausgewählt", required:"Bitte gib einen Fraktionsnamen ein und wähle eine Position.", factionFull:"Diese Fraktion hat bereits 10 Sitze.", sectorFull:"In diesem Sektor sind keine weiteren Fraktionsblöcke frei.", management:"Fraktionsverwaltung",hudPlayer:"Eigene Meinungspunkte",hudFaction:"Fraktions-Meinungspunkte",hudMoney:"Geld",president:"PRÄSIDENT",decision:"Deine Entscheidung",approve:"Zustimmung",interject:"Debatte",reject:"Ablehnung",voted:"Deine Entscheidung wurde gespeichert",factionVote:"Fraktionsstimme",resultApproved:"Fraktion stimmt zu",resultRejected:"Fraktion lehnt ab",resultTie:"Stimmengleichheit",nextStatement:"Nächste Aussage",voteError:"Entscheidung konnte nicht gespeichert werden.",debateTitle:"Debatte",debatePlaceholder:"Schreibe etwas zur aktuellen Sitzung …",debateSend:"Senden",debateClose:"Debatte schließen",debateEmpty:"Noch keine Beiträge. Starte die Debatte.",moderationRemoved:"Dein Beitrag verstößt gegen die Sitzungsregeln. Du wurdest aus dieser Sitzung entfernt.",waiting:"Warten auf die übrigen Fraktionsmitglieder …",points:"Punkte",eliminated:"AUSGESCHIEDEN",winnerPlayer:"SIEG · SPIELER",winnerFaction:"SIEG · FRAKTION",sessionEnded:"DIE SITZUNG IST BEENDET",leader:"Fraktionsvorsitz", deputy:"Stellvertretender Vorsitz", promote:"Zum Stellvertreter ernennen", removeDeputy:"Stellvertretung aufheben", kick:"Aus Fraktion entfernen", deleteFaction:"Fraktion löschen", deleteConfirm:"Fraktion wirklich löschen? Alle Mitglieder verlieren ihre Fraktionszugehörigkeit.", kickConfirm:"Mitglied wirklich aus der Fraktion entfernen?" , actions:"Fraktionsaktionen",actionHint:"Aktionen können zusätzliche leere Fraktionsplätze sichern. Besetzte Plätze werden niemals verdrängt.",speech:"Fraktionsrede · +1 Sitz · 1.500",committee:"Ausschussarbeit · +2 Sitze · 4.000",publicity:"Öffentlichkeitsarbeit · +3 Sitze · 9.000",actionError:"Aktion konnte nicht ausgeführt werden.",color:"Fraktionsfarbe",chooseColor:"Farbe wählen",saveColor:"Farbe speichern",colorSaved:"Fraktionsfarbe gespeichert.",colorTaken:"Diese Farbe wird bereits von einer anderen Fraktion verwendet.",colorPermission:"Nur Fraktionsvorsitz oder Stellvertretung kann die Fraktionsfarbe ändern.",invalidColor:"Ungültige Fraktionsfarbe.",seatCost1:"1 Sitz · 1.500",seatCost2:"2 Sitze · 4.000",seatCost3:"3 Sitze · 9.000",insufficientFunds:"Dafür reicht dein Geld nicht.",sessionMajority:"Sitzungsmehrheit",botTitle:"Fraktionsloser Bürger",botHint:"Dieser Bürger gehört keiner Fraktion an und kann beeinflusst werden.",botApprove:"Für Zustimmung beeinflussen",botReject:"Für Ablehnung beeinflussen",moral:"Moralisch überzeugen · kostenlos",bribe:"Bestechen · 750",botInfluenceError:"Der Bürger konnte nicht beeinflusst werden."},
+  "de-DE": { intro:"Einführung", read:"Ich habe die Einführung gelesen – weiter", choose:"Fraktion wählen", existing:"Bestehende Fraktionen", new:"Neue Fraktion", name:"Fraktionsname", namePlaceholder:"Name der Fraktion", position:"Position im Plenum", left:"Links", center:"Mitte", right:"Rechts", members:"Mitglieder", seats:"Sitze", chooseExisting:"Diese Fraktion wählen", create:"Fraktion gründen und Sitz wählen", assigned:"Dein Sitz ist zugewiesen", assignedText:"Du sitzt in einem zusammenhängenden Fraktionsblock.", seat:"Sitz", back:"Zurück zur Sitzungsübersicht", changeFaction:"Fraktion wechseln", cancel:"Abbrechen", loading:"Sitzung wird geladen …", error:"Die Sitzung konnte nicht geladen werden.", full:"Voll", selected:"Ausgewählt", required:"Bitte gib einen Fraktionsnamen ein und wähle eine Position.", factionFull:"Diese Fraktion hat bereits 10 Sitze.", sectorFull:"In diesem Sektor sind keine weiteren Fraktionsblöcke frei.", management:"Fraktionsverwaltung",hudPlayer:"Eigene Meinungspunkte",hudFaction:"Fraktions-Meinungspunkte",hudMoney:"Geld",president:"PRÄSIDENT",decision:"Deine Entscheidung",approve:"Zustimmung",interject:"Debatte",statement:"Statement",statementWaiting:"Wortmeldung vorgemerkt …",statementGranted:"Du erhältst das Wort. Verfasse dein Statement.",statementGrantedNotice:"Spieler {player} erhält das Wort und verfasst ein Statement.",statementPlaceholder:"Deine Gegenrede zum Statement des Präsidenten …",statementSend:"Statement veröffentlichen",statementCooldown:"Du kannst erst wieder in 10 Minuten ein Statement abgeben.",statementBanned:"Deine Wortmeldung ist für 30 Minuten gesperrt.",statementRejected:"Dein Statement wurde wegen eines Regelverstoßes entfernt. Du bist für 30 Minuten gesperrt.",statementExpired:"Die Zeit für deine Wortmeldung ist abgelaufen.",statementEmpty:"Noch kein Statement.",reject:"Ablehnung",voted:"Deine Entscheidung wurde gespeichert",factionVote:"Fraktionsstimme",resultApproved:"Fraktion stimmt zu",resultRejected:"Fraktion lehnt ab",resultTie:"Stimmengleichheit",nextStatement:"Nächste Aussage",voteError:"Entscheidung konnte nicht gespeichert werden.",debateTitle:"Debatte",debatePlaceholder:"Schreibe etwas zur aktuellen Sitzung …",debateSend:"Senden",debateClose:"Debatte schließen",debateEmpty:"Noch keine Beiträge. Starte die Debatte.",moderationRemoved:"Dein Beitrag verstößt gegen die Sitzungsregeln. Du wurdest aus dieser Sitzung entfernt.",waiting:"Warten auf die übrigen Fraktionsmitglieder …",points:"Punkte",eliminated:"AUSGESCHIEDEN",winnerPlayer:"SIEG · SPIELER",winnerFaction:"SIEG · FRAKTION",sessionEnded:"DIE SITZUNG IST BEENDET",leader:"Fraktionsvorsitz", deputy:"Stellvertretender Vorsitz", promote:"Zum Stellvertreter ernennen", removeDeputy:"Stellvertretung aufheben", kick:"Aus Fraktion entfernen", deleteFaction:"Fraktion löschen", deleteConfirm:"Fraktion wirklich löschen? Alle Mitglieder verlieren ihre Fraktionszugehörigkeit.", kickConfirm:"Mitglied wirklich aus der Fraktion entfernen?" , actions:"Fraktionsaktionen",actionHint:"Aktionen können zusätzliche leere Fraktionsplätze sichern. Besetzte Plätze werden niemals verdrängt.",speech:"Fraktionsrede · +1 Sitz · 1.500",committee:"Ausschussarbeit · +2 Sitze · 4.000",publicity:"Öffentlichkeitsarbeit · +3 Sitze · 9.000",actionError:"Aktion konnte nicht ausgeführt werden.",color:"Fraktionsfarbe",chooseColor:"Farbe wählen",saveColor:"Farbe speichern",colorSaved:"Fraktionsfarbe gespeichert.",colorTaken:"Diese Farbe wird bereits von einer anderen Fraktion verwendet.",colorPermission:"Nur Fraktionsvorsitz oder Stellvertretung kann die Fraktionsfarbe ändern.",invalidColor:"Ungültige Fraktionsfarbe.",seatCost1:"1 Sitz · 1.500",seatCost2:"2 Sitze · 4.000",seatCost3:"3 Sitze · 9.000",insufficientFunds:"Dafür reicht dein Geld nicht.",sessionMajority:"Sitzungsmehrheit",botTitle:"Fraktionsloser Bürger",botHint:"Dieser Bürger gehört keiner Fraktion an und kann beeinflusst werden.",botApprove:"Für Zustimmung beeinflussen",botReject:"Für Ablehnung beeinflussen",moral:"Moralisch überzeugen · kostenlos",bribe:"Bestechen · 750",botInfluenceError:"Der Bürger konnte nicht beeinflusst werden."},
   "es-ES": { intro:"Introducción", read:"He leído la introducción – continuar", choose:"Elegir grupo", existing:"Grupos existentes", new:"Nuevo grupo", name:"Nombre del grupo", namePlaceholder:"Nombre del grupo", position:"Posición en la cámara", left:"Izquierda", center:"Centro", right:"Derecha", members:"Miembros", seats:"Escaños", chooseExisting:"Elegir este grupo", create:"Crear grupo y elegir escaño", assigned:"Tu escaño está asignado", assignedText:"Te sientas en un bloque contiguo de tu grupo.", seat:"Escaño", back:"Volver al resumen", changeFaction:"Cambiar de grupo", cancel:"Cancelar", loading:"Cargando sesión …", error:"No se pudo cargar la sesión.", full:"Completo", selected:"Seleccionado", required:"Introduce un nombre y elige una posición.", factionFull:"Este grupo ya tiene 10 escaños.", sectorFull:"No quedan bloques libres en este sector." , actions:"Acciones del grupo",actionHint:"Las acciones pueden asegurar escaños vacíos adicionales. Los jugadores existentes nunca son desplazados.",speech:"Discurso del grupo · +1 escaño",committee:"Trabajo en comisión · +2 escaños",publicity:"Comunicación pública · +3 escaños",actionError:"No se pudo ejecutar la acción."},
   "fr-FR": { intro:"Introduction", read:"J’ai lu l’introduction – continuer", choose:"Choisir un groupe", existing:"Groupes existants", new:"Nouveau groupe", name:"Nom du groupe", namePlaceholder:"Nom du groupe", position:"Position dans l’hémicycle", left:"Gauche", center:"Centre", right:"Droite", members:"Membres", seats:"Sièges", chooseExisting:"Choisir ce groupe", create:"Créer le groupe et choisir un siège", assigned:"Votre siège est attribué", assignedText:"Vous êtes placé dans un bloc contigu de votre groupe.", seat:"Siège", back:"Retour au résumé", changeFaction:"Changer de groupe", cancel:"Annuler", loading:"Chargement de la session …", error:"Impossible de charger la session.", full:"Complet", selected:"Sélectionné", required:"Saisissez un nom et choisissez une position.", factionFull:"Ce groupe compte déjà 10 sièges.", sectorFull:"Aucun bloc libre dans ce secteur." , actions:"Actions du groupe",actionHint:"Les actions peuvent sécuriser des sièges vides supplémentaires. Aucun joueur en place n’est déplacé.",speech:"Discours du groupe · +1 siège",committee:"Travail en commission · +2 sièges",publicity:"Action publique · +3 sièges",actionError:"L’action n’a pas pu être exécutée."},
   "it-IT": { intro:"Introduzione", read:"Ho letto l’introduzione – continua", choose:"Scegli il gruppo", existing:"Gruppi esistenti", new:"Nuovo gruppo", name:"Nome del gruppo", namePlaceholder:"Nome del gruppo", position:"Posizione in aula", left:"Sinistra", center:"Centro", right:"Destra", members:"Membri", seats:"Seggi", chooseExisting:"Scegli questo gruppo", create:"Crea gruppo e scegli il seggio", assigned:"Il tuo seggio è assegnato", assignedText:"Sei inserito in un blocco contiguo del tuo gruppo.", seat:"Seggio", back:"Torna al riepilogo", changeFaction:"Cambia gruppo", cancel:"Annulla", loading:"Caricamento sessione …", error:"Impossibile caricare la sessione.", full:"Completo", selected:"Selezionato", required:"Inserisci un nome e scegli una posizione.", factionFull:"Questo gruppo ha già 10 seggi.", sectorFull:"Non ci sono altri blocchi liberi in questo settore." , actions:"Azioni del gruppo",actionHint:"Le azioni possono assicurare ulteriori seggi liberi. Nessun giocatore già seduto viene spostato.",speech:"Intervento del gruppo · +1 seggio",committee:"Lavoro in commissione · +2 seggi",publicity:"Azione pubblica · +3 seggi",actionError:"Impossibile eseguire l’azione."},
@@ -136,6 +138,7 @@ async function refreshSessionSilently(){
       supabase.rpc("get_session_faction_actions",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_rankings",{p_session_id:currentSessionId}),
       supabase.rpc("get_session_mailbox",{p_session_id:currentSessionId,p_limit:200}),
+      supabase.rpc("get_session_interjection_state",{p_session_id:currentSessionId}),
     ]);
 
     if(entryResult.error || gameResult.error) return;
@@ -150,6 +153,7 @@ async function refreshSessionSilently(){
     if(walletResult && !walletResult.error) walletState=walletResult.data?.[0]||walletState;
     if(rankResult && !rankResult.error) rankings=rankResult.data||[];
     if(mailboxResult && !mailboxResult.error) mailboxEvents=mailboxResult.data||[];
+    if(interjectionResult && !interjectionResult.error) statementInterjectionState=interjectionResult.data||[];
     factions=factionResult.error ? factions : (factionResult.data||[]);
     seats=seatResult.error ? seats : (seatResult.data||[]);
     factionActionStatus=actionResult.error ? factionActionStatus : (actionResult.data||[]);
@@ -344,6 +348,24 @@ function formatStatementCountdown(deadline){
   const seconds=total%60;
   return String(minutes).padStart(2,"0")+":"+String(seconds).padStart(2,"0");
 }
+function renderPlayerStatement(){
+  const active=statementInterjectionState.find(x=>x.status==="approved" && x.expires_at && new Date(x.expires_at)>new Date());
+  const granted=statementInterjectionState.find(x=>x.status==="granted");
+  const pending=statementInterjectionState.find(x=>x.status==="pending");
+  if(granted){
+    if(granted.is_mine){
+      return '<div class="player-statement player-statement-granted"><div class="player-statement-head"><strong>'+esc(t().statementGranted)+'</strong></div><form id="statement-form"><textarea id="statement-input" maxlength="500" rows="3" placeholder="'+esc(t().statementPlaceholder)+'" required></textarea><button class="session-primary" type="submit">'+esc(t().statementSend)+'</button></form><div id="statement-form-error" class="session-action-error" hidden></div></div>';
+    }
+    return '<div class="player-statement player-statement-notice"><strong>'+esc(t().statementGrantedNotice.replace('{player}',granted.profile_name||'Spieler'))+'</strong></div>';
+  }
+  if(active){
+    return '<div class="player-statement"><div class="player-statement-head"><strong>Gegenrede · '+esc(active.profile_name||'Spieler')+'</strong><time>bis '+new Date(active.expires_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})+'</time></div><div class="player-statement-text">'+esc(active.message)+'</div></div>';
+  }
+  if(pending){
+    return '<div class="player-statement player-statement-pending"><strong>'+esc(t().statementWaiting)+'</strong></div>';
+  }
+  return '';
+}
 function renderPresidentStatement(){
   const x=t(),g=gameState||{},c=statementContext||{},resolved=g.statement_status==="resolved",ended=g.session_status==="ended";
   let body="";
@@ -370,7 +392,7 @@ function renderPresidentStatement(){
       (g.statement_text?'<h2>'+esc(g.statement_text)+'</h2>':"")+
       (c.context_text?'<p class="statement-context">'+esc(c.context_text)+'</p>':"")+
       (g.statement_status==="open"&&g.session_status==="active"&&getStatementDeadline()?'<div class="statement-countdown"><span id="statement-countdown-label">'+(countdownTransitioning?"Entscheidung wird ausgewertet …":"Nächste Entscheidung in")+'</span><strong id="statement-countdown">'+formatStatementCountdown(getStatementDeadline())+'</strong></div>':"")+
-      (resolved?'<div class="statement-resolved">'+(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie)+'</div>'+
+      (renderPlayerStatement())+(resolved?'<div class="statement-resolved">'+(g.outcome==="approved"?x.resultApproved:g.outcome==="rejected"?x.resultRejected:x.resultTie)+'</div>'+
         (publicOpinionDelta?'<div class="statement-consequence public-opinion-consequence"><span>Öffentliche Meinung</span><strong>'+publicOpinionDelta+'</strong><small>Deine Abstimmung verändert deine öffentliche Meinung.</small></div>':""):"");
   }
   return '<section class="president-statement">'+body+'</section>';
@@ -501,6 +523,43 @@ async function sendDebateMessage(event){
   }finally{
     if(button)button.disabled=false;
   }
+}
+async function requestStatement(){
+  if(!supabase||!currentSessionId)return;
+  const button=root.querySelector("[data-statement-request]"); if(button)button.disabled=true;
+  const {error}=await supabase.rpc("request_session_statement",{p_session_id:currentSessionId});
+  if(error){
+    const msg=error.message||"";
+    const box=root.querySelector("#vote-error");
+    if(box){box.hidden=false;box.textContent=msg.includes("statement_banned")?t().statementBanned:msg.includes("statement_cooldown")?t().statementCooldown:msg;}
+  }
+  await refreshInterjections();
+}
+async function submitStatementForm(event){
+  event.preventDefault();
+  const input=root.querySelector("#statement-input"); const button=root.querySelector("#statement-form button"); const box=root.querySelector("#statement-form-error");
+  const mine=statementInterjectionState.find(x=>x.is_mine&&x.status==="granted");
+  if(!mine||!input?.value.trim())return;
+  if(button)button.disabled=true;
+  const {data,error}=await supabase.rpc("submit_session_statement",{p_session_id:currentSessionId,p_request_id:mine.id,p_message:input.value.trim()});
+  if(error){if(box){box.hidden=false;box.textContent=error.message||t().statementRejected;} if(button)button.disabled=false; return;}
+  if(data?.[0]?.status==="rejected" && box){box.hidden=false;box.textContent=t().statementRejected;}
+  await refreshInterjections();
+}
+async function refreshInterjections(){
+  if(!supabase||!currentSessionId||!entry?.read_confirmed)return;
+  try{
+    await supabase.rpc("claim_session_statement_speaker",{p_session_id:currentSessionId});
+    const {data,error}=await supabase.rpc("get_session_interjection_state",{p_session_id:currentSessionId});
+    if(error)return;
+    statementInterjectionState=data||[];
+    render();
+    startStatementCountdown();
+  }catch(_error){}
+}
+function startStatementPolling(){
+  if(statementPollTimer)window.clearInterval(statementPollTimer);
+  statementPollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")refreshInterjections();},2000);
 }
 function closeDebate(){
   debateOpen=false;
@@ -681,6 +740,7 @@ async function handleStatementCountdown(){
 }
 function startStatementCountdown(){
   if(countdownTimer)window.clearInterval(countdownTimer);
+    if(statementPollTimer)window.clearInterval(statementPollTimer);
   countdownTimer=window.setInterval(handleStatementCountdown,1000);
   handleStatementCountdown();
 }
@@ -785,7 +845,7 @@ function render(){
             <div id="session-action-error" class="session-action-error" hidden></div>
           </div>
         </section>`}
-      ${assigned && gameState?.statement_status==="open" && !gameState?.player_eliminated && gameState?.session_status!=="ended" ? `<div class="decision-bar"><div class="decision-title">${x.decision}</div><div class="decision-buttons"><button class="decision-button approve" type="button" data-vote="approve" ${gameState?.my_choice?"disabled":""}>${x.approve}</button><button class="decision-button interject" type="button" data-vote="debate" ${gameState?.my_choice?"disabled":""}>${x.interject}</button><button class="decision-button reject" type="button" data-vote="reject" ${gameState?.my_choice?"disabled":""}>${x.reject}</button></div></div>` : ""}
+      ${assigned && gameState?.statement_status==="open" && !gameState?.player_eliminated && gameState?.session_status!=="ended" ? `<div class="decision-bar"><div class="decision-title">${x.decision}</div><div class="decision-buttons"><button class="decision-button approve" type="button" data-vote="approve" ${gameState?.my_choice?"disabled":""}>${x.approve}</button><button class="decision-button interject" type="button" data-vote="debate" ${gameState?.my_choice?"disabled":""}>${x.interject}</button><button class="decision-button statement-request" type="button" data-statement-request ${gameState?.statement_status!=="open"||gameState?.session_status!=="active"||gameState?.player_eliminated?"disabled":""}>${x.statement||"Statement"}</button><button class="decision-button reject" type="button" data-vote="reject" ${gameState?.my_choice?"disabled":""}>${x.reject}</button></div></div>` : ""}
     </main>
   </div>`;
   root.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>back()));
@@ -797,6 +857,8 @@ function render(){
   root.querySelector("[data-cancel-switch]")?.addEventListener("click",()=>{switchingFaction=false;selectedFactionId=null;render();});
   root.querySelector("[data-read]")?.addEventListener("click",confirmRead);
   root.querySelectorAll("[data-vote]").forEach(b=>b.addEventListener("click",()=>castVote(b.dataset.vote)));
+  root.querySelector("[data-statement-request]")?.addEventListener("click",requestStatement);
+  root.querySelector("#statement-form")?.addEventListener("submit",submitStatementForm);
   root.querySelector("[data-leave-session]")?.addEventListener("click",leaveCurrentSession);
   root.querySelectorAll("[data-ranking-mode]").forEach(b=>b.addEventListener("click",()=>{rankingMode=b.dataset.rankingMode==="player"?"player":"faction";render();startStatementCountdown();}));
   root.querySelectorAll("[data-bot-id]").forEach(b=>b.addEventListener("click",()=>openBotDialog(b.dataset.botId)));
@@ -886,7 +948,7 @@ async function leaveCurrentSession(){
     if(gamePollTimer)window.clearInterval(gamePollTimer);
     if(advanceTimer)window.clearTimeout(advanceTimer);
     if(countdownTimer)window.clearInterval(countdownTimer);
-    gamePollTimer=null;advanceTimer=null;countdownTimer=null;
+    gamePollTimer=null;advanceTimer=null;countdownTimer=null;statementPollTimer=null;
     const leftId=currentSessionId;
     root.hidden=true;root.innerHTML="";
     window.dispatchEvent(new CustomEvent("democrat:session-back",{detail:{leftSession:true,sessionId:leftId}}));
@@ -920,5 +982,6 @@ export async function mount(user,sessionId,prefs){
     return;
   }
   gamePollTimer=window.setInterval(()=>{if(document.visibilityState!=="hidden")refreshSessionSilently();},3000);
+  startStatementPolling();
 }
 export function unmount(){if(gamePollTimer)window.clearInterval(gamePollTimer);if(advanceTimer)window.clearTimeout(advanceTimer);if(countdownTimer)window.clearInterval(countdownTimer);closeDebate();gamePollTimer=null;advanceTimer=null;countdownTimer=null;if(root){root.hidden=true;root.innerHTML="";}currentUser=null;currentSessionId=null;currentPrefs=null;entry=null;factions=[];seats=[];factionManagement=[];factionActionStatus=[];gameState=null;selectedFactionId=null;switchingFaction=false;}
