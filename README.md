@@ -37,7 +37,9 @@ A feature change should stay inside its module unless an explicit interface chan
 - Up to 30 real players; remaining seats are bots
 - Bot tendencies are distributed across approval, rejection and neutral behaviour
 - Faction-controlled bot seats follow the faction's human voting majority
-- Extra faction seats: +1 / +2 / +3 with costs of 1,000 / 2,500 / 5,000
+- Session economy: 100 € / min. base salary, 125 € / min. deputy, 150 € / min. faction chair
+- Extra faction seats: +1 / +2 / +3 with costs of 1,500 / 4,000 / 9,000
+- Bot bribery costs 750 €; moral persuasion remains free
 - Extra-seat cooldowns: 10 / 20 / 30 minutes
 - Maximum 10 extra seats per faction
 - New players start with 0 opinion points and do not inherit faction points
