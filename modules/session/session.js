@@ -1133,11 +1133,11 @@ function render(){
           ${gameState?.my_choice ? `<div class="vote-recorded">${x.voted} · ${gameState.my_choice==="approve"?x.approve:gameState.my_choice==="reject"?x.reject:x.interject}</div>` : ""}
           <div id="vote-error" class="session-action-error" hidden></div>
           ${renderChamber()}
-          <button class="session-edge-button session-faction-edge" type="button" data-faction-menu>Fraktion</button>
-          <button class="session-edge-button session-mailbox-edge" type="button" data-mailbox>📬 Mailbox${mailboxEvents.length?'<span class="mailbox-badge">'+Math.min(mailboxEvents.length,99)+'</span>':""}</button>
-          ${renderFactionOverlay()}
-          ${renderMailboxOverlay()}
-        </section>`
+        </section>
+        <button class="session-edge-button session-faction-edge" type="button" data-faction-menu>Fraktion</button>
+        <button class="session-edge-button session-mailbox-edge" type="button" data-mailbox>📬 Mailbox${mailboxEvents.length?'<span class="mailbox-badge">'+Math.min(mailboxEvents.length,99)+'</span>':""}</button>
+        ${renderFactionOverlay()}
+        ${renderMailboxOverlay()}`
       : `
         <section class="session-panel">
           <div class="session-label">${x.choose}</div>
