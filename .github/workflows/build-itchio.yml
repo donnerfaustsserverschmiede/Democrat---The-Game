@@ -1,0 +1,60 @@
+name: Build and publish to itch.io
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-itchio:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare itch.io ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          mkdir -p dist
+          cp index.html dist/
+          if [ -d assets ]; then cp -R assets dist/; fi
+          if [ -d modules ]; then cp -R modules dist/; fi
+          if [ -f manifest.webmanifest ]; then cp manifest.webmanifest dist/; fi
+          if [ -d fonts ]; then cp -R fonts dist/; fi
+          if [ -d data ]; then cp -R data dist/; fi
+          cd dist
+          zip -r ../Democrat-The-Game-html5.zip .
+          cd ..
+          unzip -t Democrat-The-Game-html5.zip
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Democrat-The-Game-html5
+          path: Democrat-The-Game-html5.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Install Butler
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+          unzip -q butler.zip
+          chmod +x butler
+          ./butler -V
+
+      - name: Publish to itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${BUTLER_API_KEY}" || { echo "BUTLER_API_KEY is missing"; exit 1; }
+          ./butler push Democrat-The-Game-html5.zip tdonnerfaust/democrat-the-game:html5 --userversion "${GITHUB_SHA::7}"
