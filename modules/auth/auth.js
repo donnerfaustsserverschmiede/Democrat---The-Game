@@ -190,7 +190,7 @@ async function mountCharacterCreation(user) {
 async function restoreExistingSession() {
   if (!supabase) return;
   const { data } = await supabase.auth.getSession();
-  if (data.session?.user) await mountCountrySelection(data.session.user);
+  if (data.session?.user) await mountCharacterCreation(data.session.user);
 }
 
 async function handleLogin(event) {
@@ -205,7 +205,7 @@ async function handleLogin(event) {
 
   if (error) return renderLogin(error.message);
 
-  await mountCountrySelection(data.user);
+  await mountCharacterCreation(data.user);
 }
 
 async function handleRegister(event) {
@@ -235,7 +235,7 @@ async function handleRegister(event) {
   if (error) return renderRegister(error.message);
 
   if (data.session?.user) {
-    await mountCountrySelection(data.session.user);
+    await mountCharacterCreation(data.session.user);
     return;
   }
 
