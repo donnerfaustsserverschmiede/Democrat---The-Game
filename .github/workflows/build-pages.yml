@@ -25,7 +25,7 @@ jobs:
         uses: buildalon/unity-setup@v2
         with:
           version-file: Unity/ProjectSettings/ProjectVersion.txt
-          unity-version: 6000.3.0f1
+          unity-version: 6000.3.24f1
           build-targets: WebGL
           cache-installation: true
 
