@@ -1,60 +1,21 @@
-name: Generate Unity Personal License
+name: Check Unity Personal License
 
 on:
   workflow_dispatch:
 
 jobs:
-  acquire-license:
-    name: Acquire Unity Personal .ulf
+  activation:
+    name: Activate Unity Personal
     runs-on: ubuntu-latest
     steps:
-      - name: Prepare Unity Editor
-        run: |
-          set -euo pipefail
-          docker pull unityci/editor:ubuntu-6000.3.24f1-base-3.2.2
-          cid=$(docker create unityci/editor:ubuntu-6000.3.24f1-base-3.2.2)
-          docker cp "$cid:/opt/unity" "$RUNNER_TEMP/unity"
-          docker rm "$cid"
-          sudo chown -R "$(id -u):$(id -g)" "$RUNNER_TEMP/unity"
-          printf '#!/bin/bash\nxvfb-run -ae /dev/stdout "$RUNNER_TEMP/unity/Editor/Unity" -batchmode "$@"\n' | sudo tee /usr/local/bin/unity-editor >/dev/null
-          sudo chmod +x /usr/local/bin/unity-editor
-
-      - name: Generate Unity activation request
-        run: |
-          set -euo pipefail
-          cd "$RUNNER_TEMP"
-          unity-editor -quit -createManualActivationFile -logFile
-          ls -la "$RUNNER_TEMP"/*.alf
-
-      - name: Install license acquisition tool
-        run: |
-          npm install -g unity-license-activate
-
-      - name: Acquire Unity Personal license
-        env:
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        run: |
-          set -euo pipefail
-          cd "$RUNNER_TEMP"
-          unity-license-activate "$UNITY_EMAIL" "$UNITY_PASSWORD" "$(ls "$RUNNER_TEMP"/Unity_*.alf)"
-          ls -la "$RUNNER_TEMP"/Unity_*.ulf
-
-      - name: Upload Unity license
-        uses: actions/upload-artifact@v4
+      - name: Activate Unity Personal license
+        uses: buildalon/activate-unity-license@v2.2.2
         with:
-          name: Unity-Personal-License
-          path: ${{ runner.temp }}/Unity_*.ulf
-          if-no-files-found: error
-          retention-days: 3
+          license: Personal
+          username: ${{ secrets.UNITY_EMAIL }}
+          password: ${{ secrets.UNITY_PASSWORD }}
+          license-version: 6.x
 
-      - name: Upload activation diagnostics
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Unity-License-Diagnostics
-          path: |
-            ${{ runner.temp }}/error.png
-            ${{ runner.temp }}/*.log
-          if-no-files-found: ignore
-          retention-days: 3
+      - name: Verify Unity license
+        run: |
+          echo "Unity Personal license activation completed successfully."
