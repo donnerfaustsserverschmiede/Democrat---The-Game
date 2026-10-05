@@ -67,20 +67,32 @@ function render(character = {}) {
         <h1>Erstelle deinen Charakter</h1>
         <p class="character-intro">Gestalte die Person, mit der du deine politische Karriere beginnst.</p>
 
-        <div class="character-layout">
-          <form id="character-form" class="character-form">
-            <div class="character-section">
-              <h2>Name</h2>
-              <div class="character-name-grid">
-                <label>Vorname
-                  <input name="firstName" type="text" maxlength="32" autocomplete="given-name" value="${escapeHtml(c.firstName)}" required>
-                </label>
-                <label>Nachname
-                  <input name="lastName" type="text" maxlength="32" autocomplete="family-name" value="${escapeHtml(c.lastName)}" required>
-                </label>
-              </div>
+        <div class="character-preview-panel" aria-label="Charaktervorschau">
+          <div class="character-preview">
+            <div class="avatar">
+              <div class="avatar-hair"></div>
+              <div class="avatar-head"><span class="avatar-eye avatar-eye-left"></span><span class="avatar-eye avatar-eye-right"></span></div>
+              <div class="avatar-neck"></div>
+              <div class="avatar-body"><div class="avatar-shirt"></div><div class="avatar-tie"></div></div>
             </div>
+            <div id="character-preview-name" class="character-preview-name"></div>
+          </div>
+        </div>
 
+        <form id="character-form" class="character-form">
+          <div class="character-section character-name-section">
+            <h2>Wie heißt dein Charakter?</h2>
+            <div class="character-name-grid">
+              <label>Vorname
+                <input name="firstName" type="text" maxlength="32" autocomplete="given-name" placeholder="Vorname" value="${escapeHtml(c.firstName)}" required>
+              </label>
+              <label>Nachname
+                <input name="lastName" type="text" maxlength="32" autocomplete="family-name" placeholder="Nachname" value="${escapeHtml(c.lastName)}" required>
+              </label>
+            </div>
+          </div>
+
+          <div class="character-controls">
             <div class="character-section">
               <h2>Aussehen</h2>
               <div class="character-option-grid">
@@ -97,23 +109,11 @@ function render(character = {}) {
                 <label>Krawatte<select name="tieColor">${selectOptions(OPTIONS.tieColor,c.tieColor)}</select></label>
               </div>
             </div>
+          </div>
 
-            <p id="character-message" class="character-message" role="alert" hidden></p>
-            <button class="character-save" type="submit">Charakter erstellen</button>
-          </form>
-
-          <aside class="character-preview-panel" aria-label="Charaktervorschau">
-            <div class="character-preview">
-              <div class="avatar">
-                <div class="avatar-hair"></div>
-                <div class="avatar-head"><span class="avatar-eye avatar-eye-left"></span><span class="avatar-eye avatar-eye-right"></span></div>
-                <div class="avatar-neck"></div>
-                <div class="avatar-body"><div class="avatar-shirt"></div><div class="avatar-tie"></div></div>
-              </div>
-              <div id="character-preview-name" class="character-preview-name"></div>
-            </div>
-          </aside>
-        </div>
+          <p id="character-message" class="character-message" role="alert" hidden></p>
+          <button class="character-save" type="submit">Charakter erstellen</button>
+        </form>
       </section>
     </div>
   `;
@@ -124,12 +124,13 @@ function render(character = {}) {
 
   function updatePreview() {
     const data = Object.fromEntries(new FormData(form).entries());
-    root.querySelector(".avatar").dataset.hairstyle = data.hairstyle;
-    root.querySelector(".avatar").dataset.haircolor = data.hairColor;
-    root.querySelector(".avatar").dataset.eyecolor = data.eyeColor;
-    root.querySelector(".avatar").dataset.suit = data.suit;
-    root.querySelector(".avatar").dataset.tie = data.tieColor;
-    previewName.textContent = [data.firstName,data.lastName].filter(Boolean).join(" ");
+    const avatar = root.querySelector(".avatar");
+    avatar.dataset.hairstyle = data.hairstyle;
+    avatar.dataset.haircolor = data.hairColor;
+    avatar.dataset.eyecolor = data.eyeColor;
+    avatar.dataset.suit = data.suit;
+    avatar.dataset.tie = data.tieColor;
+    previewName.textContent = [data.firstName,data.lastName].filter(Boolean).join(" ") || "Dein Charakter";
   }
 
   form.addEventListener("input", updatePreview);
