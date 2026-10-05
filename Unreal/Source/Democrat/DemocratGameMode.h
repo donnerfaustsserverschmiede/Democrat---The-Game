@@ -11,4 +11,5 @@ class DEMOCRAT_API ADemocratGameMode : public AGameModeBase
 
 public:
     ADemocratGameMode();
+    virtual void BeginPlay() override;
 };
