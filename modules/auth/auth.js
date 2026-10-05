@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./auth-config-v2.js?v=20261001-2";
 import * as character from "../character/character.js?v=20261005-1";
+import * as country from "../country/country.js?v=20261005-2";
 
 const root = document.querySelector("#auth-app");
 
@@ -179,6 +180,10 @@ export async function upgradeGuestAccountFromSettings(credentials) {
 
 async function mountCharacterCreation(user) {
   root.hidden = true;
+  if (character.hasExistingCharacter(user)) {
+    await country.mount(user);
+    return;
+  }
   await character.mount(user);
 }
 
