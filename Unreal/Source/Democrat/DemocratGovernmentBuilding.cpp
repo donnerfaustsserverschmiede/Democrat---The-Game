@@ -132,8 +132,9 @@ void ADemocratGovernmentBuilding::AddWallWithDoor(const FVector& Center, const F
             FVector(SideLength / 100.0f, WallThickness / 100.0f, Size.Z / 100.0f), Label + TEXT("_Left"));
         AddBlock(Center + FVector((Half - SideLength * 0.5f), 0, Size.Z * 0.5f),
             FVector(SideLength / 100.0f, WallThickness / 100.0f, Size.Z / 100.0f), Label + TEXT("_Right"));
-        AddBlock(Center + FVector(0, 0, Size.Z - (Size.Z - DoorHeight) * 0.5f),
-            FVector(DoorWidth / 100.0f, WallThickness / 100.0f, (Size.Z - DoorHeight) / 100.0f),
+        const float HeaderHeight = FMath::Max(0.0f, Size.Z - DoorHeight);
+        AddBlock(Center + FVector(0, 0, DoorHeight + HeaderHeight * 0.5f),
+            FVector(DoorWidth / 100.0f, WallThickness / 100.0f, HeaderHeight / 100.0f),
             Label + TEXT("_Header"));
     }
     else
@@ -142,8 +143,9 @@ void ADemocratGovernmentBuilding::AddWallWithDoor(const FVector& Center, const F
             FVector(WallThickness / 100.0f, SideLength / 100.0f, Size.Z / 100.0f), Label + TEXT("_Left"));
         AddBlock(Center + FVector(0, (Half - SideLength * 0.5f), Size.Z * 0.5f),
             FVector(WallThickness / 100.0f, SideLength / 100.0f, Size.Z / 100.0f), Label + TEXT("_Right"));
-        AddBlock(Center + FVector(0, 0, Size.Z - (Size.Z - DoorHeight) * 0.5f),
-            FVector(WallThickness / 100.0f, DoorWidth / 100.0f, (Size.Z - DoorHeight) / 100.0f),
+        const float HeaderHeight = FMath::Max(0.0f, Size.Z - DoorHeight);
+        AddBlock(Center + FVector(0, 0, DoorHeight + HeaderHeight * 0.5f),
+            FVector(WallThickness / 100.0f, DoorWidth / 100.0f, HeaderHeight / 100.0f),
             Label + TEXT("_Header"));
     }
 }
