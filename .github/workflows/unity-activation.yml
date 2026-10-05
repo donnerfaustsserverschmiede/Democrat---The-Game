@@ -8,11 +8,14 @@ jobs:
     name: Activate Unity Personal
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Install Unity Hub and Editor
         uses: buildalon/unity-setup@v2
         with:
           version-file: Unity/ProjectSettings/ProjectVersion.txt
-          unity-version: 6000.3.0f1
+          unity-version: 6000.3.24f1
           cache-installation: true
 
       - name: Activate Unity Personal license
