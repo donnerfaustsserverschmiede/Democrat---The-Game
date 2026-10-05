@@ -34,3 +34,12 @@ The complete playable world is the building interior. The exterior will later be
 8. Add political gameplay systems room by room.
 
 The old browser/PWA implementation remains in the repository as legacy code while the Unreal project is developed separately.
+
+
+## Architecture specification
+
+The authoritative building plan, dimensions, circulation strategy, spawn design and staged construction plan are maintained in:
+
+- `Unreal/Docs/GovernmentBuildingArchitecture.md`
+
+The procedural C++ blockout is intentionally a structural foundation. Final Unreal level assets, meshes, materials and lighting are built in the Unreal Editor once the project is opened locally.
