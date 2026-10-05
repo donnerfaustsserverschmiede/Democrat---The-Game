@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./auth-config-v2.js?v=20261001-2";
-import * as country from "../country/country.js?v=20261001-2";
+import * as character from "../character/character.js?v=20261005-1";
 
 const root = document.querySelector("#auth-app");
 
@@ -121,7 +121,7 @@ async function handleGuest(event) {
 
   const { data: existingSession } = await supabase.auth.getSession();
   if (existingSession?.session?.user?.is_anonymous) {
-    await mountCountrySelection(existingSession.session.user);
+    await mountCharacterCreation(existingSession.session.user);
     return;
   }
 
@@ -145,7 +145,7 @@ async function handleGuest(event) {
     return renderGuest("Der Gast wurde angemeldet, aber der Benutzername konnte nicht gespeichert werden.");
   }
 
-  await mountCountrySelection(data.user);
+  await mountCharacterCreation(data.user);
 }
 
 async function upgradeGuestAccount({ email, password }) {
@@ -177,9 +177,9 @@ export async function upgradeGuestAccountFromSettings(credentials) {
   return upgradeGuestAccount(credentials);
 }
 
-async function mountCountrySelection(user) {
+async function mountCharacterCreation(user) {
   root.hidden = true;
-  await country.mount(user);
+  await character.mount(user);
 }
 
 async function restoreExistingSession() {
