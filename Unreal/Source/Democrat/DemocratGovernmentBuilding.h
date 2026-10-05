@@ -24,4 +24,10 @@ private:
 
     void AddBlock(const FVector& Location, const FVector& Scale, const FString& Label);
     void AddRoom(const FVector& Center, const FVector& Size, const FString& Label);
+    void AddWallWithDoor(const FVector& Center, const FVector& Size, bool bHorizontal, const FString& Label);
+    void AddDoor(const FVector& Location, const FString& Label);
+    void AddWindow(const FVector& Location, const FVector& Size, const FString& Label);
+    void AddStaircase(const FVector& Location, const FString& Label);
+    void AddElevator(const FVector& Location, const FString& Label);
+    void AddCeiling(const FVector& Center, const FVector& Size, const FString& Label);
 };
