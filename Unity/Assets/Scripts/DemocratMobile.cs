@@ -3,6 +3,13 @@ using UnityEngine.UI;
 
 public class DemocratMobile : MonoBehaviour
 {
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void Bootstrap()
+    {
+        var existing = FindFirstObjectByType<DemocratMobile>();
+        if (existing == null) new GameObject("Democrat Mobile Bootstrap").AddComponent<DemocratMobile>();
+    }
+
     CharacterController controller;
     Transform cameraPivot;
     float yaw, pitch = 12f, gravity;
