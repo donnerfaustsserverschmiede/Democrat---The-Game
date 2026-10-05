@@ -63,7 +63,7 @@ function render(character = {}) {
   root.innerHTML = `
     <div class="character-shell">
       <section class="character-card">
-        <div class="character-kicker">DEMocrat · DEINE POLITISCHE FIGUR</div>
+        <div class="character-kicker">DEMOCRAT · DEINE POLITISCHE FIGUR</div>
         <h1>Erstelle deinen Charakter</h1>
         <p class="character-intro">Gestalte die Person, mit der du deine politische Karriere beginnst.</p>
 
